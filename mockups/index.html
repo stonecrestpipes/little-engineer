@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Little Engineer — Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#21323D; --muted:#5A6B75; --faint:#8A9AA4; --paper:#FAF7F0; --line:#E5DED0; --blue:#2F7FC9; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font-family:'Work Sans',system-ui,sans-serif; padding:44px 40px 70px; }
+  header { max-width:1300px; margin:0 auto 30px; }
+  h1 { font-family:'Fredoka',sans-serif; font-weight:600; font-size:42px; margin:0 0 6px; letter-spacing:-.01em; }
+  .sub { color:var(--muted); font-size:17px; margin:0; }
+  .note { margin:18px 0 0; padding:13px 17px; border:1px solid var(--line); border-radius:11px;
+          background:#fff; font-size:14.5px; color:#3B4C57; line-height:1.55; max-width:860px; }
+  .grid { max-width:1300px; margin:0 auto; display:grid; gap:26px;
+          grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); }
+  .card { text-decoration:none; color:inherit; display:block; }
+  .shot { position:relative; width:100%; aspect-ratio:8/5; overflow:hidden;
+          border-radius:13px; border:1px solid var(--line); background:#CDEAF2;
+          box-shadow:0 3px 14px rgba(33,50,61,.1); }
+  .shot iframe { position:absolute; top:0; left:0; width:1280px; height:800px; border:0;
+                 transform-origin:top left; pointer-events:none; }
+  .card:hover .shot { border-color:var(--blue); box-shadow:0 6px 22px rgba(33,50,61,.18); }
+  .meta { padding:11px 3px 0; }
+  .t { display:block; font-family:'Fredoka',sans-serif; font-size:20px; }
+  .b { display:block; font-size:13.5px; color:var(--muted); margin-top:1px; }
+  footer { max-width:1300px; margin:44px auto 0; padding-top:20px; border-top:1px solid var(--line);
+           font-size:13.5px; color:var(--faint); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Little Engineer</h1>
+  <p class="sub">Mockups &middot; every screen at the Pixel Tablet's real size, 1280 &times; 800</p>
+  <p class="note"><strong>Click any one</strong> to open it full size. On the tablet itself these are true scale, so the
+  buttons are exactly as big as they will be in the game. The three camera views link to each other &mdash; tap the
+  camera button in the top-left corner to cycle Wide &rarr; Follow &rarr; Trackside.</p>
+</header>
+<div class="grid">
+    <a class="card" href="01-wide.html">
+      <div class="shot"><iframe src="01-wide.html" scrolling="no" tabindex="-1" title="Wide"></iframe></div>
+      <div class="meta"><span class="t">Wide</span><span class="b">The whole railway — the default view</span></div>
+    </a>
+    <a class="card" href="02-follow.html">
+      <div class="shot"><iframe src="02-follow.html" scrolling="no" tabindex="-1" title="Follow"></iframe></div>
+      <div class="meta"><span class="t">Follow</span><span class="b">Riding just behind the engine</span></div>
+    </a>
+    <a class="card" href="03-trackside.html">
+      <div class="shot"><iframe src="03-trackside.html" scrolling="no" tabindex="-1" title="Trackside"></iframe></div>
+      <div class="meta"><span class="t">Trackside</span><span class="b">Standing by the track as it comes past</span></div>
+    </a>
+    <a class="card" href="04-station.html">
+      <div class="shot"><iframe src="04-station.html" scrolling="no" tabindex="-1" title="Station"></iframe></div>
+      <div class="meta"><span class="t">Station</span><span class="b">Stopped, boarding, everything answering the whistle</span></div>
+    </a>
+    <a class="card" href="05-controls.html">
+      <div class="shot"><iframe src="05-controls.html" scrolling="no" tabindex="-1" title="Controls"></iframe></div>
+      <div class="meta"><span class="t">Controls</span><span class="b">The four buttons, sizes and placement</span></div>
+    </a>
+    <a class="card" href="06-launch.html">
+      <div class="shot"><iframe src="06-launch.html" scrolling="no" tabindex="-1" title="Launch"></iframe></div>
+      <div class="meta"><span class="t">Launch</span><span class="b">The icon, and starting it himself</span></div>
+    </a>
+    <a class="card" href="07-loop.html">
+      <div class="shot"><iframe src="07-loop.html" scrolling="no" tabindex="-1" title="Railway"></iframe></div>
+      <div class="meta"><span class="t">Railway</span><span class="b">Plan of the loop and what is on it</span></div>
+    </a>
+    <a class="card" href="08-engine.html">
+      <div class="shot"><iframe src="08-engine.html" scrolling="no" tabindex="-1" title="Engine"></iframe></div>
+      <div class="meta"><span class="t">Engine</span><span class="b">The engine design sheet</span></div>
+    </a>
+</div>
+<footer>Phase 0 &middot; design only, nothing built yet &middot; see Little Engineer - Game Plan.pdf for the full plan</footer>
+<script>
+  // scale each 1280x800 board down to fit its card, and keep it right on resize
+  function fit() {
+    document.querySelectorAll('.shot').forEach(function (s) {
+      var f = s.querySelector('iframe');
+      if (f) f.style.transform = 'scale(' + (s.clientWidth / 1280) + ')';
+    });
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+</script>
+</body>
+</html>

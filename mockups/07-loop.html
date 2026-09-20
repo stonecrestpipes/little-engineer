@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>Little Engineer — Railway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Work Sans', system-ui, sans-serif; background: #FAF7F0; }
+    a { color: #1E5E9B; } a:hover { color: #14456F; }
+  </style>
+<style>
+  html, body { margin: 0; background: #20303A; }
+  .frame { width: 1280px; height: 800px; margin: 0 auto; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  @media (max-width: 1280px) { body { overflow-x: auto; } }
+</style>
+</head>
+<body>
+<div class="frame">
+<div style="width: 1280px; height: 800px; position: relative; overflow: hidden; background: #FAF7F0; box-sizing: border-box; padding: 44px 56px;">
+
+  <div style="display: flex; align-items: baseline; gap: 18px;">
+    <h1 style="margin: 0; font-family: 'Fredoka', sans-serif; font-size: 42px; font-weight: 600; color: #21323D; letter-spacing: -0.01em;">The railway</h1>
+    <p style="margin: 0; font-size: 17px; color: #4A5B66;">One closed loop. Six things to arrive at. It never ends.</p>
+  </div>
+
+  <div style="display: flex; gap: 36px; margin-top: 10px; align-items: flex-start;">
+
+    <svg width="810" height="640" viewBox="0 0 810 640" aria-label="Plan of the loop, marking three stations and three trackside features spaced around it">
+      <ellipse cx="400" cy="330" rx="300" ry="200" fill="none" stroke="#E7DFCE" stroke-width="54"/>
+      <ellipse cx="400" cy="330" rx="300" ry="200" fill="none" stroke="#C9A87C" stroke-width="34"/>
+      <ellipse cx="400" cy="330" rx="300" ry="200" fill="none" stroke="#8D6E4E" stroke-width="28" stroke-dasharray="6 16"/>
+      <ellipse cx="400" cy="330" rx="308" ry="208" fill="none" stroke="#B0B6BB" stroke-width="4"/>
+      <ellipse cx="400" cy="330" rx="292" ry="192" fill="none" stroke="#B0B6BB" stroke-width="4"/>
+
+      <g fill="#4A5B66">
+        <path d="M 386 118 L 414 130 L 386 142 Z"/>
+        <path d="M 692 396 L 676 373 L 704 370 Z"/>
+        <path d="M 414 542 L 386 530 L 414 518 Z"/>
+      </g>
+
+      <g>
+        <circle cx="100" cy="330" r="38" fill="#C36552"/>
+        <circle cx="100" cy="330" r="38" fill="none" stroke="#FAF7F0" stroke-width="5"/>
+        <path d="M 78 340 L 100 322 L 122 340 L 122 350 L 78 350 Z" fill="#F7EBD6"/>
+        <rect x="88" y="336" width="10" height="14" fill="#8A4A3A"/>
+        <rect x="104" y="336" width="10" height="14" fill="#8A4A3A"/>
+        <text x="52" y="322" text-anchor="end" font-family="Fredoka, sans-serif" font-size="25" font-weight="600" fill="#21323D">The Sheds</text>
+        <text x="52" y="346" text-anchor="end" font-family="Work Sans, sans-serif" font-size="15" fill="#5A6B75">home &middot; where play begins</text>
+      </g>
+
+      <g>
+        <circle cx="188" cy="189" r="34" fill="#5FA349"/>
+        <circle cx="188" cy="189" r="34" fill="none" stroke="#FAF7F0" stroke-width="5"/>
+        <path d="M 170 204 q 18 -30 36 0 Z" fill="#2B3A45"/>
+        <path d="M 168 204 q 20 -34 40 0" fill="none" stroke="#F7EBD6" stroke-width="5"/>
+        <text x="146" y="164" text-anchor="end" font-family="Fredoka, sans-serif" font-size="23" font-weight="600" fill="#21323D">Tunnel</text>
+        <text x="146" y="186" text-anchor="end" font-family="Work Sans, sans-serif" font-size="15" fill="#5A6B75">whistle here and it echoes</text>
+      </g>
+
+      <g>
+        <circle cx="550" cy="157" r="38" fill="#7BBC58"/>
+        <circle cx="550" cy="157" r="38" fill="none" stroke="#FAF7F0" stroke-width="5"/>
+        <path d="M 530 170 L 530 150 L 550 136 L 570 150 L 570 170 Z" fill="#C36552"/>
+        <rect x="543" y="154" width="14" height="16" fill="#F7EBD6"/>
+        <text x="598" y="148" font-family="Fredoka, sans-serif" font-size="25" font-weight="600" fill="#21323D">The Farm</text>
+        <text x="598" y="172" font-family="Work Sans, sans-serif" font-size="15" fill="#5A6B75">sheep look up when whistled at</text>
+      </g>
+
+      <g>
+        <circle cx="700" cy="330" r="34" fill="#4FA3C9"/>
+        <circle cx="700" cy="330" r="34" fill="none" stroke="#FAF7F0" stroke-width="5"/>
+        <rect x="678" y="322" width="44" height="8" rx="3" fill="#A87F5B"/>
+        <rect x="682" y="330" width="7" height="16" fill="#8A6A4A"/>
+        <rect x="711" y="330" width="7" height="16" fill="#8A6A4A"/>
+        <path d="M 676 352 q 24 8 48 0" stroke="#DFF3FA" stroke-width="5" fill="none"/>
+        <text x="748" y="322" font-family="Fredoka, sans-serif" font-size="23" font-weight="600" fill="#21323D">Bridge</text>
+        <text x="748" y="344" font-family="Work Sans, sans-serif" font-size="15" fill="#5A6B75">a boat passes under</text>
+      </g>
+
+      <g>
+        <circle cx="550" cy="503" r="38" fill="#4F7FA8"/>
+        <circle cx="550" cy="503" r="38" fill="none" stroke="#FAF7F0" stroke-width="5"/>
+        <path d="M 530 512 L 570 512 L 562 524 L 538 524 Z" fill="#F7EBD6"/>
+        <rect x="547" y="480" width="6" height="32" fill="#F7EBD6"/>
+        <path d="M 553 480 L 578 488 L 553 496 Z" fill="#D9573F"/>
+        <text x="598" y="494" font-family="Fredoka, sans-serif" font-size="25" font-weight="600" fill="#21323D">The Harbour</text>
+        <text x="598" y="518" font-family="Work Sans, sans-serif" font-size="15" fill="#5A6B75">a boat sounds its horn back</text>
+      </g>
+
+      <g>
+        <circle cx="188" cy="471" r="34" fill="#F0B23E"/>
+        <circle cx="188" cy="471" r="34" fill="none" stroke="#FAF7F0" stroke-width="5"/>
+        <rect x="166" y="466" width="44" height="7" rx="3" fill="#F7EBD6"/>
+        <circle cx="166" cy="482" r="6" fill="#C62828"/>
+        <circle cx="210" cy="482" r="6" fill="#C62828"/>
+        <text x="146" y="466" text-anchor="end" font-family="Fredoka, sans-serif" font-size="23" font-weight="600" fill="#21323D">Crossing</text>
+        <text x="146" y="488" text-anchor="end" font-family="Work Sans, sans-serif" font-size="15" fill="#5A6B75">gates lower, the driver waves</text>
+      </g>
+
+      <g transform="translate(352,286)">
+        <circle cx="30" cy="42" r="13" fill="#34404A"/><circle cx="30" cy="42" r="9" fill="#C64B3A"/>
+        <circle cx="58" cy="43" r="11" fill="#34404A"/><circle cx="58" cy="43" r="7.5" fill="#C64B3A"/>
+        <circle cx="82" cy="43" r="10" fill="#34404A"/><circle cx="82" cy="43" r="6.5" fill="#C64B3A"/>
+        <path d="M 62 2 L 96 6 L 96 38 L 62 38 Z" fill="#2F7FC9"/>
+        <path d="M 58 -4 L 100 1 L 100 7 L 58 2 Z" fill="#D9573F"/>
+        <path d="M 66 8 L 88 11 L 88 25 L 66 23 Z" fill="#BEDFEF"/>
+        <path d="M 26 5 L 66 9 L 66 40 L 26 43 Z" fill="#2F7FC9"/>
+        <polygon points="18,4 32,5 30,-9 20,-10" fill="#34404A"/>
+        <path d="M 15 -14 L 35 -12 L 35 -6 L 15 -8 Z" fill="#34404A"/>
+        <path d="M 4 38 L 94 36 L 94 44 L 4 46 Z" fill="#34404A"/>
+        <path d="M 2 38 L 34 36 L 36 50 L 4 52 Z" fill="#D9573F"/>
+        <ellipse cx="24" cy="24" rx="21" ry="22" fill="#1E5E9B"/>
+        <ellipse cx="25" cy="23" rx="17" ry="18" fill="#FAF7F0"/>
+        <ellipse cx="18" cy="19" rx="5.5" ry="6" fill="#FFFFFF"/>
+        <circle cx="19" cy="20" r="3.4" fill="#2B3A45"/>
+        <ellipse cx="33" cy="20" rx="5.5" ry="6" fill="#FFFFFF"/>
+        <circle cx="34" cy="21" r="3.4" fill="#2B3A45"/>
+        <path d="M 15 31 Q 25 42 35 32 Q 25 37 15 31 Z" fill="#2B3A45"/>
+      </g>
+      <text x="403" y="380" text-anchor="middle" font-family="Work Sans, sans-serif" font-size="15" fill="#8A9AA4">one lap &asymp; 90 seconds at cruising speed</text>
+    </svg>
+
+    <div style="width: 338px; display: flex; flex-direction: column; gap: 14px; padding-top: 24px;">
+
+      <div style="border-radius: 14px; background: #FFFFFF; border: 1px solid #E5DED0; padding: 18px 20px;">
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8A9AA4; margin-bottom: 10px;">Rhythm</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3B4C57;">Six events evenly spaced means <strong style="color: #21323D;">something happens every 15 seconds</strong>. Close enough that the gaps never feel empty, far enough apart that the journey between them still counts as driving.</p>
+      </div>
+
+      <div style="border-radius: 14px; background: #FFFFFF; border: 1px solid #E5DED0; padding: 18px 20px;">
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8A9AA4; margin-bottom: 10px;">Why a loop</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3B4C57;">There is no finish, so there is nothing to lose and no &ldquo;again?&rdquo; to negotiate. He stops when he is done, and the tablet can be taken away mid-lap without interrupting anything.</p>
+      </div>
+
+      <div style="border-radius: 14px; background: #EEF5E9; border: 1px solid #D5E5C9; padding: 18px 20px;">
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6E8F5E; margin-bottom: 10px;">Built to grow</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #2F5326;">Each marker is one reusable piece. Phase 5 extends the loop outward from the Harbour without touching anything already working.</p>
+      </div>
+
+      <div style="border-radius: 14px; background: #21323D; padding: 18px 20px;">
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8FB0C0; margin-bottom: 10px;">Not in this version</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #C4D6E0;">Junctions &middot; points &middot; signals to obey &middot; reversing &middot; a second train on the line &middot; anything that can go wrong.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>

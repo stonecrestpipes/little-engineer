@@ -1,0 +1,3 @@
+# Not for search engines. This is a private family project.
+User-agent: *
+Disallow: /

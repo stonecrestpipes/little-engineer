@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+Thumbs.db
+
+# Third-party reference imagery: local working material, deliberately not
+# published. Leading slash matters — a bare "assets/" would also swallow
+# public/assets/, which is where the face texture the game needs lives.
+/assets/
+Claude outputs/

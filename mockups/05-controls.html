@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>Little Engineer — Controls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Work Sans', system-ui, sans-serif; background: #FAF7F0; }
+    a { color: #1E5E9B; } a:hover { color: #14456F; }
+  </style>
+<style>
+  html, body { margin: 0; background: #20303A; }
+  .frame { width: 1280px; height: 800px; margin: 0 auto; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  @media (max-width: 1280px) { body { overflow-x: auto; } }
+</style>
+</head>
+<body>
+<div class="frame">
+<div style="width: 1280px; height: 800px; position: relative; overflow: hidden; background: #FAF7F0; box-sizing: border-box; padding: 44px 56px;">
+
+  <div style="display: flex; align-items: baseline; gap: 18px;">
+    <h1 style="margin: 0; font-family: 'Fredoka', sans-serif; font-size: 42px; font-weight: 600; color: #21323D; letter-spacing: -0.01em;">The four controls</h1>
+    <p style="margin: 0; font-size: 17px; color: #4A5B66;">Bottom corners, where a four-year-old's thumbs already are.</p>
+  </div>
+
+  <div style="display: flex; gap: 44px; margin-top: 28px;">
+
+    <div style="flex-grow: 1;">
+      <div style="position: relative; width: 720px; height: 450px; border-radius: 18px; background: #DCEBF2; border: 10px solid #2B3A45; box-sizing: border-box; overflow: hidden;">
+        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #A9D9EA 0%, #D3EAE6 58%, #8FC46F 58%, #6DAE52 100%);"></div>
+
+        <div style="position: absolute; left: 0; bottom: 0; width: 300px; height: 300px; border-radius: 0 300px 0 0; background: rgba(46,125,50,0.13);"></div>
+        <div style="position: absolute; right: 0; bottom: 0; width: 300px; height: 300px; border-radius: 300px 0 0 0; background: rgba(198,40,40,0.12);"></div>
+
+        <div style="position: absolute; left: 18px; top: 18px; width: 50px; height: 50px; border-radius: 25px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2B3A45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="12.5" r="3.5"/></svg>
+        </div>
+
+        <div style="position: absolute; left: 25px; bottom: 25px; width: 92px; height: 92px; border-radius: 46px; background: #2E7D32; box-shadow: 0 5px 0 #1F5723; color: #FFFFFF; font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 600; display: flex; align-items: center; justify-content: center;">GO</div>
+        <div style="position: absolute; right: 25px; bottom: 25px; width: 92px; height: 92px; border-radius: 46px; background: #C62828; box-shadow: 0 5px 0 #8E1C1C; color: #FFFFFF; font-family: 'Fredoka', sans-serif; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center;">STOP</div>
+        <div style="position: absolute; left: 325px; bottom: 25px; width: 70px; height: 70px; border-radius: 35px; background: #F0B23E; box-shadow: 0 4px 0 #B8812A; display: flex; align-items: center; justify-content: center;">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#3A2A10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3l4-3v11l-4-3H4Z" fill="#3A2A10"/><path d="M15 8.5a5 5 0 0 1 0 7"/><path d="M18 5.5a9 9 0 0 1 0 13"/></svg>
+        </div>
+
+        <div style="position: absolute; left: 25px; bottom: 132px; width: 92px; border-top: 2px dashed #21323D; opacity: 0.65;"></div>
+        <div style="position: absolute; left: 25px; bottom: 140px; font-size: 12px; font-weight: 600; color: #21323D; font-family: 'Work Sans', sans-serif;">164 px</div>
+        <div style="position: absolute; left: 127px; bottom: 25px; height: 92px; border-left: 2px dashed #21323D; opacity: 0.65;"></div>
+        <div style="position: absolute; left: 136px; bottom: 60px; font-size: 12px; font-weight: 600; color: #21323D;">164</div>
+        <div style="position: absolute; left: 0px; bottom: 0; width: 25px; height: 25px; background: rgba(33,50,61,0.14);"></div>
+        <div style="position: absolute; left: 30px; bottom: 4px; font-size: 11px; color: #21323D;">44 px inset</div>
+      </div>
+
+      <div style="display: flex; gap: 26px; margin-top: 20px;">
+        <div style="flex-grow: 1;">
+          <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8A9AA4;">Thumb zones</div>
+          <p style="margin: 6px 0 0; font-size: 15px; line-height: 1.5; color: #3B4C57;">GO and STOP sit inside the natural sweep of each thumb when the tablet is held at the sides. Nothing else is placed in those corners, so a wild jab cannot hit the wrong thing.</p>
+        </div>
+        <div style="flex-grow: 1;">
+          <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8A9AA4;">Why so far apart</div>
+          <p style="margin: 6px 0 0; font-size: 15px; line-height: 1.5; color: #3B4C57;">Opposite corners, 780 px apart. GO and STOP can never be confused for one another, and he never has to aim.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 346px; display: flex; flex-direction: column; gap: 16px;">
+
+      <div style="border-radius: 14px; background: #FFFFFF; border: 1px solid #E5DED0; padding: 18px 20px;">
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8A9AA4; margin-bottom: 14px;">States</div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="width: 66px; height: 66px; border-radius: 33px; background: #2E7D32; box-shadow: 0 5px 0 #1F5723; color: #FFFFFF; font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center;">GO</div>
+          <div style="width: 66px; height: 66px; border-radius: 33px; background: #256628; box-shadow: 0 1px 0 #1F5723; margin-top: 4px; color: #FFFFFF; font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center;">GO</div>
+          <div style="width: 66px; height: 66px; border-radius: 33px; background: #1F5723; opacity: 0.4; color: #FFFFFF; font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center;">GO</div>
+          <div style="flex-grow: 1; font-size: 13px; line-height: 1.45; color: #4A5B66;">rest<br>pressed<br>already moving</div>
+        </div>
+      </div>
+
+      <div style="border-radius: 14px; background: #FFFFFF; border: 1px solid #E5DED0; padding: 18px 20px;">
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8A9AA4; margin-bottom: 14px;">Sizes</div>
+        <dl style="margin: 0; font-size: 15px; color: #3B4C57; line-height: 1.9;">
+          <div style="display: flex; justify-content: space-between;"><dt>GO / STOP</dt><dd style="margin: 0; font-weight: 600; color: #21323D;">164 px</dd></div>
+          <div style="display: flex; justify-content: space-between;"><dt>WHISTLE</dt><dd style="margin: 0; font-weight: 600; color: #21323D;">124 px</dd></div>
+          <div style="display: flex; justify-content: space-between;"><dt>CAMERA</dt><dd style="margin: 0; font-weight: 600; color: #21323D;">88 px</dd></div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid #EFE9DD; padding-top: 6px;"><dt>absolute minimum</dt><dd style="margin: 0; font-weight: 600; color: #21323D;">96 px</dd></div>
+        </dl>
+      </div>
+
+      <div style="border-radius: 14px; background: #21323D; padding: 20px;">
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8FB0C0; margin-bottom: 12px;">Every press answers three ways</div>
+        <ol style="margin: 0; padding-left: 20px; font-size: 16px; line-height: 1.75; color: #F2F6F8;">
+          <li>the button moves</li>
+          <li>the world reacts</li>
+          <li>a sound plays</li>
+        </ol>
+        <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: #B7CBD6;">Within one frame, every time. Immediate feedback matters more than realism.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 56px; right: 56px; bottom: 34px; display: flex; gap: 14px;">
+    <div style="flex-grow: 1; border-radius: 10px; background: #EEF5E9; border: 1px solid #D5E5C9; padding: 12px 16px; font-size: 14px; color: #2F5326;"><strong style="color: #24421C;">No text anywhere.</strong> Shape, colour, icon and sound carry every control.</div>
+    <div style="flex-grow: 1; border-radius: 10px; background: #FBF0E4; border: 1px solid #EFDCC4; padding: 12px 16px; font-size: 14px; color: #6B4A1E;"><strong style="color: #523716;">WHISTLE never greys out.</strong> It works stopped, moving, anywhere, endlessly.</div>
+    <div style="flex-grow: 1; border-radius: 10px; background: #EAF1F7; border: 1px solid #D2E1EE; padding: 12px 16px; font-size: 14px; color: #274B68;"><strong style="color: #1C3A52;">Landscape only.</strong> Rotating the tablet changes nothing.</div>
+  </div>
+
+</div>
+</div>
+</body>
+</html>

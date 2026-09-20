@@ -1,0 +1,42 @@
+import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
+
+// Deploying into a subfolder (GitHub Pages project sites) needs a base path.
+// Set BASE_PATH=/little-engineer/ at build time; defaults to root.
+const base = process.env.BASE_PATH ?? '/';
+
+export default defineConfig({
+  base,
+  server: { host: true },
+  build: { target: 'es2022', assetsInlineLimit: 0 },
+  plugins: [
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['assets/**/*'],
+      manifest: {
+        name: 'Little Engineer',
+        short_name: 'Engineer',
+        description: 'A calm train game.',
+        start_url: base,
+        scope: base,
+        display: 'standalone',
+        orientation: 'landscape',
+        background_color: '#CDEAF2',
+        theme_color: '#2F7FC9',
+        icons: [
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,png,jpg,webp,svg,woff2}'],
+        cleanupOutdatedCaches: true,
+        // Without this, opening the installed app with no network fails:
+        // the navigation request misses the cache and there is nothing to
+        // fall back to. This is what makes flight mode work.
+        navigateFallback: 'index.html',
+      },
+    }),
+  ],
+});

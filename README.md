@@ -4,8 +4,53 @@ A calm, offline train game for a four-year-old. Four buttons, one loop, nothing
 can go wrong. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled design and
 `Little Engineer - Game Plan.pdf` for the full phased plan.
 
-**Status: Phase 1 built, not yet play-tested.** Phase 1 is only finished when he
-picks up the tablet and plays without being told how — that test still needs him.
+**Live:** https://stonecrestpipes.github.io/little-engineer/
+**Repo:** `stonecrestpipes/little-engineer` (public — see *Hosting* below)
+
+---
+
+## Where this is up to
+
+**Phase 1 is built and deployed. It has not been play-tested.** That is the
+whole gate: Phase 1 is finished when he picks up the tablet and plays without
+being told how. Nothing after it should be built until that has happened,
+because the point of the phase is to find out whether the interaction is worth
+building on.
+
+### The next thing to do
+
+1. Install it on the Pixel Tablet (see *Putting it on the Pixel Tablet*).
+2. Hand it to him. Say nothing.
+3. Watch what he does — especially whether he finds GO unprompted, whether he
+   whistles more than he drives, and whether he ever looks for something the
+   game does not do.
+
+### Decide after watching, not before
+
+- **Cruise speed** is `7.2` m/s in `src/content/engines/thomas.ts` — about a
+  minute a lap. A guess, and the first number likely to want changing.
+- **The nameplate is blank** (`nameplate: ''` in the same file). It is meant to
+  carry whatever he decides to call the engine, and is the only text anywhere
+  in the game.
+- **Whether the station reaction is enough.** Right now: lamp lights, flag goes
+  up, passengers bob, chime plays. Phase 3 is where that gets properly built
+  out — but only if arriving turns out to be the thing he likes most.
+
+### Known-good, do not re-litigate
+
+The settled design decisions are in [GAME_DESIGN.md](GAME_DESIGN.md) with the
+reasoning. The ones most likely to be second-guessed, and why they are already
+answered: no speed slider (he does not chase speed), no failure states at all,
+no speech, landscape only, and four buttons with nothing else on screen.
+
+### Not in the repo
+
+`assets/` (third-party reference imagery) and `Claude outputs/` are
+deliberately git-ignored — local working material only. The one asset the game
+actually needs is committed at `public/assets/engines/thomas/face.png`. If you
+clone this fresh onto another machine, the reference folder will not come with
+it. See `assets/engines/thomas/curated/NOTES.md` locally for which reference
+files are usable; several scraped ones contain the wrong subject entirely.
 
 ---
 
@@ -75,6 +120,31 @@ before he has pressed anything. From his side it simply is the new version.
 `registerType` is `'prompt'` in `vite.config.ts`, which sounds wrong but is
 right: it stops the new worker activating itself mid-play, leaving `updates.ts`
 to choose the moment. Nobody is ever prompted.
+
+## Hosting
+
+The repo is **public**, so the site is too. That was a deliberate trade to get
+it installed quickly, not the end state — the build has third-party character
+imagery in it (the face texture and the app icons) and this is a private family
+project.
+
+What is in place: `public/robots.txt` disallows all crawlers and `index.html`
+carries `noindex, nofollow, noarchive`, so it stays out of search results.
+What is not: the repo is listed on the GitHub profile, and anyone with the URL
+can open it.
+
+Tightening it later, best option first:
+
+1. **Swap in original artwork.** `src/content/engines/thomas.ts` plus one PNG.
+   The content layer was built for exactly this, and it makes the public URL a
+   non-issue rather than a managed risk.
+2. **Private repo + Pages**, which needs GitHub Pro or above.
+3. **Drop hosting**, install from a throwaway `cloudflared` tunnel and let the
+   app run offline from cache.
+
+⚠️ Do not rename the repo or flip it private without planning for it: the
+installed app's `start_url` points at the current URL, and changing it means
+reinstalling on the tablet.
 
 ## How it is put together
 

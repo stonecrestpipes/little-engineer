@@ -335,6 +335,10 @@ Three decisions were made during the build that are worth recording here:
   would have had it creep to the platform on its own, which is the game taking the decision away
   from him.
 
+It is deployed and installable at **https://stonecrestpipes.github.io/little-engineer/**, and
+pushed updates reach the tablet on the next launch rather than the one after. The public URL is a
+deliberate short-term trade — see *Hosting* in [README.md](README.md) for how to tighten it.
+
 **Not yet done, because it needs him:** the actual test. Phase 1 is finished when he picks up the
 tablet and plays unprompted — not before.
 
@@ -351,8 +355,9 @@ What remains for Phase 2 is whatever the play test says to change.
 1. **The engine's name.** Worth asking him — a four-year-old naming his own engine is free ownership
    of the game. The nameplate on the tank is blank until then, and it is the only text in the entire
    game.
-2. **Where the build is hosted.** A free static host is decided; which one is not. It only matters
-   for how updates reach the tablet — and installing to the home screen needs HTTPS.
+2. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
+   crawlers blocked, which was chosen to get it installed quickly. Swapping in original artwork
+   would retire the question entirely; the content layer already supports it.
 3. **Cruise speed.** Currently 7.2 m/s, a lap in about a minute. This is a guess until he drives it,
    and is the first number I would expect to change.
 

@@ -7,11 +7,14 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
-  server: { host: true },
+  server: { host: true, port: process.env.PORT ? Number(process.env.PORT) : undefined },
   build: { target: 'es2022', assetsInlineLimit: 0 },
   plugins: [
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' does not prompt anyone here — it just stops the new worker
+      // activating itself mid-play. src/ui/updates.ts decides the moment.
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['assets/**/*'],
       manifest: {
         name: 'Little Engineer',

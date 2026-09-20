@@ -47,6 +47,35 @@ since "can he start it himself?" is part of what is being measured.
 
 ---
 
+## Shipping an update
+
+```bash
+git push
+```
+
+That is it. The Actions workflow rebuilds and redeploys, and the installed app
+picks it up **the next time he opens it** — one launch, not two.
+
+Getting that took some care, because the default behaviour is worse than it
+looks. `registerSW.js` as generated registers once on page load and never
+checks again, so a pushed update only appears on the launch *after* the one
+that happened to download it — and an app left in the background may not check
+for days.
+
+`src/ui/updates.ts` replaces that with:
+
+- an explicit update check on launch, whenever the app is brought back to the
+  front, and every 15 minutes during a long session;
+- the new version applied **only at a safe moment** — before he has touched
+  anything, or once the app is hidden. It never reloads mid-journey.
+
+So the sequence is: you push, he opens the app, it notices, swaps and reloads
+before he has pressed anything. From his side it simply is the new version.
+
+`registerType` is `'prompt'` in `vite.config.ts`, which sounds wrong but is
+right: it stops the new worker activating itself mid-play, leaving `updates.ts`
+to choose the moment. Nobody is ever prompted.
+
 ## How it is put together
 
 ```

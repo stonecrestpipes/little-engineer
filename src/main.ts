@@ -8,6 +8,7 @@ import { buildWorld } from './content/world';
 import { buildEngine, animateRunningGear } from './content/buildEngine';
 import { thomas } from './content/engines/thomas';
 import { mountControls } from './ui/controls';
+import { watchForUpdates } from './ui/updates';
 
 const SKY_TOP = 0x7fc8e6;
 const SKY_LOW = 0xdcf0f4;
@@ -147,21 +148,27 @@ async function boot(): Promise<void> {
   }
 
   // --- controls ----------------------------------------------------------
+  let touched = false;
+  const used = () => { touched = true; };
   const controls = mountControls({
     go: () => {
+      used();
       audio.start();
       train.go();
     },
     stop: () => {
+      used();
       audio.start();
       train.stop();
     },
     whistle: () => {
+      used();
       audio.start();
       audio.whistle();
       for (let i = 0; i < 3; i++) emitPuff();
     },
     camera: () => {
+      used();
       audio.start();
       rig.cycle();
     },
@@ -235,6 +242,9 @@ async function boot(): Promise<void> {
   if (import.meta.env.DEV) {
     (window as { LE?: unknown }).LE = { train, rig, world, audio, spec: thomas };
   }
+
+  // Pushed updates land the next time he opens the app, never mid-journey.
+  watchForUpdates({ inUse: () => touched || train.moving });
 
   // --- in we go ----------------------------------------------------------
   controls.show();

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { C, flat, mat, shadowed } from '../scenery';
 import { frameAt, gapTo, localGround, type Place, type PlaceContext } from './place';
+import { moving } from '../../engine/merge';
 
 /**
  * The level crossing.
@@ -128,6 +129,8 @@ export function buildCrossing(ctx: PlaceContext): Place {
 
   let clock = 0;
   let tooted = -99;
+
+  moving(car, driverArm, ...gates);
 
   return {
     group,

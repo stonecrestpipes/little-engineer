@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { C, mat, person, rock, shadowed } from '../scenery';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
+import { moving } from '../../engine/merge';
 
 /**
  * The Lighthouse — out along the sea wall from The Harbour, on the headland.
@@ -140,6 +141,8 @@ export function buildLighthouse(ctx: PlaceContext): Place {
       speed: 0.35 + i * 0.05,
     });
   }
+
+  moving(beam, keeper, ...gulls.map((g) => g.bird), ...gulls.flatMap((g) => g.wings));
 
   // ------------------------------------------------------------ behaviour
   let clock = 0;

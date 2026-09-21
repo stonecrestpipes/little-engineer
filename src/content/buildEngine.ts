@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { EngineSpec } from './engines/spec';
+import { mergeStatic, moving } from '../engine/merge';
 
 export interface EngineMesh {
   spec: EngineSpec;
@@ -187,6 +188,8 @@ export function buildEngine(spec: EngineSpec, faceMap: THREE.Texture | null): En
   group.traverse((o) => {
     if ((o as THREE.Mesh).isMesh) o.receiveShadow = true;
   });
+  moving(face, lens, ...wheels, ...rods.map((r) => r.mesh));
+  mergeStatic(group);
 
   return {
     spec,

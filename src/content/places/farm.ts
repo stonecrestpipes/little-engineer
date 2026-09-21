@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { C, flat, mat, person, pitchedRoof, shadowed, tree } from '../scenery';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
+import { moving } from '../../engine/merge';
 
 /**
  * The Farm — green, a barn, hay, and sheep.
@@ -98,6 +99,7 @@ export function buildFarm(ctx: PlaceContext): Place {
 
   shadowed(group);
   flat(field);
+  moving(farmer, ...flock.map((s) => s.group), ...flock.map((s) => s.neck));
 
   // ------------------------------------------------------------ behaviour
   let clock = 0;

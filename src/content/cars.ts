@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeStatic, moving } from '../engine/merge';
 import { C, mat } from './scenery';
 
 /**
@@ -159,6 +160,8 @@ export function buildCar(spec: CarSpec): CarMesh {
     }
   }
 
+  moving(...wheels);
+  mergeStatic(group);
   return { group, wheels, spec };
 }
 

@@ -40,8 +40,23 @@ export const C = {
   white: 0xf4f1e8,
 } as const;
 
+/**
+ * The plain painted material in a colour, shared: every call with the same
+ * colour and roughness gets the same material, which is what lets the parts
+ * of a place be merged into a few meshes (src/engine/merge.ts).
+ *
+ * Never change one of these after the fact — it would change everything else
+ * painted that colour. Anything that glows or fades makes its own material.
+ */
+const painted = new Map<string, THREE.MeshStandardMaterial>();
 export function mat(colour: number, rough = 0.85): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color: colour, roughness: rough, metalness: 0.02 });
+  const key = `${colour}|${rough}`;
+  let m = painted.get(key);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({ color: colour, roughness: rough, metalness: 0.02 });
+    painted.set(key, m);
+  }
+  return m;
 }
 
 /**

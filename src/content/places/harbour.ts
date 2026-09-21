@@ -3,6 +3,7 @@ import { C, COATS, mat, person, shadowed } from '../scenery';
 import { WATER_LEVEL } from '../terrain';
 import { buildStation } from './station';
 import { frameAt, isNear, type Place, type PlaceContext } from './place';
+import { moving } from '../../engine/merge';
 
 /**
  * The Harbour — blue, boats, cranes, and the sea behind it.
@@ -110,6 +111,8 @@ export function buildHarbour(ctx: PlaceContext): Place {
   let clock = 0;
   let hornAt = -99;
   let answered = -99;
+
+  moving(...cranes, ...boats.map((b) => b.group), ...boats.map((b) => b.funnel));
 
   return {
     group,

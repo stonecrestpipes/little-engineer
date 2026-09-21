@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { C, COATS, mat, person, pitchedRoof, shadowed } from '../scenery';
+import { moving } from '../../engine/merge';
 
 /**
  * The part every station has: a platform, a canopy, a lamp, a stationmaster
@@ -123,6 +124,7 @@ export function buildStation(look: StationLook): Station {
   }
 
   shadowed(group);
+  moving(master, flagArm, ...folk);
 
   // One clock, and it is the one `update` is handed. Reading the wall clock
   // in here as well would work in the game and quietly disagree with it

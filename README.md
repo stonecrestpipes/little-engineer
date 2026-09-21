@@ -208,6 +208,7 @@ src/
     audio.ts      every sound, synthesised — nothing is loaded
     sky.ts        day, a golden evening and dusk, and back
     quality.ts    steps shadows and resolution down if frames are slow
+    merge.ts      bakes everything that never moves into a few meshes
   content/    data: this engine, this railway
     engines/thomas.ts   colours, dimensions, driving feel, whistle pitch
     buildEngine.ts      the mesh, built from boxes and cylinders

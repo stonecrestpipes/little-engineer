@@ -3,6 +3,7 @@ import { C, flat, mat, pitchedRoof, shadowed, tree } from '../scenery';
 import { MAX_CARS } from '../roster';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
+import { moving } from '../../engine/merge';
 
 /**
  * The Sheds — red brick, home, and the yard where he picks his train.
@@ -185,6 +186,8 @@ export function buildSheds(ctx: PlaceContext): Place {
   /** When the yard last whistled back, and when each engine's hop is due. */
   let answered = -99;
   const hopAt = new Map<string, number>();
+
+  moving(...doors);
 
   return {
     group,

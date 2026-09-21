@@ -421,6 +421,17 @@ anything needing to be unpicked.
 
 ## Build log
 
+### Fewer draw calls
+
+Two new places took the wide view to 1,559 draw calls with shadows, because everything is built
+from small boxes and cylinders and each one is drawn separately, twice over for the shadow map.
+`src/engine/merge.ts` now bakes every part that never moves into one mesh per material after a
+place, an engine or a car is built — 899 draw calls for the same picture. The source stays in small
+editable pieces; the one rule is that anything that animates is marked with `moving()`, including
+parts that move inside something else that moves (a sheep's neck, a gull's wings). `mat()` now
+hands out one shared material per colour, which is what makes the merging possible, so a material
+from `mat()` must never be changed after the fact; anything that glows or fades makes its own.
+
 ### Phase 9, second pass — more answers
 
 Four small things, chosen because the whistle and the arrival are the two things he was seen doing

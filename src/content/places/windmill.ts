@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { C, mat, person, shadowed, tree } from '../scenery';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
+import { moving } from '../../engine/merge';
 
 /**
  * The Windmill — out on the branch line, round the far side of the hill.
@@ -110,6 +111,7 @@ export function buildWindmill(ctx: PlaceContext): Place {
   }
 
   shadowed(group);
+  moving(sails, miller, ...flowers.map((f) => f.head));
 
   // ------------------------------------------------------------ behaviour
   let clock = 0;

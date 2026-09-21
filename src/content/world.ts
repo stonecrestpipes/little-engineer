@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Network, type Route } from '../engine/track';
 import { Lines } from '../engine/junction';
+import { mergeStatic } from '../engine/merge';
 import type { Stop } from '../engine/train';
 import type { Audio } from '../engine/audio';
 import type { Roster } from './roster';
@@ -275,7 +276,10 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   };
   branchPlace(buildWindmill, 'windmill', BY_WINDMILL);
   branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE);
-  for (const place of places) scene.add(place.group);
+  for (const place of places) {
+    mergeStatic(place.group);
+    scene.add(place.group);
+  }
   const lineOf = (p: Place) => onLoop.get(p) ?? MAIN_LINE;
 
   // Each stop's distance is read live, in terms of whichever line the engine

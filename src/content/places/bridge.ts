@@ -3,6 +3,7 @@ import type { Track } from '../../engine/track';
 import { C, UP, mat, ribbon, rock, shadowed } from '../scenery';
 import { WATER_LEVEL } from '../terrain';
 import { isNear, type Place, type PlaceContext } from './place';
+import { moving } from '../../engine/merge';
 
 /**
  * The bridge over the river.
@@ -138,6 +139,8 @@ export function buildBridge(ctx: BridgeSpec): Place {
   let along = 0;
   let direction = 1;
   let hornAt = -99;
+
+  moving(boat, funnel);
 
   return {
     group,

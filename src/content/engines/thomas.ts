@@ -55,14 +55,19 @@ export const thomas: EngineSpec = {
   },
   driving: {
     // Deliberately unhurried. He did not pick "going fast" as something he
-    // enjoys, so the default is a speed you can watch rather than chase.
+    // enjoys, so the top of the lever is a speed you can watch rather than
+    // chase, and the bottom of the green is still a proper drive.
     cruise: 7.2,
+    slow: 2.8,
     approachSpeed: 2.6,
     approachRange: 34,
-    // Very wide on purpose: pressing STOP anywhere in this window arrives.
+    // Very wide on purpose: pulling the lever down anywhere in here arrives.
     stopWindow: 30,
     accel: 2.6,
     brake: 3.4,
+    // Released, it rolls for about six seconds before it finally stands still.
+    // Long enough that letting go reads as "easing off" rather than "stop".
+    coast: 1.15,
   },
   audio: {
     whistleHz: 660,

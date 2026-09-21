@@ -30,11 +30,25 @@ He does **not** chase speed. He is not a throttle child; he is a *conductor of a
 
 Three design consequences follow directly:
 
-- **No speed control.** GO / STOP only. A speed slider would add complexity serving an appetite he
-  doesn't have. (Revisit only via parent settings, Phase 8.)
-- **The whistle is a primary control, not a garnish.** Equal visual weight to GO and STOP, always
+- **Driving is one lever, not a set of options.** He is not a throttle child chasing a top speed;
+  he wants to set off, roll along and pull up. One thing to hold does all three.
+- **The whistle is a primary control, not a garnish.** Equal visual weight to the lever, always
   on screen, always responsive, and the world answers it.
 - **The camera button is a first-class control**, not a settings item. Flipping views is play.
+
+### Later observation: what he liked in someone else's game
+
+Watching him with *Thomas & Friends: Magic Tracks*, two things were clear, and they pull in
+opposite directions:
+
+- **The control was the good part.** A lever you push up into the green to go, let go of to ease
+  off by itself, and pull down to stop. One thumb, no reading, and letting go is always safe.
+- **Everything around it was in the way.** Errands to run, people to collect, prizes popping up
+  over the view. He wanted to drive through the place and look at it, and the game kept
+  interrupting to hand him a job.
+
+So: take the lever, and take nothing else. This game is about going somewhere and watching it go
+past. That is the whole of it.
 
 ---
 
@@ -44,7 +58,10 @@ Three design consequences follow directly:
 |---|---|
 | **Name** | Little Engineer |
 | **Core gameplay** | Drive a train round a continuous loop; stop at stations; whistle at everything; watch it go |
-| **Controls** | GO, STOP, WHISTLE, CAMERA. Four buttons. Nothing else on screen |
+| **Controls** | One throttle lever, plus WHISTLE and CAMERA. Nothing else on screen |
+| **The lever** | Push up to go — further is faster. Let go and it centres itself and the engine eases down. Pull down to stop |
+| **Objectives** | **None.** No errands, no collecting, no prizes, nothing that pops up over the view |
+| **Greeting** | Spoken by name when the app opens, and nothing else is ever spoken |
 | **Camera** | One big button cycles three fixed views: **Wide**, **Follow**, **Trackside** |
 | **World** | One continuous loop, several stations, visible as a play-mat layout. No end, no fail |
 | **View style** | Storybook 3/4 — angled overhead, toy railway on a table |
@@ -94,22 +111,31 @@ controls sit in the **bottom corners** where thumbs already are — never along 
 
 ```
 ┌────────────────────────────────────────────────────┐
-│  [camera]                                          │
-│                                                    │
-│                   the railway                      │
-│                                                    │
-│                                                    │
-│  ┌──────┐                              ┌──────┐    │
-│  │  GO  │          [WHISTLE]           │ STOP │    │
-│  └──────┘                              └──────┘    │
+│  [camera]                                   ┌──┐   │
+│                                             │▲▲│   │
+│                  the railway                │▲▲│ ● │
+│                                             │──│   │
+│  ┌─────────┐                                │■■│   │
+│  │ WHISTLE │                                └──┘   │
+│  └─────────┘                                       │
 └────────────────────────────────────────────────────┘
 ```
 
-- **GO** (bottom-left, green) and **STOP** (bottom-right, red) — large, opposite corners so they
-  cannot be confused or hit by accident.
-- **WHISTLE** (bottom-centre) — always available, whether moving or stopped, always responds
+- **THE LEVER** (bottom-right) — a tall slot with a ball in it. Push the ball up into the green and
+  the engine goes, faster the further up it is. Let go and it springs back to the middle by itself
+  and the engine rolls gently down to nothing. Pull it down into the amber and it stops properly.
+- **WHISTLE** (bottom-left) — always available, whether moving or stopped, always responds
   instantly, and can be hammered repeatedly with no penalty or cooldown.
 - **CAMERA** (top-left, small but clear) — cycles the three views.
+
+Two things about the lever matter more than they look:
+
+- **It never latches.** A lever that stays where it was put is a lever that can be forgotten about,
+  and an engine left running is the game driving rather than him. Letting go always means letting go.
+- **Letting go and stopping are different, and feel different.** Released, the engine takes about
+  six seconds and twenty metres to come to rest — it is easing off. Pulled down, it takes two
+  seconds and eight metres — it is stopping. That difference is most of what the lever teaches, and
+  it is learned by doing rather than by being told.
 
 **Touch targets: minimum 96 px, primary buttons ~160 px.** Well above the 48 px adult minimum;
 a four-year-old's aim is poor and the tablet is heavy.
@@ -161,7 +187,9 @@ for five minutes, and that is a perfectly valid way to play the game.
 
 ## Audio
 
-No speech, in any phase. Sounds and animation carry everything.
+One spoken line — *"Hello Orion. Are you ready for a great train day?"* as the app opens, said by
+the device rather than recorded. Nothing else is ever spoken, and nothing in the game depends on
+hearing it. Sounds and animation carry the rest.
 
 - **Whistle** — warm, clear, satisfying, instant. The single most-heard sound in the game; worth
   getting genuinely right before anything else.
@@ -179,10 +207,14 @@ hundredth hearing, and it works regardless of language or reading ability.
 
 Recorded here so it doesn't creep back in later:
 
-accounts · logins · internet requirement · ads · purchases · currency · XP · levels · daily rewards ·
-streaks · timers · countdowns · scores · lives · derailment · collisions · red-signal penalties ·
-tutorials · text instructions · menus more than one tap deep · analytics · cloud saves · servers ·
-any ongoing cost.
+missions · errands · objectives · things to fetch · people to collect · prizes · pop-ups over the
+view · accounts · logins · internet requirement · ads · purchases · currency · XP · levels · daily
+rewards · streaks · timers · countdowns · scores · lives · derailment · collisions · red-signal
+penalties · tutorials · text instructions · menus more than one tap deep · analytics · cloud saves ·
+servers · any ongoing cost.
+
+The first line is the one to keep re-reading. Every item on it has a good argument for it, and every
+one of them turns driving through a place into doing a job.
 
 ---
 
@@ -213,9 +245,17 @@ animal, an engine wash, a branch to tap off the track, a visiting engine. Each m
 Extend the loop with new areas that connect to the existing world rather than replacing it. Junction
 choice with two very large arrow buttons arrives here, if Phase 4 shows he wants agency.
 
-### Phase 6 — More engines
+### Phase 6 — More engines, and something to pull
 A second and third engine reusing the same controller, differing in appearance, whistle, sound and
 small animation flourishes. Visual selection screen, no text.
+
+Then the train itself becomes his: **up to three cars behind the engine**, chosen and reordered at
+**the train shed**. He drives in, the choosing happens there, he drives out with a different train.
+No unlocking, no cost, nothing earned — every engine and every car is there the first time he opens
+the doors, and an engine on its own is as valid a choice as three cars.
+
+Making this a place rather than a menu is the point: he drives to the shed, so choosing is somewhere
+he goes rather than a screen that interrupts him.
 
 ### Phase 7 — Gentle progression
 An optional local sticker book recording places visited and things seen. Nothing can be lost, nothing
@@ -240,14 +280,15 @@ Full PWA: offline service worker, bundled assets, local storage, fullscreen, hom
 Deliberately tiny, and the only thing Phase 1 has to achieve:
 
 1. Tap the icon on the Pixel Tablet home screen.
-2. It opens fullscreen, instantly, offline.
+2. It opens fullscreen, instantly, offline, and says hello to him by name.
 3. One engine sits on one loop.
-4. Tap **GO** — it moves.
-5. Tap **STOP** — it stops.
-6. Tap **WHISTLE** — a proper whistle, immediately.
-7. Tap **CAMERA** — the view changes.
-8. Arrive at one station — something visibly happens.
-9. Keep driving as long as he likes.
+4. Push the lever up — it moves.
+5. Let go — it eases off by itself.
+6. Pull the lever down — it stops.
+7. Tap **WHISTLE** — a proper whistle, immediately.
+8. Tap **CAMERA** — the view changes.
+9. Arrive at one station — something visibly happens.
+10. Keep driving as long as he likes.
 
 If that holds his attention and he can use it unaided, continue. If not, **change the interaction
 before adding any content**.
@@ -316,6 +357,34 @@ anything needing to be unpicked.
 
 ## Build log
 
+### The lever, and the hello
+
+Two changes after watching him play *Magic Tracks*, both made before the Phase 1 test rather than
+after it, because they change the thing the test is measuring.
+
+**GO and STOP are gone, replaced by the lever.** This overturns *"no speed control"*, and it is
+worth being clear that it does. The reasoning behind that decision was that a speed slider is an
+option to weigh up, and he does not want options — which still holds. But the lever is not a slider;
+it is one thing to hold, and it answers *how fast* as a side effect of *are we going*, which is a
+question he never has to ask. Two buttons became one control, and the screen has one fewer thing on
+it than it did. If the Phase 1 test says otherwise, GO and STOP are a small change back.
+
+Concretely: `Train.setThrottle(-1 … +1)` replaced `go()` and `stop()`. Plus power is speed between
+`slow` and `cruise`; zero is a long coast on `coast`; minus is `brake`, and near a platform it is
+still the glide path that lands exactly on the mark. The dead zone is generous — a four-year-old's
+thumb drifts — and the lever never latches, so an engine can never be left running by a control he
+has walked away from.
+
+**It says hello to him by name**, which is the one exception to *no speech*, and it is synthesised
+by the device rather than recorded, so it is a string and not an audio file. Chrome on Android will
+not speak until the page has been touched and an app opened from the home screen has not been
+touched, so if nothing comes out it says it on his first touch instead. Either way the loading
+screen never waits more than a couple of seconds on it.
+
+**The one thing that did not change is the scope.** He liked driving through the place and disliked
+being handed jobs, which is what this game was already going to be. It is now written down as a
+decision rather than left as an absence — see *Explicitly not in this game*.
+
 ### Phase 1 — built, awaiting his verdict
 
 Everything in *First milestone* is implemented and runs: `npm run dev`. See
@@ -355,11 +424,18 @@ What remains for Phase 2 is whatever the play test says to change.
 1. **The engine's name.** Worth asking him — a four-year-old naming his own engine is free ownership
    of the game. The nameplate on the tank is blank until then, and it is the only text in the entire
    game.
-2. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
+2. **Whether one loop is enough to be "exploring".** The thing he liked was travelling through a
+   place. Right now the place is a single field with one station in it, and a lap takes a minute, so
+   there is not much to travel through. That is Phase 3's job — tunnel, crossing, bridge, harbour,
+   farm — and it is the strongest argument for doing Phase 3 next rather than Phase 6. But the
+   Phase 1 test comes first either way: whether the lever works for him decides more than what he
+   drives past.
+3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
    crawlers blocked, which was chosen to get it installed quickly. Swapping in original artwork
    would retire the question entirely; the content layer already supports it.
-3. **Cruise speed.** Currently 7.2 m/s, a lap in about a minute. This is a guess until he drives it,
-   and is the first number I would expect to change.
+4. **Cruise speed.** 7.2 m/s at the top of the lever, a lap in about a minute; 2.8 m/s at the
+   bottom of the green. Both are guesses until he drives it, and the range between them is the
+   first thing I would expect to want changing.
 
 ---
 

@@ -21,11 +21,6 @@
       </svg>
     </button>
 
-    <button id="btn-go" type="button" aria-label="Go">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg>
-      <span>GO</span>
-    </button>
-
     <button id="btn-whistle" type="button" aria-label="Whistle">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M4 9.5h3l4-3v11l-4-3H4Z" fill="currentColor"/>
@@ -34,14 +29,36 @@
       </svg>
     </button>
 
-    <button id="btn-stop" type="button" aria-label="Stop">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>
-      <span>STOP</span>
-    </button>
+    <!-- Push up to go, let go to roll gently down, pull down to stop. -->
+    <div id="lever" role="slider" tabindex="0" aria-label="Throttle"
+         aria-orientation="vertical" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0">
+      <div class="zones">
+        <div class="zone zone-go">
+          <svg viewBox="0 0 24 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 13 12 6l7 7"/>
+            <path d="M5 21l7-7 7 7"/>
+            <path d="M5 29l7-7 7 7"/>
+          </svg>
+        </div>
+        <div class="zone zone-coast">
+          <svg viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+            <path d="M5 5h14"/>
+            <path d="M8 10h8"/>
+          </svg>
+        </div>
+        <div class="zone zone-stop">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <rect x="5.5" y="5.5" width="13" height="13" rx="3"/>
+          </svg>
+        </div>
+      </div>
+      <div class="slot"><div class="knob"></div></div>
+    </div>
   </div>
 
   <div id="boot">
     <div class="boot-face"></div>
+    <p id="boot-hello"></p>
     <div class="boot-bar"><i></i></div>
   </div>
 

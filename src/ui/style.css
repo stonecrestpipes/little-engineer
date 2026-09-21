@@ -1,22 +1,25 @@
-/* Four buttons. Bottom corners, where a four-year-old's thumbs already are. */
+/* Three things on screen: the lever, the whistle, and the camera. */
 
 :root {
   --primary: 164px;
-  --whistle: 124px;
   --camera: 88px;
   --inset: 44px;
+  --lever-w: 168px;
+  --lever-h: 340px;
+  --knob: calc(var(--lever-w) * 0.46);
+  --radius: calc(var(--lever-w) * 0.26);
 }
 
 /* Keep the controls reachable if the window is shorter than a tablet. */
 @media (max-height: 620px) {
-  :root { --primary: 122px; --whistle: 96px; --camera: 70px; --inset: 24px; }
+  :root { --primary: 122px; --camera: 70px; --inset: 24px; --lever-w: 132px; --lever-h: 248px; }
 }
 @media (max-width: 760px) {
-  :root { --primary: 116px; --whistle: 92px; --camera: 66px; --inset: 20px; }
+  :root { --primary: 116px; --camera: 66px; --inset: 20px; --lever-w: 124px; --lever-h: 228px; }
 }
-/* Narrower still and the three would collide, so step them down again. */
+/* Narrower still and the two would collide, so step them down again. */
 @media (max-width: 560px) {
-  :root { --primary: 96px; --whistle: 78px; --camera: 56px; --inset: 14px; }
+  :root { --primary: 96px; --camera: 56px; --inset: 14px; --lever-w: 104px; --lever-h: 190px; }
 }
 
 * { box-sizing: border-box; }
@@ -47,6 +50,9 @@ html, body {
   position: fixed;
   inset: 0;
   pointer-events: none;
+  /* A stacking context of its own, so the halo behind the lever (z-index -1)
+     stays above the canvas instead of disappearing behind it. */
+  z-index: 0;
 }
 #ui[hidden] { display: none; }
 
@@ -57,10 +63,8 @@ html, body {
   padding: 0;
   margin: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   font-family: inherit;
   font-weight: 600;
   color: #fff;
@@ -71,36 +75,16 @@ html, body {
 
 #ui button svg { width: 32%; height: auto; display: block; }
 
-#btn-go, #btn-stop {
+/* The whistle is his favourite thing, so it gets a whole corner to itself. */
+#ui #btn-whistle {
+  left: var(--inset);
+  bottom: var(--inset);
   width: var(--primary);
   height: var(--primary);
   border-radius: 50%;
-  bottom: var(--inset);
-  font-size: calc(var(--primary) * 0.24);
-}
-
-#btn-go {
-  left: var(--inset);
-  background: #2e7d32;
-  box-shadow: 0 8px 0 #1f5723, 0 14px 24px rgba(43, 58, 69, 0.28);
-}
-
-#btn-stop {
-  right: var(--inset);
-  background: #c62828;
-  box-shadow: 0 8px 0 #8e1c1c, 0 14px 24px rgba(43, 58, 69, 0.28);
-}
-
-#ui #btn-whistle {
-  left: 50%;
-  bottom: var(--inset);
-  width: var(--whistle);
-  height: var(--whistle);
-  margin-left: calc(var(--whistle) * -0.5);
-  border-radius: 50%;
   background: #f0b23e;
   color: #3a2a10;
-  box-shadow: 0 7px 0 #b8812a, 0 12px 20px rgba(43, 58, 69, 0.24);
+  box-shadow: 0 8px 0 #b8812a, 0 14px 24px rgba(43, 58, 69, 0.26);
 }
 #ui #btn-whistle svg { width: 52%; }
 
@@ -123,23 +107,106 @@ html, body {
 }
 #btn-camera.press { transform: translateY(3px); }
 
-/* Not disabled — just quieter, because the other one is the useful one now. */
-#ui button.idle { opacity: 0.5; }
+/* ----------------------------------------------------------------- lever */
 
-/* A ring around GO when stopped at a platform: the only nudge in the game. */
-#btn-go.invite::before {
+/*
+ * Push it up and the engine goes, further for faster. Let go and it comes back
+ * to the middle by itself and the engine eases down. Pull it down and it stops.
+ *
+ * The picture column on the left never moves; it is what the colours mean.
+ * The knob is the only thing that travels, so there is nothing to learn beyond
+ * "the ball goes up".
+ */
+#lever {
+  position: absolute;
+  pointer-events: auto;
+  right: var(--inset);
+  bottom: var(--inset);
+  width: var(--lever-w);
+  height: var(--lever-h);
+  display: flex;
+  gap: calc(var(--lever-w) * 0.06);
+  touch-action: none;
+  outline: none;
+}
+
+#lever .zones {
+  flex: 0 0 42%;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 6px 0 rgba(43, 58, 69, 0.2), 0 12px 20px rgba(43, 58, 69, 0.22);
+}
+
+#lever .zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 140ms ease, opacity 140ms ease;
+}
+#lever .zone svg { width: 58%; height: auto; display: block; }
+
+#lever .zone-go    { flex: 2.6; background: #2e7d32; color: #ddf6d8; }
+#lever .zone-coast { flex: 1;   background: #eef3f6; color: #8b9aa4; }
+#lever .zone-stop  { flex: 2.6; background: #f0b23e; color: #4a3410; }
+#lever .zone-coast svg { width: 46%; }
+#lever .zone-stop svg  { width: 40%; }
+
+/* Whichever zone he is in lights up; the others step back. */
+#lever.up .zone-go,
+#lever.down .zone-stop { filter: brightness(1.18) saturate(1.1); }
+#lever.up .zone-stop,
+#lever.down .zone-go { opacity: 0.45; }
+
+#lever .slot {
+  position: relative;
+  flex: 1;
+  border-radius: var(--radius);
+  background: #dbe7ed;
+  box-shadow: inset 0 3px 8px rgba(43, 58, 69, 0.24), 0 6px 0 rgba(43, 58, 69, 0.14);
+  transition: background 180ms ease;
+}
+#lever.up .slot   { background: #c4e5c1; }
+#lever.down .slot { background: #f4e2bd; }
+
+#lever .knob {
+  position: absolute;
+  left: 50%;
+  width: var(--knob);
+  height: var(--knob);
+  margin-left: calc(var(--knob) / -2);
+  /* --p is 0 at the bottom of the slot and 1 at the top; controls.ts sets it */
+  bottom: calc(var(--p, 0.5) * (100% - var(--knob)));
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffffff 0%, #cfe0e8 42%, #9db6c3 100%);
+  box-shadow: 0 5px 0 rgba(43, 58, 69, 0.26), 0 8px 14px rgba(43, 58, 69, 0.28);
+  transition: bottom 260ms cubic-bezier(0.2, 0.9, 0.3, 1), background 180ms ease;
+}
+/* While his thumb is on it the knob must track the thumb, not chase it. */
+#lever.dragging .knob { transition: background 180ms ease; }
+
+#lever.up .knob {
+  background: radial-gradient(circle at 34% 30%, #d9ffd2 0%, #7bcb76 44%, #3f9442 100%);
+}
+#lever.down .knob {
+  background: radial-gradient(circle at 34% 30%, #fff0cf 0%, #f3c163 44%, #c08a24 100%);
+}
+
+/* A halo while he is standing at a platform: the only nudge in the game. */
+#lever.invite .slot::after {
   content: '';
   position: absolute;
-  inset: -24px;
-  border-radius: 50%;
-  background: rgba(76, 175, 80, 0.22);
+  inset: -18px;
+  border-radius: calc(var(--radius) + 18px);
+  background: rgba(76, 175, 80, 0.2);
   animation: breathe 2.4s ease-in-out infinite;
   z-index: -1;
 }
 
 @keyframes breathe {
-  0%, 100% { transform: scale(0.92); opacity: 0.55; }
-  50%      { transform: scale(1.04); opacity: 0.95; }
+  0%, 100% { transform: scale(0.94); opacity: 0.5; }
+  50%      { transform: scale(1.03); opacity: 0.95; }
 }
 
 /* ------------------------------------------------------------------ boot */
@@ -151,7 +218,8 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 26px;
+  gap: 22px;
+  padding: 0 32px;
   background: linear-gradient(180deg, #8fcfe9 0%, #cdeaf2 60%, #9fd07a 100%);
   transition: opacity 420ms ease;
   z-index: 10;
@@ -167,6 +235,19 @@ html, body {
   box-shadow: 0 10px 26px rgba(43, 58, 69, 0.22);
   animation: breathe 2s ease-in-out infinite;
 }
+
+/* He cannot read it. It is there so whoever hands him the tablet can. */
+#boot-hello {
+  margin: 0;
+  max-width: 22ch;
+  text-align: center;
+  font-size: clamp(20px, 3.4vw, 34px);
+  font-weight: 600;
+  line-height: 1.25;
+  color: #1e5e9b;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
+}
+#boot-hello:empty { display: none; }
 
 .boot-bar {
   width: 190px;
@@ -189,5 +270,5 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #btn-go.invite::before, .boot-face, .boot-bar i { animation: none; }
+  #lever.invite .slot::after, .boot-face, .boot-bar i { animation: none; }
 }

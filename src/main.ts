@@ -9,6 +9,8 @@ import { buildEngine, animateRunningGear } from './content/buildEngine';
 import { thomas } from './content/engines/thomas';
 import { mountControls } from './ui/controls';
 import { watchForUpdates } from './ui/updates';
+import { sayHello } from './ui/greeting';
+import { greeting } from './content/greeting';
 
 const SKY_TOP = 0x7fc8e6;
 const SKY_LOW = 0xdcf0f4;
@@ -53,6 +55,13 @@ function skyDome(): THREE.Mesh {
 }
 
 async function boot(): Promise<void> {
+  // First thing, before anything slow: say hello to him by name. It runs
+  // alongside the build below rather than delaying it.
+  const bootEl = document.getElementById('boot')!;
+  const helloEl = document.getElementById('boot-hello');
+  if (helloEl) helloEl.textContent = greeting;
+  const hello = sayHello(greeting);
+
   const canvas = document.getElementById('stage') as HTMLCanvasElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -149,29 +158,18 @@ async function boot(): Promise<void> {
 
   // --- controls ----------------------------------------------------------
   let touched = false;
-  const used = () => { touched = true; };
   const controls = mountControls({
-    go: () => {
-      used();
+    touched: () => {
+      touched = true;
+      // The audio context can only be opened from inside a real gesture.
       audio.start();
-      train.go();
     },
-    stop: () => {
-      used();
-      audio.start();
-      train.stop();
-    },
+    throttle: (v) => train.setThrottle(v),
     whistle: () => {
-      used();
-      audio.start();
       audio.whistle();
       for (let i = 0; i < 3; i++) emitPuff();
     },
-    camera: () => {
-      used();
-      audio.start();
-      rig.cycle();
-    },
+    camera: () => rig.cycle(),
   });
 
   // --- frame loop --------------------------------------------------------
@@ -248,7 +246,9 @@ async function boot(): Promise<void> {
 
   // --- in we go ----------------------------------------------------------
   controls.show();
-  const bootEl = document.getElementById('boot')!;
+  // The railway is already running behind the loading screen; it lifts when
+  // the hello has been said, or straight away if the device will not say it.
+  await hello;
   bootEl.classList.add('gone');
   window.setTimeout(() => bootEl.remove(), 500);
 }

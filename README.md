@@ -1,8 +1,8 @@
 # Little Engineer
 
-A calm, offline train game for a four-year-old. Four buttons, one loop, nothing
-can go wrong. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled design and
-`Little Engineer - Game Plan.pdf` for the full phased plan.
+A calm, offline train game for a four-year-old. One lever, one loop, nothing to
+do but drive and look. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled
+design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 
 **Live:** https://stonecrestpipes.github.io/little-engineer/
 **Repo:** `stonecrestpipes/little-engineer` (public — see *Hosting* below)
@@ -21,14 +21,20 @@ building on.
 
 1. Install it on the Pixel Tablet (see *Putting it on the Pixel Tablet*).
 2. Hand it to him. Say nothing.
-3. Watch what he does — especially whether he finds GO unprompted, whether he
+3. Watch what he does — especially whether he pushes the lever up unprompted,
+   whether letting go reads to him as "ease off" rather than "stop", whether he
    whistles more than he drives, and whether he ever looks for something the
    game does not do.
 
 ### Decide after watching, not before
 
-- **Cruise speed** is `7.2` m/s in `src/content/engines/thomas.ts` — about a
-  minute a lap. A guess, and the first number likely to want changing.
+- **How the lever feels** is five numbers in `src/content/engines/thomas.ts`:
+  `cruise` 7.2 m/s at the top, `slow` 2.8 m/s at the bottom of the green,
+  `coast` 1.15 m/s² when he lets go (about six seconds to a halt), `brake` 3.4
+  when he pulls down, and `accel` 2.6. All guesses until he drives it, and the
+  first numbers likely to want changing.
+- **The greeting** is one string in `src/content/greeting.ts`. It is spoken by
+  the device, so changing the words is changing that line.
 - **The nameplate is blank** (`nameplate: ''` in the same file). It is meant to
   carry whatever he decides to call the engine, and is the only text anywhere
   in the game.
@@ -40,8 +46,10 @@ building on.
 
 The settled design decisions are in [GAME_DESIGN.md](GAME_DESIGN.md) with the
 reasoning. The ones most likely to be second-guessed, and why they are already
-answered: no speed slider (he does not chase speed), no failure states at all,
-no speech, landscape only, and four buttons with nothing else on screen.
+answered: **no objectives of any kind** — no errands, no collecting, no prizes
+over the view, because being handed jobs is exactly what he disliked in the
+game this control came from; no failure states at all; no speech beyond the
+hello; landscape only; and three things on screen and nothing else.
 
 ### Not in the repo
 
@@ -152,14 +160,17 @@ reinstalling on the tablet.
 src/
   engine/     reusable, knows nothing about Thomas or any particular railway
     track.ts      closed spline; everything is addressed by metres travelled
-    train.ts      GO/STOP, speed curves, the platform glide path
+    train.ts      the lever, speed curves, the platform glide path
     cameras.ts    three fixed views on one button
     audio.ts      every sound, synthesised — nothing is loaded
   content/    data: this engine, this railway
     engines/thomas.ts   colours, dimensions, driving feel, whistle pitch
     buildEngine.ts      the mesh, built from boxes and cylinders
     world.ts            the loop, the station, the scenery
-  ui/         the four buttons
+    greeting.ts         the one spoken line, and his name
+  ui/         the lever, the whistle, the camera
+    controls.ts   the lever drag, and the two buttons
+    greeting.ts   speaking the hello, and coping when the device will not
 ```
 
 Nothing in `engine/` imports anything from `content/`. That is the separation
@@ -187,18 +198,38 @@ that sag is most of what makes it sound like steam rather than a car horn.
 Retune it with `whistleHz` in the engine spec. No files, no licensing, and it
 cannot become a 2 MB download.
 
-**Pressing STOP means "arrive at the platform", not "brake here."** Within
+**The lever never latches.** Let go and it springs back to the middle and the
+engine eases down on its own. This is the single most important thing about it:
+a control that stays where it was put is a control he can forget about, and an
+engine still running because of a lever nobody is holding is the game driving
+rather than him.
+
+**Letting go and stopping are deliberately different.** Released, the engine
+rolls about 20 m over 6 s. Pulled down, about 8 m over 2 s. Two separate
+deceleration rates (`coast` and `brake`), and the gap between them is what makes
+the middle of the lever mean something.
+
+**Pulling down near a platform means "arrive there", not "brake here."** Within
 `stopWindow` (30 m) the engine follows a glide path `v(s) = v₀·√(s/s₀)` — constant
 deceleration spread over the whole remaining distance. It starts slowing within
-a fraction of a second so the button visibly does something, and lands exactly
-on the mark every time. Outside that window STOP just brakes normally.
+a fraction of a second so the lever visibly does something, and lands exactly on
+the mark every time. Verified from 28 m down to 1 m. Outside that window it
+simply brakes.
 
-**The engine never drives itself.** STOP while standing still does nothing; it
-will not creep to a platform on its own.
+**The engine never drives itself.** Pulling down while standing still does
+nothing; it will not creep to a platform on its own. An arrival already under
+way survives him letting go back to the middle, because that only ever slows the
+engine — it never sets it moving.
 
 **Buttons fire on `pointerdown`, not `click`.** A four-year-old's press drifts,
 and waiting for a matching pointerup feels broken. There is a `click` fallback
 for assistive tech and for environments that do not emit pointer events.
+
+**The hello is synthesised, not recorded**, and it copes with not being allowed
+to speak. Chrome on Android refuses speech until the page has been touched, and
+an app launched from the home screen has not been touched — so if nothing comes
+out within a second or so, it is said on his first touch instead. The loading
+screen never waits more than a couple of seconds either way.
 
 **Landscape only.** Rotating the tablet changes nothing.
 
@@ -228,18 +259,24 @@ train can be stepped directly, which is how the glide path was verified:
 ```js
 const { train, world } = window.LE;
 const stopAt = world.stops[0].at;
-train.go();
-train.distance = world.track.wrap(stopAt - 120);
-train.speed = 0;
-train.go();
 const dt = 1 / 60;
+
+train.setThrottle(0);
+train.speed = 0;
+train.distance = world.track.wrap(stopAt - 120);
+train.setThrottle(1); // lever to the top
+
 let t = 0;
 while (t < 60 && !train.atStop) {
-  if (world.track.ahead(train.distance, stopAt) <= 20) train.stop();
+  // pull it down once the platform is 20 m ahead
+  if (world.track.ahead(train.distance, stopAt) <= 20) train.setThrottle(-1);
   train.update(dt);
   t += dt;
 }
 Math.abs(world.track.delta(train.distance, stopAt)); // → 0
 ```
+
+`train.setThrottle(v)` takes -1 (stop) through 0 (released) to +1 (full power),
+which is exactly what the lever hands it.
 
 The hook is stripped from production builds.

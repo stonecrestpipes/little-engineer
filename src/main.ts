@@ -46,9 +46,11 @@ async function boot(): Promise<void> {
   // alongside the build below rather than delaying it.
   const bootEl = document.getElementById('boot')!;
   const helloEl = document.getElementById('boot-hello');
+  // With the hello switched off, the loading screen does not show it either.
+  const greetingOn = settings.get().greetingOn;
   const greeting = greetingFor(settings.get().childName);
-  if (helloEl) helloEl.textContent = greeting;
-  const hello = settings.get().greetingOn ? sayHello(greeting) : Promise.resolve();
+  if (helloEl && greetingOn) helloEl.textContent = greeting;
+  const hello = greetingOn ? sayHello(greeting) : Promise.resolve();
 
   const canvas = document.getElementById('stage') as HTMLCanvasElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });

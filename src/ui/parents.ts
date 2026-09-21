@@ -142,7 +142,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
   const body = el(
     'div',
     { className: 'p-body' },
-    row('His name', 'Used in the spoken hello', name),
+    row('His name', 'Used in the spoken hello, from the next time it opens', name),
     row('Say hello', 'Out loud, when the app opens', hello.node),
     row('Speed', 'For every engine', speed.node),
     row('Help stopping', 'How early pulling down still arrives', stop.node),

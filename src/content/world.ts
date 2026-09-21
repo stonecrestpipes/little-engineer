@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Network, type Route, type Track } from '../engine/track';
 import type { Stop } from '../engine/train';
 import type { Audio } from '../engine/audio';
+import type { Roster } from './roster';
 import { buildTerrain, distanceToPath } from './terrain';
 import {
   C,
@@ -32,6 +33,8 @@ export interface World {
   depart(stop: Stop): void;
   whistle(train: TrainState): void;
   update(dt: number, elapsed: number, train: TrainState): void;
+  /** He touched the world rather than a button. True if anywhere acted on it. */
+  pick(ray: THREE.Raycaster, train: TrainState): boolean;
 }
 
 /**
@@ -71,7 +74,7 @@ const RIVER: [number, number][] = [
   [72, -150],
 ];
 
-export function buildWorld(scene: THREE.Scene, audio: Audio): World {
+export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): World {
   // ---------------------------------------------------------------- track
   const net = new Network();
   for (const [id, pts] of Object.entries(SEGMENTS)) {
@@ -108,6 +111,16 @@ export function buildWorld(scene: THREE.Scene, audio: Audio): World {
   const BRIDGE_HALF = 17;
   const bridge = { from: bridgeAt - BRIDGE_HALF, to: bridgeAt + BRIDGE_HALF };
 
+  // The yard beside The Sheds wants to be flat ground rather than country,
+  // since a siding and a line of stock stand on it.
+  const shedsAt = middleOf('sheds');
+  const yard = (() => {
+    const p = route.positionAt(shedsAt);
+    const t = route.tangentAt(shedsAt);
+    const side = new THREE.Vector3().crossVectors(t, UP).normalize();
+    return { x: p.x - side.x * 12.5, z: p.z - side.z * 12.5, radius: 24 };
+  })();
+
   // -------------------------------------------------------------- terrain
   const terrain = buildTerrain(route, {
     freeSpans: [bridge],
@@ -129,6 +142,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio): World {
       // and the harbour basin, dug in behind the quay
       { x: -8, z: -118, radius: 42, depth: 12 },
     ],
+    flats: [yard],
     shore: -100,
     deep: -128,
     seaDepth: 15,
@@ -146,12 +160,13 @@ export function buildWorld(scene: THREE.Scene, audio: Audio): World {
   const context = (at: number): PlaceContext => ({
     track: route,
     audio,
+    roster,
     groundAt: terrain.heightAt,
     at,
   });
 
   const places: Place[] = [
-    buildSheds(context(middleOf('sheds'))),
+    buildSheds(context(shedsAt)),
     buildCrossing(context(middleOf('meadow'))),
     buildFarm(context(middleOf('farm'))),
     buildTunnel({ ...context(tunnelAt), ...tunnel }),
@@ -173,15 +188,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio): World {
   const wood: Planting[] = [];
   const hillside: Planting[] = [];
   const taken: [number, number][] = [];
-  for (let i = 0; i < 300; i++) {
+  for (let i = 0; i < 420; i++) {
     const a = (i / 300) * Math.PI * 2 + Math.random() * 0.3;
     const r = 26 + Math.random() * 190;
     const x = Math.cos(a) * r + (Math.random() - 0.5) * 30;
     const z = Math.sin(a) * r * 0.95 + (Math.random() - 0.5) * 30;
     const y = terrain.heightAt(x, z);
-    // Not in the water, not in the ballast, and not on top of each other.
+    // Not in the water, not on the railway, not in the yard, and not on top
+    // of each other. A tree standing in the four-foot is funny exactly once.
     if (y < -1.5 || y > 26) continue;
+    if (terrain.distanceToTrack(x, z) < 12) continue;
     if (distanceToPath(RIVER, x, z) < 13) continue;
+    if ((x - yard.x) ** 2 + (z - yard.z) ** 2 < (yard.radius + 8) ** 2) continue;
     if (taken.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 100)) continue;
     taken.push([x, z]);
     const turn = Math.random() * Math.PI;
@@ -230,6 +248,10 @@ export function buildWorld(scene: THREE.Scene, audio: Audio): World {
     },
     whistle(train) {
       for (const place of places) place.whistle?.(train);
+    },
+    pick(ray, train) {
+      for (const place of places) if (place.pick?.(ray, train)) return true;
+      return false;
     },
     update(dt, elapsed, train) {
       for (const place of places) place.update?.(dt, elapsed, train);

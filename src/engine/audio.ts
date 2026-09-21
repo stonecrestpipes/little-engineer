@@ -26,7 +26,12 @@ export class Audio {
   private speed = 0;
   private birds = 0;
 
-  constructor(private readonly spec: AudioSpec) {}
+  constructor(private spec: AudioSpec) {}
+
+  /** Another engine, another whistle. */
+  retune(spec: AudioSpec): void {
+    this.spec = spec;
+  }
 
   /** Must be called from inside a real user gesture. Safe to call repeatedly. */
   start(): void {

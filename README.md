@@ -1,7 +1,7 @@
 # Little Engineer
 
-A calm, offline train game for a four-year-old. One lever, one loop, nothing to
-do but drive and look. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled
+A calm, offline train game for a four-year-old. One lever, one railway, nothing
+to do but drive and look. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled
 design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 
 **Live:** https://stonecrestpipes.github.io/little-engineer/
@@ -14,10 +14,12 @@ design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 **Phase 1 passed.** He picked the tablet up, found the lever and drove, with
 nothing said to him. That was the only gate that mattered, and it is behind us.
 
-**Phase 3 is built and deployed, and has not been played yet.** The railway is
-now a 642-metre circuit — The Sheds, the level crossing, The Farm, the tunnel,
-the bridge and The Harbour — about a minute and forty a lap at the top of the
-lever.
+**Phases 3 and 6 are built and deployed, and neither has been played yet.** The
+railway is a 642-metre circuit — The Sheds, the level crossing, The Farm, the
+tunnel, the bridge and The Harbour — about a minute and forty a lap at the top
+of the lever. There are four engines and five cars, and he picks his train by
+walking up to it: the spares stand in the yard at The Sheds, and tapping one
+takes it.
 
 ### The next thing to do
 
@@ -27,6 +29,10 @@ lever.
    whether he goes looking for things, whether he stops at all three stations
    or only at one, whether the tunnel is exciting or alarming, and whether he
    notices the sheep.
+4. Watch whether he finds the yard on his own. Nothing points at it: the other
+   engines are simply standing there, bobbing gently, whenever he is stopped at
+   home. If he never touches one, that is worth knowing before anything else is
+   built on top of it.
 
 **Check the frame rate on the actual tablet.** The wide view is 194k triangles
 and 374 draw calls, which should be comfortable on a Tensor G2 but has only
@@ -178,6 +184,10 @@ src/
     terrain.ts          the heightmap ground, and the water under it
     scenery.ts          rails, ballast, trees, fences, people
     greeting.ts         the one spoken line, and his name
+    faces.ts            engine faces, painted onto a canvas from numbers
+    cars.ts             coaches, wagons and the brake van
+    roster.ts           every engine and car, and which he is driving
+    engines/            one file per engine, plus the spec they share
     places/             one file each, geometry and behaviour together
       place.ts            what a place is, and the frame it is built in
       station.ts          the part all three stations share
@@ -204,11 +214,30 @@ the railway and still faces the right way.
 Nothing in `engine/` imports anything from `content/`. That is the separation
 that makes Phases 5 and 6 cheap.
 
-### Adding an engine (Phase 6)
+### Adding an engine
 
-Copy `src/content/engines/thomas.ts`, change the colours, `whistleHz`, `cruise`
-and the face texture path. `buildEngine` and the whole of `src/engine/` are
-unchanged.
+Copy one of the files in `src/content/engines/` — `pip.ts` is the shortest —
+change the colours, the `face` numbers, `whistleHz`, the driving spec and the
+chimney in `shape`, and add it to the list in `engines/index.ts`. `buildEngine`
+and the whole of `src/engine/` are unchanged, and there is no artwork to make:
+the face is drawn from those numbers by `src/content/faces.ts`.
+
+Engines after the first one must be **original work**. The first one's face is a
+photograph and is the only third-party image left in the build; every engine
+added since is drawn, which is what will eventually make the public URL a
+non-issue rather than a managed risk.
+
+### Adding a car
+
+Add an entry to `CARS` in `src/content/cars.ts`. If it is a shape that is not
+there yet, add a case to the `switch` in `buildCar`. Nothing else changes — the
+yard picks up however many cars there are, and the consist works out the
+spacing from `length`.
+
+Cars are decoration and must stay that way. There is no cargo, nobody wants to
+get anywhere, and nothing about the railway changes depending on what is
+coupled up. Fetching and delivering is exactly what he disliked in the game the
+lever came from.
 
 ### Adding track (Phase 5)
 
@@ -260,6 +289,16 @@ map.** Water shows wherever the land has been dug below it, which is what gives
 the pond, the river and the coastline. The ground is pulled flat along a
 corridor either side of the rails so the track always meets it — except across
 the bridge, which is listed in `freeSpans` so the river can run underneath.
+
+**The engine can change while the game is running.** `Train.retune` and
+`Audio.retune` swap in the chosen engine's driving spec and whistle. Both are
+only ever called while he is standing still in the yard, so nothing has to be
+smoothed across the change.
+
+**Picking is only live in the yard.** A tap on the canvas becomes a ray and is
+offered to each place in turn; only the yard takes it, and only while he is
+stopped there. Everywhere else a tap on the world does nothing at all, which is
+deliberate — his thumb rests on the screen while he drives.
 
 **A place owns its own clock.** Every place keeps the `elapsed` it is handed in
 `update` and times everything from that, rather than reading `performance.now()`
@@ -357,5 +396,10 @@ the sheep look up on a whistle and go back to the grass; a whistle is answered
 by the tunnel, the bridge and the harbour but not out in open country; and
 hammering the whistle eight times in half a second produces one answer, not
 eight.
+
+And for the yard: tapping an engine out on the open line does nothing; tapping
+one while stopped in the yard swaps it in and puts the old one where it stood;
+tapping a coupled car takes it off; tapping every spare in turn couples three
+and then stops; and the choice survives a reload.
 
 The hook is stripped from production builds.

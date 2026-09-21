@@ -60,9 +60,17 @@ export class Train {
 
   constructor(
     private readonly track: Track,
-    private readonly spec: DrivingSpec,
+    private spec: DrivingSpec,
     private readonly stops: Stop[],
   ) {}
+
+  /**
+   * Swap in another engine's driving feel. Only ever called while standing
+   * still in the yard, so nothing has to be smoothed across the change.
+   */
+  retune(spec: DrivingSpec): void {
+    this.spec = spec;
+  }
 
   on(fn: (e: TrainEvent) => void): void {
     this.listeners.push(fn);

@@ -1,40 +1,16 @@
-import type { DrivingSpec } from '../../engine/train';
-import type { AudioSpec } from '../../engine/audio';
+import type { EngineSpec } from './spec';
 
 /**
- * One engine, as data. Nothing in src/engine/ knows this file exists.
- * Adding engines two and three in Phase 6 means copying this and changing
- * numbers — no new systems.
+ * The first engine, and the only one whose face is a photograph rather than
+ * drawn. It is left exactly as it is because he already knows it; every engine
+ * added after it is original work — see the others in this folder.
  */
-export interface EngineSpec {
-  id: string;
-  /** blank until he names it; the only text anywhere in the game */
-  nameplate: string;
-  faceTexture: string;
-  colour: {
-    body: number;
-    bodyLight: number;
-    bodyDark: number;
-    trim: number;
-    metal: number;
-    metalLight: number;
-    brass: number;
-    wheelRim: number;
-    glass: number;
-  };
-  dims: {
-    wheelRadius: number;
-    wheelGauge: number;
-    faceRadius: number;
-  };
-  driving: DrivingSpec;
-  audio: AudioSpec;
-}
 
 const WHEEL_RADIUS = 0.62;
 
 export const thomas: EngineSpec = {
   id: 'thomas',
+  name: 'the blue one',
   nameplate: '',
   faceTexture: `${import.meta.env.BASE_URL}assets/engines/thomas/face.png`,
   colour: {

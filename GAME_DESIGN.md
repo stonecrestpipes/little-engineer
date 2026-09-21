@@ -73,7 +73,8 @@ past. That is the whole of it.
 | **Audio** | Sounds and animation only. No speech, in any phase |
 | **Sessions** | Endless free play. Start instantly, stop anytime, nothing is lost |
 | **Parent controls** | Deferred to Phase 8, behind a long-press gesture |
-| **Engines** | One engine in MVP. Engine selection deferred to Phase 6 |
+| **Engines** | Four. He picks one by touching it in the yard |
+| **Cars** | Up to three, chosen the same way. Nothing to do with them |
 | **Artwork** | Original engines and scenery, designed for this project |
 | **Delivery** | Installable offline PWA on a free static host |
 
@@ -264,17 +265,17 @@ nothing to do with them.
 Extend the loop with new areas that connect to the existing world rather than replacing it. Junction
 choice with two very large arrow buttons arrives here, if Phase 4 shows he wants agency.
 
-### Phase 6 — More engines, and something to pull
-A second and third engine reusing the same controller, differing in appearance, whistle, sound and
-small animation flourishes. Visual selection screen, no text.
+### Phase 6 — More engines, and something to pull *(built)*
+Four engines reusing the same controller, differing in colour, face, chimney, whistle and how they
+drive. Up to three cars behind whichever one he picks.
 
-Then the train itself becomes his: **up to three cars behind the engine**, chosen and reordered at
-**the train shed**. He drives in, the choosing happens there, he drives out with a different train.
-No unlocking, no cost, nothing earned — every engine and every car is there the first time he opens
-the doors, and an engine on its own is as valid a choice as three cars.
+Choosing happens in **the yard at The Sheds**, and by touching the thing itself: the other engines
+stand on a siding and the spare cars on another, and tapping one puts him in it. There is no
+selection screen, no list and no menu — which is the point, and is why it is a place he drives to
+rather than a screen that interrupts him.
 
-Making this a place rather than a menu is the point: he drives to the shed, so choosing is somewhere
-he goes rather than a screen that interrupts him.
+No unlocking, no cost, nothing earned. Every engine and every car is there the first time he opens
+the app, and an engine on its own is as valid a choice as three cars.
 
 ### Phase 7 — Gentle progression
 An optional local sticker book recording places visited and things seen. Nothing can be lost, nothing
@@ -375,6 +376,38 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 6 — four engines, and something to pull
+
+**Four engines.** The blue one he already knows, unchanged, and three original ones: a small green
+engine that is quick off the mark with a high whistle, a big maroon one that takes its time and
+rolls a long way when the lever is let go, and a yellow one in the middle of everything. They differ
+in colour, face, chimney, whistle pitch and every number in the driving spec, and they are built by
+the same `buildEngine` from the same boxes and cylinders.
+
+**Their faces are drawn in code.** `src/content/faces.ts` paints eyes, brows, a mouth and a blush
+onto a canvas from a dozen numbers, so a new engine needs no artwork, nothing to licence and nothing
+to download. This is the first step of retiring the hosting question in *Open Questions*: the only
+third-party image left in the build is the first engine's face, which stays because he knows it.
+
+**Up to three cars** — two coaches, an open wagon with a load of logs, a tank wagon and a brake van
+— sit behind the engine, each placed where the rails are that far back so the train articulates
+round curves rather than dragging as a stick.
+
+**Choosing is done by touching the thing itself.** Standing still in the yard, tapping an engine on
+the siding puts him in it and puts his old one where that was; tapping a car couples it up, and
+tapping one that is already coupled up takes it off again. It does nothing anywhere else on the
+railway, so a stray thumb out on the line cannot change his train. Everything he could touch
+breathes gently while he is standing there, which is the only invitation besides the halo on the
+lever, and it stops the moment he sets off.
+
+**What he chose is remembered** in `localStorage`. Coming back to find his engine put away and
+somebody else's on the rails would be the game taking something off him.
+
+Three more things were wrong and are worth recording: coaches had a flat roof floating above their
+curved one; trees were being planted in the middle of the yard and occasionally in the four-foot;
+and the throttle test looked like it had broken one engine when in fact the test had drifted into a
+station's approach assist between runs.
 
 ### Phase 3 — the complete loop
 
@@ -482,7 +515,8 @@ What remains for Phase 2 is whatever the play test says to change.
 
 1. **The engine's name.** Worth asking him — a four-year-old naming his own engine is free ownership
    of the game. The nameplate on the tank is blank until then, and it is the only text in the entire
-   game.
+   game. There are four engines now, so there are four names to be asked for, and the one he cares
+   about is whichever he actually drives.
 2. **Whether one loop is enough to be "exploring".** ~~Right now the place is a single field with
    one station in it.~~ Phase 3 answered this as far as it can be answered without him: there are
    now six places to drive through and a lap takes a minute and forty. What is still open is whether

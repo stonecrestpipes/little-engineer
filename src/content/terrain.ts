@@ -51,6 +51,11 @@ export interface TerrainSpec {
   hills: Hill[];
   /** still water inside the loop */
   ponds?: { x: number; z: number; radius: number; depth: number }[];
+  /**
+   * Patches levelled with the rails the same way the track corridor is — a
+   * yard, a quay, anywhere that wants to be flat ground rather than country.
+   */
+  flats?: { x: number; z: number; radius: number; blend?: number }[];
   /** the sea: everything behind `shore` slides down to `seaDepth` by `deep` */
   shore?: number;
   deep?: number;
@@ -62,6 +67,8 @@ export interface Terrain {
   water: THREE.Mesh;
   /** Ground height at a point — for standing trees, buildings and people on. */
   heightAt(x: number, z: number): number;
+  /** How far a point is from the rails, so nothing is planted on them. */
+  distanceToTrack(x: number, z: number): number;
 }
 
 /** Nearest point on the track, found through a coarse grid of samples. */
@@ -143,6 +150,7 @@ export function buildTerrain(track: Track, spec: TerrainSpec): Terrain {
     riverWidth = 7,
     hills,
     ponds = [],
+    flats = [],
     shore = -106,
     deep = -146,
     seaDepth = 16,
@@ -201,8 +209,15 @@ export function buildTerrain(track: Track, spec: TerrainSpec): Terrain {
   const heightAt = (x: number, z: number): number => {
     const h = natural(x, z);
     const { distance, at } = near.nearest(x, z);
-    if (!Number.isFinite(distance)) return h;
-    const grip = (1 - smoothstep(CORRIDOR, BLEND, distance)) * (1 - carried(at));
+    let grip = Number.isFinite(distance)
+      ? (1 - smoothstep(CORRIDOR, BLEND, distance)) * (1 - carried(at))
+      : 0;
+    for (const flat of flats) {
+      const dx = x - flat.x;
+      const dz = z - flat.z;
+      const r = Math.sqrt(dx * dx + dz * dz);
+      grip = Math.max(grip, 1 - smoothstep(flat.radius, flat.radius + (flat.blend ?? 14), r));
+    }
     return h * (1 - grip);
   };
 
@@ -259,5 +274,10 @@ export function buildTerrain(track: Track, spec: TerrainSpec): Terrain {
   water.position.y = WATER_LEVEL;
   water.receiveShadow = false;
 
-  return { ground, water, heightAt };
+  return {
+    ground,
+    water,
+    heightAt,
+    distanceToTrack: (x, z) => near.nearest(x, z).distance,
+  };
 }

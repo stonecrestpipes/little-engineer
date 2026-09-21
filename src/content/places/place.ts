@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { Track } from '../../engine/track';
 import type { Stop } from '../../engine/train';
 import type { Audio } from '../../engine/audio';
+import type { Roster } from '../roster';
 
 /** What the world tells a place about the engine, every frame. */
 export interface TrainState {
@@ -15,6 +16,8 @@ export interface PlaceContext {
   audio: Audio;
   /** Ground height anywhere on the map, for standing things on. */
   groundAt(x: number, z: number): number;
+  /** Every engine and every car, and which of them he is driving. */
+  roster: Roster;
   /** Where along the route this place sits. */
   at: number;
 }
@@ -35,6 +38,14 @@ export interface Place {
   /** He blew the whistle. The place decides whether it is near enough to care. */
   whistle?(train: TrainState): void;
   update?(dt: number, elapsed: number, train: TrainState): void;
+  /**
+   * He touched the world rather than a button. Return true if this place did
+   * something about it, so nowhere else tries to.
+   *
+   * The only place that uses this is the yard, and only while he is standing
+   * still in it — there is nothing anywhere else on the railway to touch.
+   */
+  pick?(ray: THREE.Raycaster, train: TrainState): boolean;
 }
 
 /**

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import type { EngineSpec } from './engines/thomas';
+import type { EngineSpec } from './engines/spec';
 
 export interface EngineMesh {
+  spec: EngineSpec;
   group: THREE.Group;
   wheels: THREE.Object3D[];
   rods: { mesh: THREE.Object3D; baseY: number }[];
@@ -101,13 +102,35 @@ export function buildEngine(spec: EngineSpec, faceMap: THREE.Texture | null): En
   group.add(face);
 
   // --- funnel, dome, safety valve ---------------------------------------
-  add(new THREE.CylinderGeometry(0.29, 0.34, 0.92, 20), matMetal, 0, 3.32, 1.88);
-  add(new THREE.CylinderGeometry(0.4, 0.4, 0.18, 20), matMetal, 0, 3.84, 1.88);
-  add(new THREE.CylinderGeometry(0.405, 0.405, 0.05, 20), matMetalLight, 0, 3.92, 1.88);
-  add(new THREE.TorusGeometry(0.31, 0.055, 8, 20).rotateX(Math.PI / 2), matTrim, 0, 3.12, 1.88);
+  // The chimney is the one piece of silhouette that differs between engines:
+  // a tall bell mouth and a short stovepipe read as different engines from
+  // right across the layout, where the colours have gone to mush.
+  const funnelHeight = spec.shape?.funnelHeight ?? 0.92;
+  const flare = spec.shape?.funnelFlare ?? 0.5;
+  const FOOT = 2.86;
+  const mouth = 0.26 + 0.12 * flare;
+  add(
+    new THREE.CylinderGeometry(mouth, 0.34, funnelHeight, 20),
+    matMetal,
+    0,
+    FOOT + funnelHeight / 2,
+    1.88,
+  );
+  const capR = mouth + 0.08 + 0.1 * flare;
+  add(new THREE.CylinderGeometry(capR, capR, 0.18, 20), matMetal, 0, FOOT + funnelHeight + 0.09, 1.88);
+  add(
+    new THREE.CylinderGeometry(capR + 0.005, capR + 0.005, 0.05, 20),
+    matMetalLight,
+    0,
+    FOOT + funnelHeight + 0.17,
+    1.88,
+  );
+  add(new THREE.TorusGeometry(0.31, 0.055, 8, 20).rotateX(Math.PI / 2), matTrim, 0, FOOT + 0.26, 1.88);
 
-  const dome = new THREE.SphereGeometry(0.42, 22, 14, 0, Math.PI * 2, 0, Math.PI / 2);
-  add(dome, matBrass, 0, 2.74, 0.5);
+  if (spec.shape?.dome !== false) {
+    const dome = new THREE.SphereGeometry(0.42, 22, 14, 0, Math.PI * 2, 0, Math.PI / 2);
+    add(dome, matBrass, 0, 2.74, 0.5);
+  }
   add(new THREE.CylinderGeometry(0.11, 0.13, 0.2, 12), matBrass, 0, 2.86, -0.35);
 
   const lamp = add(new THREE.BoxGeometry(0.3, 0.34, 0.24), matBodyDark, 0, 3.02, 2.42);
@@ -154,7 +177,14 @@ export function buildEngine(spec: EngineSpec, faceMap: THREE.Texture | null): En
     if ((o as THREE.Mesh).isMesh) o.receiveShadow = true;
   });
 
-  return { group, wheels, rods, face, funnelTop: new THREE.Vector3(0, 3.98, 1.88) };
+  return {
+    spec,
+    group,
+    wheels,
+    rods,
+    face,
+    funnelTop: new THREE.Vector3(0, FOOT + funnelHeight + 0.24, 1.88),
+  };
 }
 
 /** Spin the wheels and swing the coupling rods to match distance travelled. */

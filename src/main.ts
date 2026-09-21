@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import './ui/style.css';
 
 import { Train } from './engine/train';
+import { Consist } from './engine/consist';
 import { CameraRig } from './engine/cameras';
 import { Audio } from './engine/audio';
 import { buildWorld } from './content/world';
-import { buildEngine, animateRunningGear } from './content/buildEngine';
-import { thomas } from './content/engines/thomas';
+import { animateRunningGear } from './content/buildEngine';
+import { buildRoster } from './content/roster';
+import { CAR_WHEEL_RADIUS, turnCarWheels } from './content/cars';
+import { ENGINES } from './content/engines';
 import { mountControls } from './ui/controls';
 import { watchForUpdates } from './ui/updates';
 import { sayHello } from './ui/greeting';
@@ -96,33 +99,31 @@ async function boot(): Promise<void> {
   sun.shadow.normalBias = 0.05;
   scene.add(sun, sun.target);
 
-  // --- world and engine --------------------------------------------------
-  // Audio is built first because the places take it: the sheep, the boat and
-  // the crossing bell all belong to the world rather than to the engine.
-  const audio = new Audio(thomas.audio);
-  const world = buildWorld(scene, audio);
+  // --- the train, the world, and everything he can choose from -----------
+  // Audio is built before the world because the places take it: the sheep,
+  // the boat and the crossing bell all belong to the world rather than to the
+  // engine. It is retuned below to whichever engine he last drove.
+  const audio = new Audio(ENGINES[0].audio);
+  const roster = await buildRoster(scene, renderer.capabilities.getMaxAnisotropy());
+  const world = buildWorld(scene, audio, roster);
 
-  let faceMap: THREE.Texture | null = null;
-  try {
-    faceMap = await new THREE.TextureLoader().loadAsync(thomas.faceTexture);
-    faceMap.colorSpace = THREE.SRGBColorSpace;
-    faceMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  } catch {
-    // No texture is not fatal: the engine gets a plain face and still drives.
-    faceMap = null;
-  }
-
-  const engineMesh = buildEngine(thomas, faceMap);
-  scene.add(engineMesh.group);
-
-  const train = new Train(world.track, thomas.driving, world.stops);
+  const train = new Train(world.track, roster.engine.spec.driving, world.stops);
   // start just short of the home platform
   train.distance = world.track.wrap(world.stops[0].at - 40);
+  const consist = new Consist(world.track);
 
   const rig = new CameraRig(camera, world.track, {
     wide: world.wide,
     tracksideAnchors: world.tracksideAnchors,
   });
+
+  /** Whatever he picked in the yard drives, sounds and handles like itself. */
+  const takeEngine = () => {
+    train.retune(roster.engine.spec.driving);
+    audio.retune(roster.engine.spec.audio);
+  };
+  roster.onChange(takeEngine);
+  takeEngine();
 
   /** Handed to the world every frame; the places read it, nothing writes it. */
   const trainState = { distance: 0, speed: 0, moving: false };
@@ -158,7 +159,8 @@ async function boot(): Promise<void> {
   function emitPuff(): void {
     const p = puffs[puffNext];
     puffNext = (puffNext + 1) % PUFFS;
-    engineMesh.group.localToWorld(funnelWorld.copy(engineMesh.funnelTop));
+    const engine = roster.engine;
+    engine.group.localToWorld(funnelWorld.copy(engine.funnelTop));
     p.sprite.position.copy(funnelWorld);
     p.sprite.visible = true;
     p.life = 1;
@@ -167,12 +169,13 @@ async function boot(): Promise<void> {
 
   // --- controls ----------------------------------------------------------
   let touched = false;
+  const used = () => {
+    touched = true;
+    // The audio context can only be opened from inside a real gesture.
+    audio.start();
+  };
   const controls = mountControls({
-    touched: () => {
-      touched = true;
-      // The audio context can only be opened from inside a real gesture.
-      audio.start();
-    },
+    touched: used,
     throttle: (v) => train.setThrottle(v),
     whistle: () => {
       audio.whistle();
@@ -182,10 +185,21 @@ async function boot(): Promise<void> {
     camera: () => rig.cycle(),
   });
 
+  // Touching the world itself, which only does anything in the yard: the
+  // other engines and the spare cars are stood there, and he picks by
+  // touching one. Everywhere else on the railway a tap does nothing at all.
+  const picker = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  canvas.addEventListener('pointerdown', (e) => {
+    used();
+    ndc.set((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
+    picker.setFromCamera(ndc, camera);
+    if (world.pick(picker, trainState)) audio.chime();
+  });
+
   // --- frame loop --------------------------------------------------------
   const pos = new THREE.Vector3();
   const fwd = new THREE.Vector3();
-  const lookTarget = new THREE.Vector3();
   let last = now();
 
   function resize(): void {
@@ -208,13 +222,20 @@ async function boot(): Promise<void> {
     trainState.distance = train.distance;
     trainState.speed = train.speed;
     trainState.moving = train.moving;
-    const angle = train.advanceWheels(thomas.dims.wheelRadius, dt);
-    animateRunningGear(engineMesh, angle);
 
+    const engine = roster.engine;
+    const wheelRadius = engine.spec.dims.wheelRadius;
+    const angle = train.advanceWheels(wheelRadius, dt);
+    animateRunningGear(engine, angle);
+    // Smaller wheels turn faster over the same ground, and the cars' are
+    // smaller again, so each is worked out from the distance travelled.
+    const carAngle = (angle * wheelRadius) / CAR_WHEEL_RADIUS;
+    const cars = roster.cars;
+    for (const car of cars) turnCarWheels(car, carAngle);
+
+    consist.place(roster.vehicles(), train.distance);
     world.track.positionAt(train.distance, pos);
     world.track.tangentAt(train.distance, fwd);
-    engineMesh.group.position.copy(pos);
-    engineMesh.group.lookAt(lookTarget.copy(pos).add(fwd));
 
     // steam, paced by speed
     puffTimer -= dt;
@@ -249,7 +270,18 @@ async function boot(): Promise<void> {
   // Dev-only handle, so the driving can be exercised without waiting for
   // real time to pass. Stripped from production builds.
   if (import.meta.env.DEV) {
-    (window as { LE?: unknown }).LE = { train, rig, world, audio, spec: thomas, scene, camera, renderer, THREE };
+    (window as { LE?: unknown }).LE = {
+      train,
+      rig,
+      world,
+      audio,
+      roster,
+      consist,
+      scene,
+      camera,
+      renderer,
+      THREE,
+    };
   }
 
   // Pushed updates land the next time he opens the app, never mid-journey.

@@ -24,6 +24,9 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm ci
+      # The junctions and the platform stops are the two things most likely
+      # to break quietly, and a broken one should never reach the tablet.
+      - run: npm test
       - run: npm run build
         env:
           # Project sites live at /<repo>/, so every asset URL needs that

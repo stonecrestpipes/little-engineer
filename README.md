@@ -110,7 +110,13 @@ it shows on your LAN can be opened on the tablet directly.
 ```bash
 npm run build     # typecheck + production build into dist/
 npm run preview   # serve dist/ to check the real build
+npm test          # the junctions and the platform stops, checked
 ```
+
+The tests cover the two promises most likely to break quietly: that pulling
+down near a platform always lands exactly on the mark (and never past it),
+and that moving between loops at a junction changes nothing under the engine.
+They also run on every push, before anything is deployed.
 
 ## Putting it on the Pixel Tablet
 

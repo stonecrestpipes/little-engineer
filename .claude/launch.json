@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "autoPort": true
+    },
+    {
+      "name": "little-engineer-build",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview", "--", "--port", "4173", "--strictPort"],
+      "port": 4173
     }
   ]
 }

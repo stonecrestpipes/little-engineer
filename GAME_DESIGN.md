@@ -57,25 +57,25 @@ past. That is the whole of it.
 | Area | Decision |
 |---|---|
 | **Name** | Little Engineer |
-| **Core gameplay** | Drive a train round a continuous loop; stop at stations; whistle at everything; watch it go |
-| **Controls** | One throttle lever, plus WHISTLE and CAMERA. Nothing else on screen |
+| **Core gameplay** | Drive a train round the railway; stop at stations; whistle at everything; watch it go |
+| **Controls** | One throttle lever, plus WHISTLE and CAMERA. Nothing else on screen, except two picture arrows while coming up to a junction |
 | **The lever** | Push up to go — further is faster. Let go and it centres itself and the engine eases down. Pull down to stop |
 | **Objectives** | **None.** No errands, no collecting, no prizes, nothing that pops up over the view |
 | **Greeting** | Spoken by name when the app opens, and nothing else is ever spoken |
 | **Camera** | One big button cycles three fixed views: **Wide**, **Follow**, **Trackside** |
-| **World** | One continuous loop, several stations, visible as a play-mat layout. No end, no fail |
+| **World** | A loop with two branch lines, six stations, visible as a play-mat layout. No end, no fail |
 | **View style** | Storybook 3/4 — angled overhead, toy railway on a table |
-| **Activities** | Passengers board · station comes alive · whistle gets a response |
-| **Track interaction** | Fully automatic. No junctions in MVP (deferred to Phase 5+) |
+| **Activities** | Station comes alive · the world answers the whistle · choose a way at the points |
+| **Track interaction** | Automatic, except two junctions he may choose at. Touching nothing always goes the usual way |
 | **Difficulty** | Generous stopping zone with gentle auto-assist. He cannot miss |
 | **Failure states** | **None whatsoever.** Overshooting simply means going round again |
-| **Rewards** | None in MVP. Optional sticker book deferred to Phase 7 |
+| **Rewards** | None. What would have been a sticker book is a scrapbook only the grown-ups see |
 | **Audio** | Sounds and animation only. No speech, in any phase |
 | **Sessions** | Endless free play. Start instantly, stop anytime, nothing is lost |
-| **Parent controls** | Deferred to Phase 8, behind a long-press gesture |
+| **Parent controls** | Hold the top-right corner for three seconds |
 | **Engines** | Four. He picks one by touching it in the yard |
 | **Cars** | Up to three, chosen the same way. Nothing to do with them |
-| **Artwork** | Original engines and scenery, designed for this project |
+| **Artwork** | Original engines and scenery, designed for this project. The first engine's familiar face is the one exception, with an original ready to replace it |
 | **Delivery** | Installable offline PWA on a free static host |
 
 ---
@@ -240,7 +240,7 @@ one of them turns driving through a place into doing a job.
 Each phase ends with **real play testing before the next begins**. Feature count is not the measure;
 independent, unprompted play is.
 
-### Phase 1 — Toddler UX prototype *(next)*
+### Phase 1 — Toddler UX prototype *(passed)*
 One engine, one small loop, one station, simple scenery. GO / STOP / WHISTLE / CAMERA.
 No progression, no data persistence, no extra content.
 **Success test:** he picks up the tablet and plays without being told how. Nothing else counts.

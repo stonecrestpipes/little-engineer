@@ -14,25 +14,33 @@ design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 **Phase 1 passed.** He picked the tablet up, found the lever and drove, with
 nothing said to him. That was the only gate that mattered, and it is behind us.
 
-**Phases 3, 5, 6, 8 and 10 are built and deployed, and none of them has been
-played yet.** The railway is a 642-metre circuit — The Sheds, the level
-crossing, The Farm, the tunnel, the bridge and The Harbour — about a minute and
-forty a lap at the top of the lever. After The Farm, two big arrows let him
-choose between the tunnel and a branch line round the hill to The Windmill;
-after The Harbour, between home and a line along the sea wall to The
-Lighthouse.
-There are four engines and five cars, and he picks his train by walking up to
-it: the spares stand in the yard at The Sheds, and tapping one takes it. A
-hidden grown-ups' panel (below) tunes it on the tablet.
+**Every planned phase is built and deployed, and none of it since Phase 1 has
+been played yet.** What is waiting for him:
+
+- **The railway**: a 642-metre circuit — The Sheds, the level crossing, The
+  Farm, the tunnel, the bridge and The Harbour — about a minute and forty a
+  lap at the top of the lever.
+- **Two branch lines**, each chosen with two big picture arrows: after The
+  Farm, round the hill to The Windmill instead of the tunnel; after The
+  Harbour, along the sea wall to The Lighthouse instead of straight home.
+  Touch nothing and the train simply goes the usual way.
+- **Four engines and five cars**, picked by walking up to them in the yard at
+  The Sheds and tapping one.
+- **Things that answer the whistle** almost everywhere: sheep, the yard's
+  engines, the car at the crossing, the tunnel's echo, the boat, the windmill,
+  the lighthouse's foghorn, and birds out in the fields.
+- **Slow evenings**: every eight minutes the sky goes golden, then dusk, and
+  back. Never dark.
+- **A hidden grown-ups' panel** (below) with his settings and a scrapbook of
+  how he plays.
 
 ### The next thing to do
 
 1. Open it on the tablet. It updates itself on the next launch.
 2. Hand it to him. Say nothing, again.
-3. Watch what he does with a place that is six times the size — especially
-   whether he goes looking for things, whether he stops at all three stations
-   or only at one, whether the tunnel is exciting or alarming, and whether he
-   notices the sheep.
+3. Watch what he does with a place that is many times the size — especially
+   whether he goes looking for things, which stations he stops at, whether the
+   tunnel is exciting or alarming, and what he whistles at.
 4. Watch whether he finds the yard on his own. Nothing points at it: the other
    engines are simply standing there, bobbing gently, whenever he is stopped at
    home. If he never touches one, that is worth knowing before anything else is
@@ -42,6 +50,9 @@ hidden grown-ups' panel (below) tunes it on the tablet.
    go back? If he ignores them, the train simply carries on as before. The
    scrapbook in the grown-ups' panel counts which way he went, and they can
    be switched off there too.
+
+6. Afterwards, open the grown-ups' panel: the scrapbook at the top records
+   what he did, including when nobody was watching.
 
 **Check the frame rate on the actual tablet.** The game measures it for you:
 on *Auto* it turns shadows down if it cannot hold about 46 fps, and the footer
@@ -63,8 +74,10 @@ thing to try is thinning the trees in `src/content/world.ts`.
   They are meant to carry whatever he decides to call each engine, and are the
   only text anywhere in the game.
 - **Whether the station reaction is enough.** Right now: lamp lights, flag goes
-  up, passengers bob, chime plays. Phase 3 is where that gets properly built
-  out — but only if arriving turns out to be the thing he likes most.
+  up, passengers bob, chime plays, and the engine sighs out steam. Worth
+  building on only if arriving turns out to be the thing he likes most.
+- **Which face the blue engine wears.** *Familiar* until he has seen the
+  original; once he is happy with it, see *Hosting*.
 
 ### Known-good, do not re-litigate
 

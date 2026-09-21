@@ -38,7 +38,6 @@ export interface Roster {
   chooseEngine(id: string): void;
   /** Couple a car up, or take it off again if it is already on. */
   toggleCar(id: string): boolean;
-  isAttached(id: string): boolean;
   onChange(fn: () => void): void;
 }
 
@@ -155,9 +154,6 @@ export async function buildRoster(scene: THREE.Scene, anisotropy: number): Promi
       }
       changed();
       return true;
-    },
-    isAttached(id) {
-      return state.cars.includes(id);
     },
     onChange(fn) {
       listeners.push(fn);

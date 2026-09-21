@@ -212,11 +212,6 @@ export class Network {
     );
   }
 
-  /** Every segment, for scenery that wants to dress the whole railway. */
-  all(): Segment[] {
-    if (!this.built) this.build();
-    return [...this.segments.values()];
-  }
 }
 
 interface Leg {

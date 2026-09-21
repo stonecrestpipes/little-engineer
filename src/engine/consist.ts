@@ -51,11 +51,4 @@ export class Consist {
       vehicles[i].object.lookAt(this.look.copy(this.at).add(this.ahead));
     }
   }
-
-  /** How long the whole train is, end to end. */
-  length(vehicles: Vehicle[]): number {
-    if (vehicles.length === 0) return 0;
-    const offsets = this.offsets(vehicles);
-    return offsets[offsets.length - 1] + (vehicles[0].length + vehicles[vehicles.length - 1].length) / 2;
-  }
 }

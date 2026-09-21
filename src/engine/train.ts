@@ -88,10 +88,6 @@ export class Train {
     return this.restingAt;
   }
 
-  /** Where the lever is right now, after the dead zone. */
-  get throttle(): number {
-    return this.power;
-  }
 
   /** Called every time the lever moves, which may be every frame. */
   setThrottle(value: number): void {

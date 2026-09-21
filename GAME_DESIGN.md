@@ -527,14 +527,21 @@ What remains for Phase 2 is whatever the play test says to change.
 3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
    crawlers blocked, which was chosen to get it installed quickly. Swapping in original artwork
    would retire the question entirely; the content layer already supports it.
-4. **Cruise speed.** 7.2 m/s at the top of the lever, a lap in about a minute; 2.8 m/s at the
-   bottom of the green. Both are guesses until he drives it, and the range between them is the
-   first thing I would expect to want changing.
+4. **How fast anything should go.** Each engine carries its own numbers now: 6.4 m/s at the top of
+   the lever for the slowest, 8.0 for the quickest, and 2.4 to 3.2 at the bottom of the green. A lap
+   is a minute and forty. All guesses until he drives them, and the spread between the engines is a
+   guess on top of a guess — it is meant to be felt rather than noticed, and may be too small to
+   feel at all.
 
 ---
 
 ## Companion files
 
-- `Little Engineer - Game Plan.pdf` — this document, typeset for reading and printing.
-- Mockups — eight artboards at true Pixel Tablet size (1280 × 800): the three camera views, the
-  station moment, the control spec, the home-screen icon, the loop plan and the engine sheet.
+Both are **Phase 0 artefacts and are now well out of date**. They are kept because they record what
+was being aimed at before anything was built, not because they describe the game. Neither is loaded
+by anything, and neither is worth updating unless somebody wants a printable version again.
+
+- `Little Engineer - Game Plan.pdf` — this document as it stood at Phase 0, typeset for printing.
+  It predates the lever, the world and the engines, so read this file instead.
+- `mockups/` — eight artboards at true Pixel Tablet size (1280 × 800). They show GO and STOP rather
+  than the lever, and one station rather than six places. Superseded by the game itself.

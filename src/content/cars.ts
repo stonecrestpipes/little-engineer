@@ -41,9 +41,6 @@ export const CARS: CarSpec[] = [
   { id: 'brake', name: 'the brake van', kind: 'brake', length: 4.8, colour: 0x6b4a3e, trim: C.cream, roof: C.slate },
 ];
 
-export function carById(id: string): CarSpec | undefined {
-  return CARS.find((c) => c.id === id);
-}
 
 const WHEEL_R = 0.42;
 const GAUGE = 1.02;

@@ -17,6 +17,8 @@ import { greetingFor } from './content/greeting';
 import { setNameplate } from './content/buildEngine';
 import { settings, tunedDriving } from './settings';
 import { mountParentPanel } from './ui/parents';
+import { keepAwake } from './ui/wakelock';
+import { QualityGovernor } from './engine/quality';
 
 const SKY_TOP = 0x7fc8e6;
 const SKY_LOW = 0xdcf0f4;
@@ -71,7 +73,6 @@ async function boot(): Promise<void> {
 
   const canvas = document.getElementById('stage') as HTMLCanvasElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -191,8 +192,10 @@ async function boot(): Promise<void> {
 
   // --- controls ----------------------------------------------------------
   let touched = false;
+  const awake = keepAwake();
   const used = () => {
     touched = true;
+    awake.touched();
     // The audio context can only be opened from inside a real gesture.
     audio.start();
   };
@@ -210,6 +213,7 @@ async function boot(): Promise<void> {
   mountParentPanel({
     opened: () => train.setThrottle(0),
     resetTrain: () => roster.reset(),
+    status: () => ['Full detail', 'Shadows reduced', 'Shadows off'][quality.current],
   });
 
   // Touching the world itself, which only does anything in the yard: the
@@ -237,10 +241,16 @@ async function boot(): Promise<void> {
     camera.updateProjectionMatrix();
   }
   window.addEventListener('resize', resize);
-  resize();
+
+  // Sets the pixel ratio and shadow size, and steps them down if the tablet
+  // turns out not to hold sixty frames with everything on.
+  const quality = new QualityGovernor(renderer, sun, resize);
+  quality.setMode(settings.get().quality);
+  settings.onChange((s) => quality.setMode(s.quality));
 
   renderer.setAnimationLoop(() => {
     const t = now();
+    quality.sample(t - last);
     // Clamp: coming back from a locked screen must not teleport the train.
     const dt = Math.min(0.05, t - last);
     last = t;
@@ -303,6 +313,7 @@ async function boot(): Promise<void> {
       world,
       audio,
       roster,
+      quality,
       consist,
       scene,
       camera,

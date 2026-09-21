@@ -21,6 +21,8 @@ export interface ParentHooks {
   opened(): void;
   /** Put his train back to the blue engine with nothing behind it. */
   resetTrain(): void;
+  /** A line for the footer about how the game is running. */
+  status(): string;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -93,7 +95,16 @@ export function mountParentPanel(hooks: ParentHooks): void {
     () => s().stopHelp,
     (v) => settings.set({ stopHelp: v }),
   );
-  syncs.push(hello.sync, speed.sync, stop.sync);
+  const picture = choice(
+    [
+      { value: 'auto', label: 'Auto' },
+      { value: 'high', label: 'Sharp' },
+      { value: 'low', label: 'Simple' },
+    ] as const,
+    () => s().quality,
+    (v) => settings.set({ quality: v }),
+  );
+  syncs.push(hello.sync, speed.sync, stop.sync, picture.sync);
 
   const volume = el('input', { type: 'range', min: '0', max: '1', step: '0.05', value: String(s().volume) });
   volume.addEventListener('input', () => settings.set({ volume: Number(volume.value) }));
@@ -125,6 +136,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
   });
   const done = el('button', { type: 'button', className: 'p-done', textContent: 'Done' });
 
+  const footnote = el('small');
   const body = el(
     'div',
     { className: 'p-body' },
@@ -134,6 +146,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Help stopping', 'How early pulling down still arrives', stop.node),
     row('Volume', '', volume),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
+    row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),
   );
 
   const sheet = el(
@@ -141,7 +154,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     { className: 'p-sheet', role: 'dialog', ariaLabel: 'Grown-ups' },
     el('header', {}, el('h2', {}, 'Grown-ups'), done),
     body,
-    el('footer', {}, resetTrain, resetAll, el('small', { textContent: `Build ${__BUILD__}` })),
+    el('footer', {}, resetTrain, resetAll, footnote),
   );
   const panel = el('div', { id: 'parents', hidden: true }, sheet);
   document.body.append(panel);
@@ -162,6 +175,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
 
   const open = () => {
     syncs.forEach((f) => f());
+    footnote.textContent = `${hooks.status()} · Build ${__BUILD__}`;
     hooks.opened();
     panel.hidden = false;
     body.scrollTop = 0;

@@ -25,7 +25,10 @@ export default defineConfig({
         description: 'A calm train game.',
         start_url: base,
         scope: base,
-        display: 'standalone',
+        // No status bar over the sky. Falls back to standalone where
+        // fullscreen is not supported.
+        display: 'fullscreen',
+        display_override: ['fullscreen', 'standalone'],
         orientation: 'landscape',
         background_color: '#CDEAF2',
         theme_color: '#2F7FC9',

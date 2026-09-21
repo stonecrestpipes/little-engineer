@@ -34,11 +34,11 @@ takes it.
    home. If he never touches one, that is worth knowing before anything else is
    built on top of it.
 
-**Check the frame rate on the actual tablet.** The wide view is 194k triangles
-and 374 draw calls, which should be comfortable on a Tensor G2 but has only
-been measured on a desktop. If it struggles, the first things to try are
-dropping the shadow map from 2048 to 1536 in `src/main.ts` and thinning the
-trees in `src/content/world.ts`.
+**Check the frame rate on the actual tablet.** The game measures it for you:
+on *Auto* it turns shadows down if it cannot hold about 46 fps, and the footer
+of the grown-ups' panel says which tier it settled on (*Full detail*,
+*Shadows reduced* or *Shadows off*). If it lands on *Shadows off*, the next
+thing to try is thinning the trees in `src/content/world.ts`.
 
 ### Decide after watching, not before
 
@@ -186,6 +186,7 @@ src/
     train.ts      the lever, speed curves, the platform glide path
     cameras.ts    three fixed views on one button
     audio.ts      every sound, synthesised — nothing is loaded
+    quality.ts    steps shadows and resolution down if frames are slow
   content/    data: this engine, this railway
     engines/thomas.ts   colours, dimensions, driving feel, whistle pitch
     buildEngine.ts      the mesh, built from boxes and cylinders
@@ -205,6 +206,7 @@ src/
   ui/         the lever, the whistle, the camera
     controls.ts   the lever drag, and the two buttons
     parents.ts    the hidden grown-ups' panel
+    wakelock.ts   keeps the screen on while he is playing
     greeting.ts   speaking the hello, and coping when the device will not
 ```
 

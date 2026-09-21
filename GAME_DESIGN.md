@@ -296,9 +296,16 @@ as it played before the panel existed.
 Only for things he actually uses repeatedly. Weather, day/night, more scenery, more sounds, more
 character reactions.
 
-### Phase 10 — Pixel Tablet packaging
+### Phase 10 — Pixel Tablet packaging *(built)*
 Full PWA: offline service worker, bundled assets, local storage, fullscreen, home-screen icon.
 *(Basic installability is worth bringing forward into Phase 1 — see below.)*
+
+As built: offline and updates were already done in Phase 1. This phase added a fullscreen manifest
+(no status bar over the sky), a screen wake lock that holds while he is playing and lets go after
+five minutes without a touch, and a quality governor. On 'Auto' it starts at full detail and, if
+play averages under 46 fps for four seconds, steps down: first to 1× pixels and 1024 shadows, then
+to no shadows. It never steps back up in the same session. The grown-ups' panel can pin it to
+Sharp or Simple and shows which tier it is running at.
 
 ---
 
@@ -383,6 +390,16 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 10 — fitting the tablet
+
+Nothing had been measured on the tablet itself, so rather than guessing a shadow size the game now
+measures its own frame rate and turns shadows down if it has to. The panel footer says which tier it
+ended up on. If it says *Shadows off* on the Pixel Tablet, that is the number to look at before
+adding more scenery.
+
+The manifest now asks for fullscreen. An already-installed app picks this up when Chrome next
+refreshes its copy of the manifest, which can take a day or so; reinstalling makes it immediate.
 
 ### Phase 8 — the grown-ups' panel
 

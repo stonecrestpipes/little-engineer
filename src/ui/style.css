@@ -456,6 +456,10 @@ html, body {
 }
 #ui #points .way svg { width: 74%; }
 #points .way .arrow { stroke: currentColor; }
+/* Only the pictures for the junction he is coming up to. */
+#points .pic { display: none; }
+#points[data-junction='farm'] .pic[data-for='farm'],
+#points[data-junction='coast'] .pic[data-for='coast'] { display: inline; }
 
 #ui #points .way.on {
   background: #2e7d32;

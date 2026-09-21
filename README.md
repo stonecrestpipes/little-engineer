@@ -18,7 +18,9 @@ nothing said to him. That was the only gate that mattered, and it is behind us.
 played yet.** The railway is a 642-metre circuit — The Sheds, the level
 crossing, The Farm, the tunnel, the bridge and The Harbour — about a minute and
 forty a lap at the top of the lever. After The Farm, two big arrows let him
-choose between the tunnel and a branch line round the hill to The Windmill.
+choose between the tunnel and a branch line round the hill to The Windmill;
+after The Harbour, between home and a line along the sea wall to The
+Lighthouse.
 There are four engines and five cars, and he picks his train by walking up to
 it: the spares stand in the yard at The Sheds, and tapping one takes it. A
 hidden grown-ups' panel (below) tunes it on the tablet.
@@ -35,10 +37,11 @@ hidden grown-ups' panel (below) tunes it on the tablet.
    engines are simply standing there, bobbing gently, whenever he is stopped at
    home. If he never touches one, that is worth knowing before anything else is
    built on top of it.
-5. Watch the arrows after The Farm. Does he notice them, does he pick the
-   windmill on purpose, and does he go back to it? If he ignores them, the
-   train simply carries on through the tunnel as before. They can be switched
-   off in the grown-ups' panel.
+5. Watch the arrows after The Farm and after The Harbour. Does he notice
+   them, does he pick the windmill or the lighthouse on purpose, and does he
+   go back? If he ignores them, the train simply carries on as before. The
+   scrapbook in the grown-ups' panel counts which way he went, and they can
+   be switched off there too.
 
 **Check the frame rate on the actual tablet.** The game measures it for you:
 on *Auto* it turns shadows down if it cannot hold about 46 fps, and the footer
@@ -221,7 +224,8 @@ src/
       place.ts            what a place is, and the frame it is built in
       station.ts          the part all three stations share
       sheds.ts  crossing.ts  farm.ts  tunnel.ts  bridge.ts  harbour.ts
-      windmill.ts         out on the branch line
+      windmill.ts         out on the branch round the hill
+      lighthouse.ts       out on the coast line
   settings.ts the grown-ups' settings, and how they adjust each engine
   journal.ts  the scrapbook: what he did, for the grown-ups only
   ui/         the lever, the whistle, the camera
@@ -277,12 +281,13 @@ lever came from.
 ### Adding track
 
 Track is named segments in `SEGMENTS` at the top of `src/content/world.ts`,
-joined into whole loops. The branch is a second loop, identical to the main
-one up to the points, and `src/engine/junction.ts` switches between them only
-while the engine is short of the points. A place on the branch is built
-against the branch loop, and the world converts distances between the two, so
-a place never has to know which line the engine is on. Another branch
-means another loop that shares everything up to its own points.
+joined into whole loops. Each junction doubles the loops (`loopOf(n)`, where
+the bits of `n` say which branches are taken), and `src/engine/junction.ts`
+lets the engine move between two loops only while it is short of where they
+part. A place on a branch is built against a loop that takes it, and
+distances are converted between loops by segment, so a place never has to
+know which way the engine went. Another branch is: its segments, one `join`
+at each end, a bit in `loopOf`, and an entry in `junctions`.
 
 ---
 

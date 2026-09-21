@@ -29,12 +29,18 @@
       </svg>
     </button>
 
-    <!-- Only there while he is coming up to the points after The Farm. Each
-         way is an arrow and a picture of where it goes; nothing to read. -->
+    <!-- Only there while he is coming up to a set of points. Each way is an
+         arrow and a picture of where it goes; nothing to read. The pictures
+         shown are the ones for whichever junction it is. -->
     <div id="points" hidden>
-      <button class="way" data-line="0" type="button" aria-label="Through the tunnel">
+      <button class="way" data-line="0" type="button" aria-label="The main line">
         <svg viewBox="0 0 64 88" aria-hidden="true">
-          <g class="pic">
+          <g class="pic" data-for="coast">
+            <path d="M14 32V19l18-9 18 9v13Z" fill="#c36552"/>
+            <path d="M11 20l21-11 21 11" fill="none" stroke="#6b4a3e" stroke-width="4" stroke-linejoin="round"/>
+            <path d="M26 32v-8h12v8Z" fill="#26323a"/>
+          </g>
+          <g class="pic" data-for="farm">
             <path d="M12 30V20a20 16 0 0 1 40 0v10Z" fill="#8a7a66"/>
             <path d="M21 30v-8a11 9 0 0 1 22 0v8Z" fill="#26323a"/>
           </g>
@@ -42,9 +48,16 @@
           <path class="arrow" d="M26 41 14 52l12 11" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <button class="way" data-line="1" type="button" aria-label="To the windmill">
+      <button class="way" data-line="1" type="button" aria-label="The branch line">
         <svg viewBox="0 0 64 88" aria-hidden="true">
-          <g class="pic">
+          <g class="pic" data-for="coast">
+            <path d="M27 34l2-22h6l2 22Z" fill="#f4f1e8" stroke="#d9573f" stroke-width="1.5"/>
+            <path d="M28 27h8M28.6 20h6.8" stroke="#d9573f" stroke-width="4"/>
+            <path d="M27.5 12h9v-4h-9Z" fill="#ffd66b"/>
+            <path d="M26 8l6-4 6 4Z" fill="#d9573f"/>
+            <path d="M38 9l12-4M38 11l12 4" stroke="#ffd66b" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <g class="pic" data-for="farm">
             <path d="M26 32l2-16h8l2 16Z" fill="#f4f1e8" stroke="#9e4a3c" stroke-width="1.5"/>
             <path d="M25 17l7-6 7 6Z" fill="#9e4a3c"/>
             <g stroke="#8d6e4e" stroke-width="3" stroke-linecap="round">

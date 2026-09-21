@@ -18,7 +18,7 @@ export interface Journal {
   whistles: number;
   /** platform stops, by stop id */
   stops: Record<string, number>;
-  /** times each way was taken at the points, by line (0 main, 1 branch) */
+  /** times each way was taken at each set of points, as `junction:way` (0 main, 1 branch) */
   turns: Record<string, number>;
 }
 
@@ -99,8 +99,9 @@ class JournalStore {
     this.dirty = true;
   }
 
-  turned(line: number): void {
-    this.j.turns[line] = (this.j.turns[line] ?? 0) + 1;
+  turned(junction: string, way: number): void {
+    const key = `${junction}:${way}`;
+    this.j.turns[key] = (this.j.turns[key] ?? 0) + 1;
     this.dirty = true;
   }
 

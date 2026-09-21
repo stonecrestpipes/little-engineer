@@ -25,10 +25,21 @@ import { buildTunnel } from './places/tunnel';
 import { buildBridge } from './places/bridge';
 import { buildHarbour } from './places/harbour';
 import { buildWindmill } from './places/windmill';
+import { buildLighthouse } from './places/lighthouse';
+
+/** Somewhere the railway divides and he gets to choose. */
+export interface Junction {
+  id: 'farm' | 'coast';
+  /** Which bit of the loop number this junction decides. */
+  bit: number;
+  /** How far round the points are, on a given loop. */
+  pointsOn(line: number): number;
+}
 
 export interface World {
-  /** Both loops, as one track whose points can be set before he reaches them. */
+  /** Every way round, as one track whose points can be set before he reaches them. */
   track: Lines;
+  junctions: Junction[];
   stops: Stop[];
   tracksideAnchors: THREE.Vector3[];
   /** Ground height anywhere on the map, and how far a point is from the rails. */
@@ -54,10 +65,15 @@ export interface World {
  * Every piece of it is a named segment of the network rather than part of one
  * closed curve, which is what made the branch line a content change.
  *
- * The branch leaves just after The Farm. The main line bears left into the
- * tunnel; the branch carries straight on round the far side of the hill to
- * The Windmill and comes back in above the bridge. Both are whole loops from
- * The Sheds — see src/engine/junction.ts for why that matters.
+ * There are two branches. After The Farm, the main line bears left into the
+ * tunnel and the branch carries straight on round the far side of the hill
+ * to The Windmill, coming back in above the bridge. After The Harbour, the
+ * main line bears left for home and the branch carries on along the sea wall
+ * to The Lighthouse on the headland, coming back in up the west bank.
+ *
+ * Every combination is a whole loop from The Sheds, so there are four, and
+ * the loop number's bits say which branches it takes — see
+ * src/engine/junction.ts for why that matters.
  */
 
 const SEGMENTS: Record<string, number[][]> = {
@@ -70,26 +86,41 @@ const SEGMENTS: Record<string, number[][]> = {
   rivermouth: [[90, -56], [66, -72], [44, -82], [20, -88]],
   harbour: [[20, -88], [-8, -94], [-36, -92]],
   shore: [[-36, -92], [-64, -84], [-84, -64]],
-  westbank: [[-84, -64], [-95, -38], [-96, -4], [-92, 34]],
+  // Split where the coast line comes back in.
+  westbank: [[-84, -64], [-95, -38]],
+  westfield: [[-95, -38], [-96, -4], [-92, 34]],
 
   // The branch. Kept well out on the far side of the hill, where the ground
   // is nearly level, so laying it does not carve a canyon next to the tunnel.
   eastline: [[52, 84], [78, 74], [104, 76], [130, 70], [152, 54], [166, 30]],
   windmill: [[166, 30], [170, 4], [164, -20]],
   eastback: [[164, -20], [148, -34], [126, -36], [106, -40], [90, -56]],
+
+  // The coast line, right along the water's edge, up round the headland and
+  // back in to the west bank.
+  coast: [[-36, -92], [-60, -94], [-86, -104], [-110, -102]],
+  lighthouse: [[-110, -102], [-122, -88], [-118, -72]],
+  coastback: [[-118, -72], [-108, -62], [-96.5, -51], [-95, -38]],
 };
 
-const MAIN = [
-  'sheds', 'meadow', 'farm', 'hillfoot', 'bore', 'descent',
-  'rivermouth', 'harbour', 'shore', 'westbank',
-];
-const BRANCH = ['eastline', 'windmill', 'eastback'];
-/** The same loop with the branch in place of the tunnel. */
-const BY_THE_WINDMILL = ['sheds', 'meadow', 'farm', ...BRANCH, 'rivermouth', 'harbour', 'shore', 'westbank'];
+const TUNNEL_WAY = ['hillfoot', 'bore', 'descent'];
+const WINDMILL_WAY = ['eastline', 'windmill', 'eastback'];
+const HOME_WAY = ['shore', 'westbank'];
+const COAST_WAY = ['coast', 'lighthouse', 'coastback'];
 
-/** Which line a place is on: 0 the main line, 1 the branch. */
+/** Loop number bits: which branches a loop takes. */
+const BY_WINDMILL = 1;
+const BY_LIGHTHOUSE = 2;
+
+/** The segments of loop `n`, from The Sheds round to The Sheds. */
+const loopOf = (n: number): string[] => [
+  'sheds', 'meadow', 'farm',
+  ...(n & BY_WINDMILL ? WINDMILL_WAY : TUNNEL_WAY),
+  'rivermouth', 'harbour',
+  ...(n & BY_LIGHTHOUSE ? COAST_WAY : HOME_WAY),
+  'westfield',
+];
 const MAIN_LINE = 0;
-const BRANCH_LINE = 1;
 
 /** From the pond in the middle of the loop, out under the bridge, to the sea. */
 const RIVER: [number, number][] = [
@@ -107,32 +138,34 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   for (const [id, pts] of Object.entries(SEGMENTS)) {
     net.add(id, pts.map(([x, z]) => new THREE.Vector3(x, 0, z)));
   }
-  // The main line is chained first, so where the branch joins on it is the
+  // The main line is chained first, so where a branch joins on it is the
   // main line's neighbour that shapes the curve through the joint.
-  net.chain(MAIN, true);
-  net.chain(BRANCH);
+  net.chain(loopOf(MAIN_LINE), true);
+  net.chain(WINDMILL_WAY);
+  net.chain(COAST_WAY);
   net.join({ segment: 'farm', end: 'end' }, { segment: 'eastline', end: 'start' });
   net.join({ segment: 'eastback', end: 'end' }, { segment: 'rivermouth', end: 'start' });
-  const route: Route = net.route(MAIN.map((segment) => ({ segment })));
-  const loop: Route = net.route(BY_THE_WINDMILL.map((segment) => ({ segment })));
-  /** Just the branch, for laying rails and shaping the ground. */
-  const branch: Route = net.route(BRANCH.map((segment) => ({ segment })), false);
+  net.join({ segment: 'harbour', end: 'end' }, { segment: 'coast', end: 'start' });
+  net.join({ segment: 'coastback', end: 'end' }, { segment: 'westfield', end: 'start' });
+  const loops: Route[] = [0, 1, 2, 3].map((n) => net.route(loopOf(n).map((segment) => ({ segment }))));
+  const route = loops[MAIN_LINE];
+  /** Just the branches, for laying rails and shaping the ground. */
+  const branches: Route[] = [WINDMILL_WAY, COAST_WAY].map((way) =>
+    net.route(way.map((segment) => ({ segment })), false),
+  );
 
-  const lines = new Lines([route, loop], route.startOf('hillfoot'));
-
-  /**
-   * A distance measured on one line, as it would be measured on another.
-   * Identical up to the points; shifted by the difference in length once the
-   * lines have rejoined; and NaN in between, where the rails are not shared.
-   * NaN is safe everywhere a place asks "is he near": every comparison with
-   * it is false, so a place on the other line simply never hears him.
-   */
-  const shift = loop.startOf('rivermouth') - route.startOf('rivermouth');
-  const convert = (at: number, from: number, to: number): number => {
-    if (from === to || at < lines.points) return at;
-    if (from === MAIN_LINE) return at >= route.startOf('rivermouth') ? at + shift : NaN;
-    return at >= loop.startOf('rivermouth') ? at - shift : NaN;
-  };
+  const lines = new Lines(loops);
+  const convert = (at: number, from: number, to: number) => lines.convert(at, from, to);
+  const junctions: Junction[] = (
+    [
+      { id: 'farm', bit: BY_WINDMILL, main: 'hillfoot', branch: 'eastline' },
+      { id: 'coast', bit: BY_LIGHTHOUSE, main: 'shore', branch: 'coast' },
+    ] as const
+  ).map(({ id, bit, main, branch }) => ({
+    id,
+    bit,
+    pointsOn: (line: number) => loops[line].startOf(line & bit ? branch : main),
+  }));
 
   /** The middle of a named segment, in metres along the route. */
   const middleOf = (id: string): number => route.startOf(id) + net.get(id).length / 2;
@@ -173,7 +206,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   })();
 
   // -------------------------------------------------------------- terrain
-  const terrain = buildTerrain([route, branch], {
+  const terrain = buildTerrain([route, ...branches], {
     freeSpans: [bridge],
     river: RIVER,
     riverDepth: 11,
@@ -208,10 +241,12 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   scene.add(rail(route, -0.72, 0.2, railMat));
   // A hair above the main line's ballast, so the two do not flicker where
   // they overlap at the points.
-  scene.add(ribbon(branch, 1.9, 0.026, mat(C.ballast)));
-  scene.add(sleepers(branch));
-  scene.add(rail(branch, 0.72, 0.2, railMat, false));
-  scene.add(rail(branch, -0.72, 0.2, railMat, false));
+  for (const branch of branches) {
+    scene.add(ribbon(branch, 1.9, 0.026, mat(C.ballast)));
+    scene.add(sleepers(branch));
+    scene.add(rail(branch, 0.72, 0.2, railMat, false));
+    scene.add(rail(branch, -0.72, 0.2, railMat, false));
+  }
 
   // --------------------------------------------------------------- places
   const context = (at: number, track: Route = route): PlaceContext => ({
@@ -230,12 +265,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     buildBridge({ ...context(bridgeAt), ...bridge, river: RIVER }),
     buildHarbour(context(middleOf('harbour'))),
   ];
-  const windmill = buildWindmill(
-    context(loop.startOf('windmill') + net.get('windmill').length / 2, loop),
-  );
-  places.push(windmill);
+  // Each branch place is built on a loop that takes its branch.
+  const onLoop = new Map<Place, number>();
+  const branchPlace = (build: (c: PlaceContext) => Place, segment: string, line: number) => {
+    const loop = loops[line];
+    const place = build(context(loop.startOf(segment) + net.get(segment).length / 2, loop));
+    onLoop.set(place, line);
+    places.push(place);
+  };
+  branchPlace(buildWindmill, 'windmill', BY_WINDMILL);
+  branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE);
   for (const place of places) scene.add(place.group);
-  const lineOf = (p: Place) => (p === windmill ? BRANCH_LINE : MAIN_LINE);
+  const lineOf = (p: Place) => onLoop.get(p) ?? MAIN_LINE;
 
   // Each stop's distance is read live, in terms of whichever line the engine
   // is on now. A stop on the other line reads NaN and is never arrived at.
@@ -308,17 +349,16 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     if (route.ahead(tunnel.from - 8, d) < TUNNEL_HALF * 2 + 16) continue;
     anchorAt(route, d);
   }
-  for (const f of [0.22, 0.5, 0.8]) anchorAt(branch, f * branch.length);
+  for (const branch of branches) {
+    for (const f of [0.22, 0.5, 0.8]) anchorAt(branch, f * branch.length);
+  }
 
   /**
    * The engine as each place sees it: measured along that place's own line,
    * or NaN while he is on rails that line does not share. Rebuilt in place
    * every frame rather than allocated.
    */
-  const seen = [
-    { distance: 0, speed: 0, moving: false },
-    { distance: 0, speed: 0, moving: false },
-  ];
+  const seen = loops.map(() => ({ distance: 0, speed: 0, moving: false }));
   const as = (place: Place, train: TrainState): TrainState => {
     const line = lineOf(place);
     const v = seen[line];
@@ -337,6 +377,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
 
   return {
     track: lines,
+    junctions,
     stops,
     groundAt: terrain.heightAt,
     distanceToTrack: terrain.distanceToTrack,

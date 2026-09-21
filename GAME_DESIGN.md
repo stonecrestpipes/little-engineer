@@ -273,6 +273,10 @@ the windmill. The one the points are set for is green. They are set for the main
 round, so the branch is always something he chose; if he touches nothing, nothing changes. The
 grown-ups' panel can switch the arrows off. A lap by the windmill is 749 m against 642.
 
+A second junction followed the same day, just after The Harbour: the main line bears left for home,
+and the branch carries on along the sea wall to **The Lighthouse** on the headland, rejoining up
+the west bank. Its arrows show a house and a lighthouse. Taking both branches makes a lap of 818 m.
+
 ### Phase 6 — More engines, and something to pull *(built)*
 Four engines reusing the same controller, differing in colour, face, chimney, whistle and how they
 drive. Up to three cars behind whichever one he picks.
@@ -411,6 +415,23 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 5, again — the coast line, and The Lighthouse
+
+**Four ways round.** Two junctions make four loops, numbered by which branches they take. The rule
+from the first junction still holds, stated more generally: two loops are identical up to the first
+place they part, and the engine may move between them only while it is short of that place.
+`Lines` works out that place for every pair of loops, and converts a distance from one loop to
+another by finding which segment it is on, so a place on the coast line never needs to know about
+the windmill, and the other way round.
+
+**The Lighthouse** stands on the headland, red and white, with a lamp that turns all the time and a
+pale beam sweeping round. Four gulls circle the top. A whistle brings a foghorn back — a new
+synthesised two-note `foghorn` — and the lamp flares, spins faster and the gulls wheel wider.
+
+The line runs right along the water's edge from The Harbour, which the terrain turns into a low sea
+wall. The joints where it leaves and rejoins bend by about ten degrees, the same as the windmill's;
+that is what a turnout looks like at this scale.
 
 ### Phase 7 — the scrapbook
 

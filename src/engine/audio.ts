@@ -247,6 +247,43 @@ export class Audio {
    * A boat answering. Deliberately lower and slower than the engine's whistle,
    * so the two read as two different things talking to each other.
    */
+  /**
+   * The lighthouse answering: a foghorn's two notes, a higher one sliding
+   * down into a long low one — the "bee-oh" every child already knows.
+   */
+  foghorn(delay = 0.35): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime + delay;
+
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.34, t + 0.25);
+    out.gain.setValueAtTime(0.34, t + 2.1);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 650;
+    out.connect(lp).connect(this.master);
+
+    for (const [hz, level, type] of [
+      [1, 0.55, 'sawtooth'],
+      [1.006, 0.4, 'sawtooth'],
+      [2, 0.12, 'triangle'],
+    ] as [number, number, OscillatorType][]) {
+      const o = ctx.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(176 * hz, t);
+      o.frequency.setValueAtTime(176 * hz, t + 0.7);
+      o.frequency.exponentialRampToValueAtTime(118 * hz, t + 0.95);
+      const g = ctx.createGain();
+      g.gain.value = level;
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 2.9);
+    }
+  }
+
   horn(delay = 0): void {
     const ctx = this.ctx;
     if (!ctx) return;

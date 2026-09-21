@@ -290,6 +290,39 @@ export class Route implements Track {
     return this.wrap(this.wrap(to) - this.wrap(from));
   }
 
+  /** The segments driven, in order. */
+  get segments(): string[] {
+    return this.legs.map((l) => l.segment.id);
+  }
+
+  lengthOf(segmentId: string): number {
+    const leg = this.legs.find((l) => l.segment.id === segmentId);
+    if (!leg) throw new Error(`segment ${segmentId} is not on this route`);
+    return leg.segment.length;
+  }
+
+  /** Whether this route runs over a named segment at all. */
+  has(segmentId: string): boolean {
+    return this.legs.some((l) => l.segment.id === segmentId);
+  }
+
+  /**
+   * Which segment a distance falls on, and how far along that segment it is,
+   * measured in the direction the segment was drawn. This is what lets a
+   * distance on one route be found again on another that shares the segment.
+   */
+  where(d: number): { segment: string; local: number } {
+    const { leg, local } = this.locate(d);
+    return { segment: leg.segment.id, local: leg.reversed ? leg.segment.length - local : local };
+  }
+
+  /** The inverse of `where`, or NaN if this route does not use that segment. */
+  at(segmentId: string, local: number): number {
+    const leg = this.legs.find((l) => l.segment.id === segmentId);
+    if (!leg) return NaN;
+    return leg.at + (leg.reversed ? leg.segment.length - local : local);
+  }
+
   /** Where a named segment begins along this route, for placing scenery. */
   startOf(segmentId: string): number {
     const leg = this.legs.find((l) => l.segment.id === segmentId);

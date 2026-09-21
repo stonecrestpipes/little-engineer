@@ -7,6 +7,7 @@ const PLACES: [string, string][] = [
   ['farm', 'The Farm'],
   ['windmill', 'The Windmill'],
   ['harbour', 'The Harbour'],
+  ['lighthouse', 'The Lighthouse'],
 ];
 
 const distance = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
@@ -44,8 +45,12 @@ function scrapbook(into: HTMLElement): void {
     );
   }
 
-  const tunnel = j.turns['0'] ?? 0;
-  const mill = j.turns['1'] ?? 0;
+  const turns = (junction: string, main: string, branch: string): string => {
+    const a = j.turns[`${junction}:0`] ?? 0;
+    const b = j.turns[`${junction}:1`] ?? 0;
+    return `${main} ${count(a)}, ${branch} ${count(b)}`;
+  };
+  const anyTurns = Object.values(j.turns).some((n) => n > 0);
   const since = new Date(j.since + 'T12:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
 
   into.replaceChildren(
@@ -60,9 +65,10 @@ function scrapbook(into: HTMLElement): void {
     el('h3', {}, 'What he drives'),
     engines,
     el('p', { className: 'p-note' },
-      tunnel + mill === 0
-        ? 'He has not been past the points after The Farm yet.'
-        : `At the points: the tunnel ${count(tunnel)} ${tunnel === 1 ? 'time' : 'times'}, the windmill ${count(mill)}.`,
+      anyTurns
+        ? `After The Farm: ${turns('farm', 'the tunnel', 'the windmill')}. ` +
+            `After The Harbour: ${turns('coast', 'home', 'the lighthouse')}.`
+        : 'He has not been past any points yet.',
       el('br'),
       `Kept on this tablet since ${since}. He never sees any of this.`,
     ),
@@ -233,7 +239,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Help stopping', 'How early pulling down still arrives', stop.node),
     row('Volume', '', volume),
     row('Evenings', 'The sky slowly turns golden, then dusk, and back', dayNight.node),
-    row('Branch line', 'Arrows after The Farm to choose the tunnel or the windmill', junction.node),
+    row('Branch line', 'Arrows to choose the windmill or the lighthouse', junction.node),
     row('Blue engine’s face', 'Original is drawn for this game and safe to share', face.node),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
     row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),

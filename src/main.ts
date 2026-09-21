@@ -5,7 +5,7 @@ import { Train } from './engine/train';
 import { Consist } from './engine/consist';
 import { CameraRig } from './engine/cameras';
 import { Audio } from './engine/audio';
-import { buildWorld } from './content/world';
+import { buildWorld, type Junction } from './content/world';
 import { animateRunningGear } from './content/buildEngine';
 import { buildRoster } from './content/roster';
 import { CAR_WHEEL_RADIUS, turnCarWheels } from './content/cars';
@@ -218,38 +218,46 @@ async function boot(): Promise<void> {
   });
 
   // --- the points ----------------------------------------------------------
-  // Two arrows as he comes up to the junction after The Farm. Setting them is
-  // only allowed while he is still short of it, which is also the only time
-  // the arrows are on screen.
+  // Two arrows as he comes up to a junction: after The Farm, and after The
+  // Harbour. Setting the points is only allowed while he is still short of
+  // them, which is also the only time the arrows are on screen.
   const lines = world.track;
   const APPROACH = 70;
+  /** The junction whose arrows are showing, if any. */
+  let current: Junction | null = null;
+  /** The loop that differs from this one only in which way `j` goes. */
+  const via = (j: Junction, branch: boolean) => (lines.line & ~j.bit) | (branch ? j.bit : 0);
   const points = mountPoints({
     touched: used,
-    choose(line) {
-      if (lines.set(line, train.distance)) {
-        points.mark(line);
+    choose(way) {
+      if (current && lines.set(via(current, way === 1), train.distance)) {
+        points.mark(way);
         audio.chime();
       }
     },
   });
-  let approaching = false;
-  let wasBefore = lines.canSwitch(train.distance);
+  const wasBefore = new Map<string, boolean>();
   const watchPoints = () => {
-    const head = train.distance;
-    const before = lines.canSwitch(head);
-    // Just went over the points: note which way, for the grown-ups' scrapbook.
-    if (wasBefore && !before) journal.turned(lines.line);
-    wasBefore = before;
+    const head = lines.wrap(train.distance);
     const on = settings.get().junctions;
-    const near = on && before && lines.points - lines.wrap(head) <= APPROACH;
-    // Every time round starts set for the main line, so the branch is always
-    // something he chose rather than somewhere he was left.
-    if ((near && !approaching) || (!on && before)) {
-      lines.set(0, head);
-      points.mark(0);
+    let showing: Junction | null = null;
+    for (const j of world.junctions) {
+      const at = j.pointsOn(lines.line);
+      const before = head < at;
+      // Just went over the points: note which way, for the grown-ups' scrapbook.
+      if (wasBefore.get(j.id) && !before) journal.turned(j.id, lines.line & j.bit ? 1 : 0);
+      wasBefore.set(j.id, before);
+      const near = on && before && at - head <= APPROACH;
+      // Every time round starts set for the main line, so a branch is always
+      // somewhere he chose rather than somewhere he was left.
+      if ((near && current !== j) || (!on && before)) lines.set(via(j, false), head);
+      if (near) showing = j;
     }
-    approaching = near;
-    points.show(near);
+    if (showing !== current) {
+      current = showing;
+      points.show(current ? current.id : null);
+    }
+    if (current) points.mark(lines.line & current.bit ? 1 : 0);
   };
 
   mountParentPanel({

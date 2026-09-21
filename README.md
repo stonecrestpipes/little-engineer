@@ -172,9 +172,16 @@ can open it.
 
 Tightening it later, best option first:
 
-1. **Swap in original artwork.** `src/content/engines/thomas.ts` plus one PNG.
-   The content layer was built for exactly this, and it makes the public URL a
-   non-issue rather than a managed risk.
+1. **Swap in original artwork.** This is now mostly done. The blue engine has
+   an original drawn face (`originalFace` in `src/content/engines/thomas.ts`),
+   and the grown-ups' panel switches between *Familiar* and *Original*.
+   Original app icons drawn from the same face are in `artwork/icons/`. Once
+   he is happy with the new face, retiring the third-party imagery is:
+   - copy `artwork/icons/*.png` over `public/icons/`
+   - delete `public/assets/engines/thomas/face.png` and the `faceTexture` line
+   - make `originalFace` the only face (`face:` rather than `originalFace:`)
+
+   After that the public URL is a non-issue rather than a managed risk.
 2. **Private repo + Pages**, which needs GitHub Pro or above.
 3. **Drop hosting**, install from a throwaway `cloudflared` tunnel and let the
    app run offline from cache.

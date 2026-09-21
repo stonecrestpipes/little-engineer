@@ -42,6 +42,8 @@ export interface Roster {
   toggleCar(id: string): boolean;
   /** The first engine with nothing behind it: the grown-ups' reset. */
   reset(): void;
+  /** Wear the drawn face instead of the photograph, where there is one. */
+  useOriginalFaces(on: boolean): void;
   onChange(fn: () => void): void;
 }
 
@@ -100,9 +102,13 @@ async function faceFor(
 
 export async function buildRoster(scene: THREE.Scene, anisotropy: number): Promise<Roster> {
   const engines = new Map<string, EngineMesh>();
+  /** The face each engine was built with, and its drawn one if it has both. */
+  const faces = new Map<string, { built: THREE.Texture | null; drawn?: THREE.Texture }>();
   for (const spec of ENGINES) {
-    const mesh = buildEngine(spec, await faceFor(spec, anisotropy));
+    const built = await faceFor(spec, anisotropy);
+    const mesh = buildEngine(spec, built);
     engines.set(spec.id, mesh);
+    faces.set(spec.id, { built });
     scene.add(mesh.group);
   }
 
@@ -161,6 +167,23 @@ export async function buildRoster(scene: THREE.Scene, anisotropy: number): Promi
       }
       changed();
       return true;
+    },
+    useOriginalFaces(on) {
+      for (const spec of ENGINES) {
+        if (!spec.originalFace) continue;
+        const f = faces.get(spec.id)!;
+        if (on && !f.drawn) {
+          f.drawn = drawFace(spec.originalFace);
+          f.drawn.anisotropy = anisotropy;
+        }
+        const map = on ? f.drawn! : f.built;
+        const mat = engines.get(spec.id)!.face.material as THREE.MeshBasicMaterial;
+        if (mat.map === map) continue;
+        mat.map = map;
+        // A face with no photograph to fall back on is plain, not black.
+        mat.color.set(map ? 0xffffff : 0xf2ede4);
+        mat.needsUpdate = true;
+      }
     },
     reset() {
       state.engine = ENGINES[0].id;

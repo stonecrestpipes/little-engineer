@@ -120,6 +120,7 @@ async function boot(): Promise<void> {
     const s = settings.get();
     takeEngine();
     audio.setVolume(s.volume);
+    roster.useOriginalFaces(s.originalFace);
     for (const spec of ENGINES) {
       const text = s.nameplates[spec.id] ?? spec.nameplate;
       if (painted.get(spec.id) === text) continue;

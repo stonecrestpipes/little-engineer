@@ -609,8 +609,10 @@ What remains for Phase 2 is whatever the play test says to change.
    one choice in, after The Farm. Watch whether he notices the arrows, whether he picks the windmill
    on purpose or only by accident, and whether he goes back to it.
 3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
-   crawlers blocked, which was chosen to get it installed quickly. Swapping in original artwork
-   would retire the question entirely; the content layer already supports it.
+   crawlers blocked, which was chosen to get it installed quickly. An original face for the blue
+   engine and original icons now exist (a *Familiar* / *Original* switch in the grown-ups' panel,
+   and `artwork/icons/`). Once he takes to the new face, deleting the photograph retires the
+   question entirely — see *Hosting* in the README.
 4. **How fast anything should go.** Each engine carries its own numbers now: 6.4 m/s at the top of
    the lever for the slowest, 8.0 for the quickest, and 2.4 to 3.2 at the bottom of the green. A lap
    is a minute and forty. All guesses until he drives them, and the spread between the engines is a

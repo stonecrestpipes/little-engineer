@@ -13,6 +13,18 @@ export const thomas: EngineSpec = {
   name: 'the blue one',
   nameplate: '',
   faceTexture: `${import.meta.env.BASE_URL}assets/engines/thomas/face.png`,
+  // His own face, for when the photograph goes: round, kind and a little
+  // surprised to see you, in keeping with the others but nobody's in particular.
+  originalFace: {
+    skin: 0xf0ebe2,
+    browTilt: 0.2,
+    browHeight: 0.31,
+    eyeSpacing: 0.225,
+    eyeSize: 0.125,
+    gaze: [0.12, 0.04],
+    smile: 0.85,
+    cheeks: 0.45,
+  },
   colour: {
     body: 0x2f7fc9,
     bodyLight: 0x4e9bdd,

@@ -31,6 +31,8 @@ export interface Settings {
   dayNight: boolean;
   /** Shadows and scenery density; 'auto' steps down if frames are slow. */
   quality: Quality;
+  /** The blue engine's drawn face instead of the photograph. */
+  originalFace: boolean;
 }
 
 export const SPEEDS = [
@@ -51,6 +53,7 @@ const DEFAULTS: Settings = {
   junctions: true,
   dayNight: true,
   quality: 'auto',
+  originalFace: false,
 };
 
 const SAVE_KEY = 'little-engineer:settings';
@@ -75,6 +78,7 @@ function load(): Settings {
     }
     if (typeof p.junctions === 'boolean') s.junctions = p.junctions;
     if (typeof p.dayNight === 'boolean') s.dayNight = p.dayNight;
+    if (typeof p.originalFace === 'boolean') s.originalFace = p.originalFace;
     if (p.quality === 'auto' || p.quality === 'high' || p.quality === 'low') s.quality = p.quality;
   } catch {
     // Unreadable or blocked storage: the defaults are the game as designed.

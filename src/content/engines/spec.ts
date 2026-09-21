@@ -19,6 +19,11 @@ export interface EngineSpec {
   face?: FaceSpec;
   /** Or a face loaded from a file, which only the first engine still uses. */
   faceTexture?: string;
+  /**
+   * An original drawn face offered in place of `faceTexture`, chosen in the
+   * grown-ups' panel. Once it is the one in use, the file can be deleted.
+   */
+  originalFace?: FaceSpec;
   colour: {
     body: number;
     bodyLight: number;

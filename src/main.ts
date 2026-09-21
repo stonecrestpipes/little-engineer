@@ -13,7 +13,10 @@ import { ENGINES } from './content/engines';
 import { mountControls } from './ui/controls';
 import { watchForUpdates } from './ui/updates';
 import { sayHello } from './ui/greeting';
-import { greeting } from './content/greeting';
+import { greetingFor } from './content/greeting';
+import { setNameplate } from './content/buildEngine';
+import { settings, tunedDriving } from './settings';
+import { mountParentPanel } from './ui/parents';
 
 const SKY_TOP = 0x7fc8e6;
 const SKY_LOW = 0xdcf0f4;
@@ -62,8 +65,9 @@ async function boot(): Promise<void> {
   // alongside the build below rather than delaying it.
   const bootEl = document.getElementById('boot')!;
   const helloEl = document.getElementById('boot-hello');
+  const greeting = greetingFor(settings.get().childName);
   if (helloEl) helloEl.textContent = greeting;
-  const hello = sayHello(greeting);
+  const hello = settings.get().greetingOn ? sayHello(greeting) : Promise.resolve();
 
   const canvas = document.getElementById('stage') as HTMLCanvasElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -117,13 +121,31 @@ async function boot(): Promise<void> {
     tracksideAnchors: world.tracksideAnchors,
   });
 
-  /** Whatever he picked in the yard drives, sounds and handles like itself. */
+  /**
+   * Whatever he picked in the yard drives, sounds and handles like itself,
+   * adjusted by whatever the grown-ups have set.
+   */
   const takeEngine = () => {
-    train.retune(roster.engine.spec.driving);
+    train.retune(tunedDriving(roster.engine.spec.driving, settings.get()));
     audio.retune(roster.engine.spec.audio);
   };
   roster.onChange(takeEngine);
   takeEngine();
+
+  const painted = new Map<string, string>();
+  const applySettings = () => {
+    const s = settings.get();
+    takeEngine();
+    audio.setVolume(s.volume);
+    for (const spec of ENGINES) {
+      const text = s.nameplates[spec.id] ?? spec.nameplate;
+      if (painted.get(spec.id) === text) continue;
+      painted.set(spec.id, text);
+      setNameplate(roster.byId(spec.id), text);
+    }
+  };
+  settings.onChange(applySettings);
+  applySettings();
 
   /** Handed to the world every frame; the places read it, nothing writes it. */
   const trainState = { distance: 0, speed: 0, moving: false };
@@ -183,6 +205,11 @@ async function boot(): Promise<void> {
       for (let i = 0; i < 3; i++) emitPuff();
     },
     camera: () => rig.cycle(),
+  });
+
+  mountParentPanel({
+    opened: () => train.setThrottle(0),
+    resetTrain: () => roster.reset(),
   });
 
   // Touching the world itself, which only does anything in the yard: the

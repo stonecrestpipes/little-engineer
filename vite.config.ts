@@ -7,6 +7,9 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
+  // Shown at the foot of the grown-ups' panel, so you can tell at a glance
+  // whether the tablet has picked up the latest push.
+  define: { __BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')) },
   server: { host: true, port: process.env.PORT ? Number(process.env.PORT) : undefined },
   build: { target: 'es2022', assetsInlineLimit: 0 },
   plugins: [

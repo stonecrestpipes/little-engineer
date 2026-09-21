@@ -195,3 +195,66 @@ export function animateRunningGear(mesh: EngineMesh, angle: number): void {
     rod.position.z = CRANK * Math.sin(angle);
   }
 }
+
+/**
+ * Paint a name on both side tanks, or take it off again with a blank string.
+ * The only text anywhere in the game, and only if a grown-up has typed one in.
+ */
+export function setNameplate(mesh: EngineMesh, text: string): void {
+  const old = mesh.group.getObjectByName('nameplate');
+  if (old) {
+    mesh.group.remove(old);
+    old.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      m.geometry.dispose();
+      const mat = m.material as THREE.MeshStandardMaterial;
+      mat.map?.dispose();
+      mat.dispose();
+    });
+  }
+  const name = text.trim();
+  if (!name) return;
+
+  const W = 512;
+  const H = 150;
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const g = c.getContext('2d')!;
+  const brass = mesh.spec.colour.brass.toString(16).padStart(6, '0');
+  g.fillStyle = '#' + brass;
+  g.beginPath();
+  g.roundRect(4, 4, W - 8, H - 8, 34);
+  g.fill();
+  g.lineWidth = 8;
+  g.strokeStyle = 'rgba(60,40,10,0.55)';
+  g.stroke();
+  g.fillStyle = '#2b2012';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  let size = 104;
+  do {
+    g.font = `700 ${size}px Fredoka, 'Trebuchet MS', system-ui, sans-serif`;
+    size -= 4;
+  } while (g.measureText(name).width > W - 70 && size > 30);
+  g.fillText(name, W / 2, H / 2 + 6);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.45, metalness: 0.3 });
+  const geo = new THREE.PlaneGeometry(1.86, 0.54);
+
+  const plates = new THREE.Group();
+  plates.name = 'nameplate';
+  for (const s of [-1, 1]) {
+    const p = new THREE.Mesh(geo, mat);
+    // Just proud of the tank side, and turned so it reads from outside.
+    p.position.set(s * 1.226, 1.9, 0.9);
+    p.rotation.y = (s * Math.PI) / 2;
+    p.receiveShadow = true;
+    plates.add(p);
+  }
+  mesh.group.add(plates);
+}

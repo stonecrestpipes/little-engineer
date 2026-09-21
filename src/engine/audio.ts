@@ -25,8 +25,15 @@ export class Audio {
   private nextBird = 0;
   private speed = 0;
   private birds = 0;
+  private volume = 0.85;
 
   constructor(private spec: AudioSpec) {}
+
+  /** The grown-ups' volume, 0 … 1. Remembered until the context exists. */
+  setVolume(v: number): void {
+    this.volume = Math.max(0, Math.min(1, v));
+    if (this.ctx) this.master.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.05);
+  }
 
   /** Another engine, another whistle. */
   retune(spec: AudioSpec): void {
@@ -45,7 +52,7 @@ export class Audio {
     this.ctx = ctx;
 
     this.master = ctx.createGain();
-    this.master.gain.value = 0.85;
+    this.master.gain.value = this.volume;
     this.master.connect(ctx.destination);
 
     // One second of pink-ish noise, reused for everything breathy.

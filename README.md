@@ -46,12 +46,13 @@ trees in `src/content/world.ts`.
   `cruise` 7.2 m/s at the top, `slow` 2.8 m/s at the bottom of the green,
   `coast` 1.15 m/s² when he lets go (about six seconds to a halt), `brake` 3.4
   when he pulls down, and `accel` 2.6. All guesses until he drives it, and the
-  first numbers likely to want changing.
-- **The greeting** is one string in `src/content/greeting.ts`. It is spoken by
-  the device, so changing the words is changing that line.
-- **The nameplate is blank** (`nameplate: ''` in the same file). It is meant to
-  carry whatever he decides to call the engine, and is the only text anywhere
-  in the game.
+  first numbers likely to want changing. The grown-ups' panel scales top speed
+  and the stopping window on the tablet without touching these.
+- **The greeting** is a sentence in `src/content/greeting.ts`, and the name in
+  it is set in the grown-ups' panel.
+- **The nameplates are blank** until a name is typed into the grown-ups' panel.
+  They are meant to carry whatever he decides to call each engine, and are the
+  only text anywhere in the game.
 - **Whether the station reaction is enough.** Right now: lamp lights, flag goes
   up, passengers bob, chime plays. Phase 3 is where that gets properly built
   out — but only if arriving turns out to be the thing he likes most.
@@ -75,6 +76,14 @@ it. See `assets/engines/thomas/curated/NOTES.md` locally for which reference
 files are usable; several scraped ones contain the wrong subject entirely.
 
 ---
+
+## The grown-ups' panel
+
+Hold the **top-right corner of the screen for three seconds**. A faint ring
+starts to fill after a second. The panel has his name for the hello, speed,
+how much help he gets stopping, volume, nameplates for each engine, and a
+reset. Changes take effect immediately. The build time at the bottom tells
+you whether the tablet has the latest push.
 
 ## Running it
 
@@ -183,7 +192,7 @@ src/
     world.ts            the segments, the terrain, and what stands where
     terrain.ts          the heightmap ground, and the water under it
     scenery.ts          rails, ballast, trees, fences, people
-    greeting.ts         the one spoken line, and his name
+    greeting.ts         the one spoken line
     faces.ts            engine faces, painted onto a canvas from numbers
     cars.ts             coaches, wagons and the brake van
     roster.ts           every engine and car, and which he is driving
@@ -192,8 +201,10 @@ src/
       place.ts            what a place is, and the frame it is built in
       station.ts          the part all three stations share
       sheds.ts  crossing.ts  farm.ts  tunnel.ts  bridge.ts  harbour.ts
+  settings.ts the grown-ups' settings, and how they adjust each engine
   ui/         the lever, the whistle, the camera
     controls.ts   the lever drag, and the two buttons
+    parents.ts    the hidden grown-ups' panel
     greeting.ts   speaking the hello, and coping when the device will not
 ```
 

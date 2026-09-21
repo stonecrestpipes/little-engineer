@@ -31,6 +31,8 @@ export interface Roster {
   cars: CarMesh[];
   /** engine first, then the cars: what the consist puts on the track */
   vehicles(): Vehicle[];
+  /** Any engine, wherever it is standing. */
+  byId(id: string): EngineMesh;
   /** the ones standing in the yard */
   spareEngines(): EngineMesh[];
   spareCars(): CarMesh[];
@@ -38,6 +40,8 @@ export interface Roster {
   chooseEngine(id: string): void;
   /** Couple a car up, or take it off again if it is already on. */
   toggleCar(id: string): boolean;
+  /** The first engine with nothing behind it: the grown-ups' reset. */
+  reset(): void;
   onChange(fn: () => void): void;
 }
 
@@ -132,6 +136,9 @@ export async function buildRoster(scene: THREE.Scene, anisotropy: number): Promi
         ...roster.cars.map((c) => ({ object: c.group, length: c.spec.length })),
       ];
     },
+    byId(id) {
+      return engines.get(id) ?? engines.get(ENGINES[0].id)!;
+    },
     spareEngines() {
       return ENGINES.filter((e) => e.id !== state.engine).map((e) => engines.get(e.id)!);
     },
@@ -154,6 +161,11 @@ export async function buildRoster(scene: THREE.Scene, anisotropy: number): Promi
       }
       changed();
       return true;
+    },
+    reset() {
+      state.engine = ENGINES[0].id;
+      state.cars = [];
+      changed();
     },
     onChange(fn) {
       listeners.push(fn);

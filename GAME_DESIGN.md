@@ -281,9 +281,16 @@ the app, and an engine on its own is as valid a choice as three cars.
 An optional local sticker book recording places visited and things seen. Nothing can be lost, nothing
 expires, nothing pressures him to return.
 
-### Phase 8 — Parent settings
+### Phase 8 — Parent settings *(built)*
 Long-press gesture to a hidden panel: assist strength, speed control on/off, junctions on/off, which
 activities are enabled. This is how the game grows with him from four to six.
+
+As built: hold the **top-right corner for three seconds**. A faint ring starts filling after the
+first second so a grown-up knows it is working. The panel has his name for the hello, hello on/off,
+speed (slower, normal, faster for every engine), help stopping (how far out pulling down still
+arrives), volume, a nameplate for each engine, and two resets. Later phases add their own rows.
+Everything takes effect immediately and is kept in `localStorage`; every default is the game exactly
+as it played before the panel existed.
 
 ### Phase 9 — Polish
 Only for things he actually uses repeatedly. Weather, day/night, more scenery, more sounds, more
@@ -376,6 +383,17 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 8 — the grown-ups' panel
+
+The nameplate had been a blank field on every engine since Phase 1 with nothing drawing it. It is
+now painted onto both side tanks in the engine's own brass when a name is typed in, and taken off
+again when the name is cleared. It is still the only text in the game, and still only there if a
+grown-up puts it there.
+
+The hello's name moved from a constant in `greeting.ts` to a setting, so it can be changed on the
+tablet. The footer shows when the running build was made, which is the quickest way to tell whether
+the tablet has picked up a push.
 
 ### Phase 6 — four engines, and something to pull
 

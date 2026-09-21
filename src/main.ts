@@ -20,9 +20,8 @@ import { mountParentPanel } from './ui/parents';
 import { keepAwake } from './ui/wakelock';
 import { mountPoints } from './ui/points';
 import { QualityGovernor } from './engine/quality';
-
-const SKY_TOP = 0x7fc8e6;
-const SKY_LOW = 0xdcf0f4;
+import { Sky } from './engine/sky';
+import { Flock } from './content/flock';
 
 const now = () => performance.now() / 1000;
 
@@ -42,27 +41,6 @@ function puffTexture(): THREE.Texture {
   return t;
 }
 
-function skyDome(): THREE.Mesh {
-  const c = document.createElement('canvas');
-  c.width = 4;
-  c.height = 256;
-  const g = c.getContext('2d')!;
-  const grad = g.createLinearGradient(0, 0, 0, 256);
-  grad.addColorStop(0, '#' + SKY_TOP.toString(16).padStart(6, '0'));
-  grad.addColorStop(0.72, '#c6e6f1');
-  grad.addColorStop(1, '#' + SKY_LOW.toString(16).padStart(6, '0'));
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 4, 256);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(520, 24, 16),
-    new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, depthWrite: false, fog: false }),
-  );
-  mesh.renderOrder = -1;
-  return mesh;
-}
-
 async function boot(): Promise<void> {
   // First thing, before anything slow: say hello to him by name. It runs
   // alongside the build below rather than delaying it.
@@ -79,13 +57,12 @@ async function boot(): Promise<void> {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(SKY_LOW, 260, 640);
-  scene.add(skyDome());
 
   const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 1200);
 
   // --- light -------------------------------------------------------------
-  scene.add(new THREE.HemisphereLight(0xdcf2ff, 0x6f9455, 1.05));
+  const hemi = new THREE.HemisphereLight(0xdcf2ff, 0x6f9455, 1.05);
+  scene.add(hemi);
   const sun = new THREE.DirectionalLight(0xfff3d8, 1.5);
   // Fixed over the whole railway rather than following the engine. Following
   // it swings the shadow direction as he drives and drags the edge of the
@@ -104,6 +81,8 @@ async function boot(): Promise<void> {
   sun.shadow.bias = -0.0012;
   sun.shadow.normalBias = 0.05;
   scene.add(sun, sun.target);
+  // The dome, the fog and both lights, slowly round from day to dusk.
+  const sky = new Sky(scene, hemi, sun);
 
   // --- the train, the world, and everything he can choose from -----------
   // Audio is built before the world because the places take it: the sheep,
@@ -191,6 +170,25 @@ async function boot(): Promise<void> {
     p.vel.set((Math.random() - 0.5) * 0.7, 2.4 + Math.random() * 0.9, (Math.random() - 0.5) * 0.7);
   }
 
+  // --- birds -------------------------------------------------------------
+  // A whistle out in the country puts a flock up from the field beside the
+  // line, on whichever side is dry ground. Not from inside the tunnel.
+  const flock = new Flock(scene);
+  const startle = () => {
+    const pos = world.track.positionAt(train.distance);
+    const fwd = world.track.tangentAt(train.distance);
+    if (world.groundAt(pos.x, pos.z) > 3) return; // under the hill
+    const away = new THREE.Vector3().crossVectors(fwd, THREE.Object3D.DEFAULT_UP).normalize();
+    for (const side of Math.random() < 0.5 ? [1, -1] : [-1, 1]) {
+      const from = pos.clone().addScaledVector(away, side * 16).addScaledVector(fwd, 10);
+      from.y = world.groundAt(from.x, from.z);
+      // Not out of the water, and not off the other line's rails.
+      if (from.y < -1 || world.distanceToTrack(from.x, from.z) < 6) continue;
+      if (flock.launch(from, away.clone().multiplyScalar(side))) audio.flock();
+      return;
+    }
+  };
+
   // --- controls ----------------------------------------------------------
   let touched = false;
   const awake = keepAwake();
@@ -206,6 +204,7 @@ async function boot(): Promise<void> {
     whistle: () => {
       audio.whistle();
       world.whistle(trainState);
+      startle();
       for (let i = 0; i < 3; i++) emitPuff();
     },
     camera: () => rig.cycle(),
@@ -327,6 +326,10 @@ async function boot(): Promise<void> {
       (p.sprite.material as THREE.SpriteMaterial).opacity = Math.min(1, p.life * 1.6) * 0.5;
     }
 
+    sky.update(dt, settings.get().dayNight);
+    for (const spec of ENGINES) roster.byId(spec.id).lamp.emissiveIntensity = sky.dusk * 2.2;
+    flock.update(dt, t);
+
     audio.setSpeed(train.speed);
     audio.update();
 
@@ -347,6 +350,8 @@ async function boot(): Promise<void> {
       audio,
       roster,
       quality,
+      sky,
+      flock,
       consist,
       scene,
       camera,

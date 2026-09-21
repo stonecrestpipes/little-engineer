@@ -31,6 +31,9 @@ export interface World {
   track: Lines;
   stops: Stop[];
   tracksideAnchors: THREE.Vector3[];
+  /** Ground height anywhere on the map, and how far a point is from the rails. */
+  groundAt(x: number, z: number): number;
+  distanceToTrack(x: number, z: number): number;
   wide: { position: THREE.Vector3; target: THREE.Vector3 };
   arrive(stop: Stop): void;
   depart(stop: Stop): void;
@@ -335,6 +338,8 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   return {
     track: lines,
     stops,
+    groundAt: terrain.heightAt,
+    distanceToTrack: terrain.distanceToTrack,
     tracksideAnchors,
     wide,
     arrive(stop) {

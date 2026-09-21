@@ -8,6 +8,8 @@ export interface EngineMesh {
   rods: { mesh: THREE.Object3D; baseY: number }[];
   face: THREE.Mesh;
   funnelTop: THREE.Vector3;
+  /** The lamp glass on the smokebox, which glows as the evening comes in. */
+  lamp: THREE.MeshStandardMaterial;
 }
 
 const CRANK = 0.33;
@@ -135,6 +137,15 @@ export function buildEngine(spec: EngineSpec, faceMap: THREE.Texture | null): En
 
   const lamp = add(new THREE.BoxGeometry(0.3, 0.34, 0.24), matBodyDark, 0, 3.02, 2.42);
   lamp.castShadow = false;
+  const lampGlass = new THREE.MeshStandardMaterial({
+    color: 0xf6ecd0,
+    emissive: 0xffd27a,
+    emissiveIntensity: 0,
+    roughness: 0.3,
+  });
+  const lens = new THREE.Mesh(new THREE.CircleGeometry(0.12, 16), lampGlass);
+  lens.position.set(0, 3.02, 2.545);
+  group.add(lens);
 
   // --- wheels and rods ---------------------------------------------------
   const wheels: THREE.Object3D[] = [];
@@ -184,6 +195,7 @@ export function buildEngine(spec: EngineSpec, faceMap: THREE.Texture | null): En
     rods,
     face,
     funnelTop: new THREE.Vector3(0, FOOT + funnelHeight + 0.24, 1.88),
+    lamp: lampGlass,
   };
 }
 

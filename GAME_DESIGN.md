@@ -300,9 +300,16 @@ arrives), volume, a nameplate for each engine, and two resets. Later phases add 
 Everything takes effect immediately and is kept in `localStorage`; every default is the game exactly
 as it played before the panel existed.
 
-### Phase 9 — Polish
+### Phase 9 — Polish *(first pass built)*
 Only for things he actually uses repeatedly. Weather, day/night, more scenery, more sounds, more
 character reactions.
+
+First pass, built before he has played any of it, so deliberately small: an eight-minute round
+from day to a golden evening to a warm dusk and back (never dark enough to hide anything, and it
+always opens in the day; the grown-ups' panel can switch it off), the engine's lamp glowing as it
+gets dark, and a flock of birds that goes up from the field beside the line when he whistles, at
+most once every nine seconds so it stays a surprise. Weather is left out on purpose. Anything more
+waits for what he actually does over and over.
 
 ### Phase 10 — Pixel Tablet packaging *(built)*
 Full PWA: offline service worker, bundled assets, local storage, fullscreen, home-screen icon.
@@ -398,6 +405,19 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 9 — a first pass of polish
+
+**The sky goes round.** `src/engine/sky.ts` owns the dome, the fog and both lights, and blends
+between three looks: day, golden, and dusk. Most of the eight-minute round is plain day. The
+darkest point is a blue-and-apricot dusk, with the ambient light still at three quarters of
+daytime; a game he cannot see is a game that has stopped. Switching the setting off eases back
+to day rather than cutting.
+
+**Birds answer the whistle everywhere.** Until now only the places answered, so a whistle out in
+the country did nothing. A flock of nine now goes up from whichever side of the line is dry ground,
+wheels round and is gone in seven seconds, with a flurry of wingbeats and chirps. It rests for nine
+seconds before it will go again. It does not go up in the tunnel.
 
 ### Phase 5 — the branch line, and The Windmill
 

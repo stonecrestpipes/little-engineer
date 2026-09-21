@@ -355,6 +355,33 @@ export class Audio {
     }
   }
 
+  /**
+   * A flock going up out of a field: a flurry of wingbeats and a scatter of
+   * chirps over a second or so, louder than the birds in the background.
+   */
+  flock(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    for (let i = 0; i < 9; i++) {
+      const at = t0 + i * 0.045 + Math.random() * 0.03;
+      const s = ctx.createBufferSource();
+      s.buffer = this.noise;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 900 + Math.random() * 500;
+      bp.Q.value = 0.9;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.09 * (1 - i / 12), at + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
+      s.connect(bp).connect(g).connect(this.master);
+      s.start(at, Math.random() * 0.8);
+      s.stop(at + 0.07);
+    }
+    for (let i = 0; i < 6; i++) this.chirp(t0 + 0.2 + Math.random() * 1.1);
+  }
+
   /** A single bird, somewhere off to the side. */
   private chirp(at: number): void {
     const ctx = this.ctx!;

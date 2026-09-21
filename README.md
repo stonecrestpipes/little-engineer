@@ -193,6 +193,7 @@ src/
     cameras.ts    three fixed views on one button
     junction.ts   two whole loops seen as one track, and the points between them
     audio.ts      every sound, synthesised — nothing is loaded
+    sky.ts        day, a golden evening and dusk, and back
     quality.ts    steps shadows and resolution down if frames are slow
   content/    data: this engine, this railway
     engines/thomas.ts   colours, dimensions, driving feel, whistle pitch
@@ -202,6 +203,7 @@ src/
     scenery.ts          rails, ballast, trees, fences, people
     greeting.ts         the one spoken line
     faces.ts            engine faces, painted onto a canvas from numbers
+    flock.ts            the birds that go up when he whistles
     cars.ts             coaches, wagons and the brake van
     roster.ts           every engine and car, and which he is driving
     engines/            one file per engine, plus the spec they share

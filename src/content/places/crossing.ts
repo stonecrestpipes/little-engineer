@@ -126,9 +126,20 @@ export function buildCrossing(ctx: PlaceContext): Place {
   const STOP_LINE = 8;
   let carX = 20;
 
+  let clock = 0;
+  let tooted = -99;
+
   return {
     group,
+    whistle(train) {
+      // Whoever is driving the car toots back. Only when he is close enough
+      // to be heard, and not on every single whistle.
+      if (!(Math.abs(gapTo(ctx.track, train, ctx.at)) <= 60) || clock - tooted < 2.5) return;
+      tooted = clock;
+      ctx.audio.toot();
+    },
     update(dt, elapsed, train) {
+      clock = elapsed;
       // Positive while the crossing is still ahead of him, negative once he
       // has gone through it.
       const gap = gapTo(ctx.track, train, ctx.at);

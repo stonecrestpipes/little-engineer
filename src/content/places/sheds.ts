@@ -182,6 +182,10 @@ export function buildSheds(ctx: PlaceContext): Place {
   /** True while he is standing still here, which is when the yard is live. */
   let inTheYard = false;
 
+  /** When the yard last whistled back, and when each engine's hop is due. */
+  let answered = -99;
+  const hopAt = new Map<string, number>();
+
   return {
     group,
     stop: { id: 'sheds', at: ctx.at },
@@ -198,6 +202,14 @@ export function buildSheds(ctx: PlaceContext): Place {
     },
     whistle(train) {
       if (isNear(ctx.track, train, ctx.at, 30)) station.wave();
+      // The engines standing in the yard whistle back, one after another,
+      // each in its own voice. Not every time, or it becomes a racket.
+      if (!isNear(ctx.track, train, ctx.at, 60) || clock - answered < 3) return;
+      answered = clock;
+      ctx.roster.spareEngines().forEach((engine, i) => {
+        ctx.audio.answer(engine.spec.audio.whistleHz, 0.45 + i * 0.55);
+        hopAt.set(engine.spec.id, clock + 0.45 + i * 0.55);
+      });
     },
     pick(ray) {
       if (!inTheYard) return false;
@@ -236,7 +248,10 @@ export function buildSheds(ctx: PlaceContext): Place {
       parked.forEach((item, i) => {
         // A yard that is full up stops inviting a fourth car.
         const live = inTheYard && !(item.car && full);
-        const lift = live ? Math.max(0, Math.sin(elapsed * 2.2 + i * 0.7)) * 0.16 : 0;
+        let lift = live ? Math.max(0, Math.sin(elapsed * 2.2 + i * 0.7)) * 0.16 : 0;
+        // An engine that has just whistled back gives a little hop with it.
+        const hop = item.engine ? elapsed - (hopAt.get(item.engine) ?? -99) : -1;
+        if (hop > 0 && hop < 0.5) lift += Math.sin((hop / 0.5) * Math.PI) * 0.35;
         item.object.position.y = item.y + lift;
       });
     },

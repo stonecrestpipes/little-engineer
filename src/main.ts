@@ -23,6 +23,7 @@ import { QualityGovernor } from './engine/quality';
 import { Sky } from './engine/sky';
 import { Flock } from './content/flock';
 import { journal } from './journal';
+import { setEvening } from './content/places/station';
 
 const now = () => performance.now() / 1000;
 
@@ -140,6 +141,9 @@ async function boot(): Promise<void> {
       world.arrive(e.stop);
       journal.stopped(e.stop.id);
       audio.chime();
+      // A long breath out as it comes to rest.
+      audio.sigh();
+      for (let i = 0; i < 5; i++) emitPuff();
     } else {
       world.depart(e.stop);
     }
@@ -347,6 +351,7 @@ async function boot(): Promise<void> {
     }
 
     sky.update(dt, settings.get().dayNight);
+    setEvening(sky.dusk);
     for (const spec of ENGINES) roster.byId(spec.id).lamp.emissiveIntensity = sky.dusk * 2.2;
     flock.update(dt, t);
 

@@ -321,6 +321,11 @@ gets dark, and a flock of birds that goes up from the field beside the line when
 most once every nine seconds so it stays a surprise. Weather is left out on purpose. Anything more
 waits for what he actually does over and over.
 
+Second pass, the same day, all of it the world answering the whistle or the arrival: the engines
+standing in the yard whistle back one after another in their own voices (each with a little hop),
+the car waiting at the crossing toots twice, the engine sighs out a cloud of steam as it comes to
+rest at a platform, and every station's lamp comes up softly at dusk.
+
 ### Phase 10 — Pixel Tablet packaging *(built)*
 Full PWA: offline service worker, bundled assets, local storage, fullscreen, home-screen icon.
 *(Basic installability is worth bringing forward into Phase 1 — see below.)*
@@ -415,6 +420,14 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 9, second pass — more answers
+
+Four small things, chosen because the whistle and the arrival are the two things he was seen doing
+most: the yard's spare engines whistle back in turn (`answer`, using each engine's own pitch), the
+car at the crossing toots (`toot`), arriving lets out a long hiss of steam (`sigh`, with five
+puffs), and station lamps glow at dusk through one shared `setEvening` in `station.ts`. Each answer
+is rationed so that hammering the whistle does not turn the railway into a racket.
 
 ### Phase 5, again — the coast line, and The Lighthouse
 

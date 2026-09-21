@@ -38,6 +38,16 @@ export interface Station {
   wave(): void;
 }
 
+/**
+ * How far into the evening it is, 0 … 1, for every station at once. Set by
+ * the sky each frame; stations light their lamps a little as it gets dark,
+ * whether or not he has stopped there.
+ */
+let evening = 0;
+export function setEvening(dusk: number): void {
+  evening = dusk;
+}
+
 export function buildStation(look: StationLook): Station {
   const { wall, roof, board, length = 34, waiting = 4, side = 1 } = look;
   const group = new THREE.Group();
@@ -139,7 +149,7 @@ export function buildStation(look: StationLook): Station {
       const since = elapsed - arrivedAt;
       const active = waitingHere && since >= 0;
 
-      const glow = THREE.MathUtils.clamp(active ? since * 2.2 : 0, 0, 1);
+      const glow = Math.max(THREE.MathUtils.clamp(active ? since * 2.2 : 0, 0, 1), evening * 0.7);
       (lampGlass.material as THREE.MeshStandardMaterial).emissiveIntensity = glow * 1.3;
 
       const raise = THREE.MathUtils.clamp(active ? since * 3 : 0, 0, 1);

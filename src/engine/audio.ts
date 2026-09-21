@@ -157,10 +157,62 @@ export class Audio {
     }
   }
 
-  private whistleAt(t: number, level: number, cutoff: number): void {
+  /** Another engine whistling back, in its own voice, from a little way off. */
+  answer(hz: number, delay: number): void {
+    if (!this.ctx) return;
+    this.whistleAt(this.ctx.currentTime + delay, 0.42, 2200, hz);
+  }
+
+  /** A little car's horn: two short toots. */
+  toot(delay = 0.3): void {
     const ctx = this.ctx;
     if (!ctx) return;
-    const f = this.spec.whistleHz;
+    for (let i = 0; i < 2; i++) {
+      const t = ctx.currentTime + delay + i * 0.26;
+      const out = ctx.createGain();
+      out.gain.setValueAtTime(0.0001, t);
+      out.gain.exponentialRampToValueAtTime(0.16, t + 0.02);
+      out.gain.setValueAtTime(0.16, t + 0.14);
+      out.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1800;
+      out.connect(lp).connect(this.master);
+      for (const hz of [392, 494]) {
+        const o = ctx.createOscillator();
+        o.type = 'square';
+        o.frequency.value = hz;
+        const g = ctx.createGain();
+        g.gain.value = 0.3;
+        o.connect(g).connect(out);
+        o.start(t);
+        o.stop(t + 0.22);
+      }
+    }
+  }
+
+  /** The engine letting its breath out as it comes to rest at a platform. */
+  sigh(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime + 0.15;
+    const s = this.noiseSource();
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.setValueAtTime(2600, t);
+    hp.frequency.exponentialRampToValueAtTime(900, t + 1.6);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.11, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.7);
+    s.connect(hp).connect(g).connect(this.master);
+    s.start(t);
+    s.stop(t + 1.8);
+  }
+
+  private whistleAt(t: number, level: number, cutoff: number, f = this.spec.whistleHz): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
 
     const out = ctx.createGain();
     out.gain.setValueAtTime(0.0001, t);

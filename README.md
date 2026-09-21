@@ -14,12 +14,14 @@ design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 **Phase 1 passed.** He picked the tablet up, found the lever and drove, with
 nothing said to him. That was the only gate that mattered, and it is behind us.
 
-**Phases 3 and 6 are built and deployed, and neither has been played yet.** The
-railway is a 642-metre circuit — The Sheds, the level crossing, The Farm, the
-tunnel, the bridge and The Harbour — about a minute and forty a lap at the top
-of the lever. There are four engines and five cars, and he picks his train by
-walking up to it: the spares stand in the yard at The Sheds, and tapping one
-takes it.
+**Phases 3, 5, 6, 8 and 10 are built and deployed, and none of them has been
+played yet.** The railway is a 642-metre circuit — The Sheds, the level
+crossing, The Farm, the tunnel, the bridge and The Harbour — about a minute and
+forty a lap at the top of the lever. After The Farm, two big arrows let him
+choose between the tunnel and a branch line round the hill to The Windmill.
+There are four engines and five cars, and he picks his train by walking up to
+it: the spares stand in the yard at The Sheds, and tapping one takes it. A
+hidden grown-ups' panel (below) tunes it on the tablet.
 
 ### The next thing to do
 
@@ -33,6 +35,10 @@ takes it.
    engines are simply standing there, bobbing gently, whenever he is stopped at
    home. If he never touches one, that is worth knowing before anything else is
    built on top of it.
+5. Watch the arrows after The Farm. Does he notice them, does he pick the
+   windmill on purpose, and does he go back to it? If he ignores them, the
+   train simply carries on through the tunnel as before. They can be switched
+   off in the grown-ups' panel.
 
 **Check the frame rate on the actual tablet.** The game measures it for you:
 on *Auto* it turns shadows down if it cannot hold about 46 fps, and the footer
@@ -185,6 +191,7 @@ src/
     track.ts      segments, how they join, and the route driven through them
     train.ts      the lever, speed curves, the platform glide path
     cameras.ts    three fixed views on one button
+    junction.ts   two whole loops seen as one track, and the points between them
     audio.ts      every sound, synthesised — nothing is loaded
     quality.ts    steps shadows and resolution down if frames are slow
   content/    data: this engine, this railway
@@ -202,10 +209,12 @@ src/
       place.ts            what a place is, and the frame it is built in
       station.ts          the part all three stations share
       sheds.ts  crossing.ts  farm.ts  tunnel.ts  bridge.ts  harbour.ts
+      windmill.ts         out on the branch line
   settings.ts the grown-ups' settings, and how they adjust each engine
   ui/         the lever, the whistle, the camera
     controls.ts   the lever drag, and the two buttons
     parents.ts    the hidden grown-ups' panel
+    points.ts     the two arrows at the junction
     wakelock.ts   keeps the screen on while he is playing
     greeting.ts   speaking the hello, and coping when the device will not
 ```
@@ -252,11 +261,15 @@ get anywhere, and nothing about the railway changes depending on what is
 coupled up. Fetching and delivering is exactly what he disliked in the game the
 lever came from.
 
-### Adding track (Phase 5)
+### Adding track
 
-`buildWorld` builds a `Track` from a list of points and returns the stops and
-camera anchors. A second route is another list of points and another set of
-stops; the train controller does not change.
+Track is named segments in `SEGMENTS` at the top of `src/content/world.ts`,
+joined into whole loops. The branch is a second loop, identical to the main
+one up to the points, and `src/engine/junction.ts` switches between them only
+while the engine is short of the points. A place on the branch is built
+against the branch loop, and the world converts distances between the two, so
+a place never has to know which line the engine is on. Another branch
+means another loop that shares everything up to its own points.
 
 ---
 

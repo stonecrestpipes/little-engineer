@@ -85,6 +85,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
   syncs.push(() => (name.value = s().childName));
 
   const hello = onOff('greetingOn');
+  const junction = onOff('junctions');
   const speed = choice(SPEEDS, () => s().speed, (v) => settings.set({ speed: v }));
   const stop = choice(
     [
@@ -104,7 +105,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     () => s().quality,
     (v) => settings.set({ quality: v }),
   );
-  syncs.push(hello.sync, speed.sync, stop.sync, picture.sync);
+  syncs.push(hello.sync, speed.sync, stop.sync, picture.sync, junction.sync);
 
   const volume = el('input', { type: 'range', min: '0', max: '1', step: '0.05', value: String(s().volume) });
   volume.addEventListener('input', () => settings.set({ volume: Number(volume.value) }));
@@ -145,6 +146,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Speed', 'For every engine', speed.node),
     row('Help stopping', 'How early pulling down still arrives', stop.node),
     row('Volume', '', volume),
+    row('Branch line', 'Arrows after The Farm to choose the tunnel or the windmill', junction.node),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
     row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),
   );

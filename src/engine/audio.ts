@@ -128,6 +128,35 @@ export class Audio {
     this.whistleAt(ctx.currentTime + 0.74, 0.15, 780);
   }
 
+  /**
+   * The windmill's sails catching the wind: a few soft swooshes, quickening,
+   * one per sail going past, made from the same breathy noise as the steam.
+   */
+  whoosh(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    let at = t0;
+    for (let i = 0; i < 6; i++) {
+      const s = ctx.createBufferSource();
+      s.buffer = this.noise;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = 1.4;
+      bp.frequency.setValueAtTime(420, at);
+      bp.frequency.linearRampToValueAtTime(900, at + 0.3);
+      const g = ctx.createGain();
+      const level = 0.16 * (1 - i * 0.1);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(level, at + 0.14);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.42);
+      s.connect(bp).connect(g).connect(this.master);
+      s.start(at, Math.random() * 0.5);
+      s.stop(at + 0.45);
+      at += 0.42 - i * 0.04;
+    }
+  }
+
   private whistleAt(t: number, level: number, cutoff: number): void {
     const ctx = this.ctx;
     if (!ctx) return;

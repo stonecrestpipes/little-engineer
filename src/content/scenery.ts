@@ -107,22 +107,29 @@ export function ribbon(
   return m;
 }
 
-/** One steel rail, offset from the centre line. */
-export function rail(track: Track, offset: number, y: number, material: THREE.Material): THREE.Mesh {
+/** One steel rail, offset from the centre line. A branch passes `closed` false. */
+export function rail(
+  track: Track,
+  offset: number,
+  y: number,
+  material: THREE.Material,
+  closed = true,
+): THREE.Mesh {
   const pts: THREE.Vector3[] = [];
   const p = new THREE.Vector3();
   const t = new THREE.Vector3();
   const side = new THREE.Vector3();
   const N = Math.max(120, Math.round(track.length / 1.6));
-  for (let i = 0; i < N; i++) {
+  // An open rail needs its last point too, or it stops short of the joint.
+  for (let i = 0; i < N + (closed ? 0 : 1); i++) {
     const d = (i / N) * track.length;
     track.positionAt(d, p);
     track.tangentAt(d, t);
     side.crossVectors(t, UP).normalize().multiplyScalar(offset);
     pts.push(new THREE.Vector3(p.x + side.x, y, p.z + side.z));
   }
-  const curve = new THREE.CatmullRomCurve3(pts, true, 'centripetal', 0.5);
-  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, N * 2, 0.07, 6, true), material);
+  const curve = new THREE.CatmullRomCurve3(pts, closed, 'centripetal', 0.5);
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, N * 2, 0.07, 6, closed), material);
   m.receiveShadow = true;
   return m;
 }

@@ -261,9 +261,17 @@ struck out deliberately: collecting and delivering is exactly the errand-running
 things to pull, because pulling things is good — moves to Phase 6 as cars chosen at the shed, with
 nothing to do with them.
 
-### Phase 5 — Expand the railway
+### Phase 5 — Expand the railway *(built)*
 Extend the loop with new areas that connect to the existing world rather than replacing it. Junction
 choice with two very large arrow buttons arrives here, if Phase 4 shows he wants agency.
+
+As built: one junction, just after The Farm. The main line bears left into the tunnel as before;
+the branch carries straight on round the far side of the hill to **The Windmill** and rejoins above
+the bridge. Two big arrows appear bottom centre as he comes up to the points (from 70 m out, which
+includes standing at The Farm's platform), each with a picture of where it goes: the tunnel, or
+the windmill. The one the points are set for is green. They are set for the main line every time
+round, so the branch is always something he chose; if he touches nothing, nothing changes. The
+grown-ups' panel can switch the arrows off. A lap by the windmill is 749 m against 642.
 
 ### Phase 6 — More engines, and something to pull *(built)*
 Four engines reusing the same controller, differing in colour, face, chimney, whistle and how they
@@ -390,6 +398,28 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 5 — the branch line, and The Windmill
+
+**Both ways round are whole loops.** Rather than teach the train to follow a network, the railway is
+two closed routes that are identical from The Sheds up to the points. While the engine is short of
+the points, moving it from one loop to the other changes nothing about where anything is: not the
+engine, not the cars behind it, not the camera. That is the only moment the points can be set, and
+it is why the train, the cars and the cameras needed no changes at all. They hold one `Lines`
+object (`src/engine/junction.ts`) and keep asking it where things are.
+
+**Places hear the engine on their own line.** A place is built against the loop it stands on, and
+each frame the world hands it the engine's distance measured on that loop: shifted by the extra
+length once the lines have rejoined, and `NaN` while he is on rails that loop does not share. Every
+"is he near" comparison with `NaN` is false, so the tunnel does not echo while he is out at the
+windmill and the windmill does not whirl while he is in the tunnel. Stops work the same way.
+
+**The Windmill** turns its sails slowly all the time. A whistle whirls them round with a rush of air
+(a new synthesised sound, `whoosh`), and the sunflowers in front nod along. The mill is aimed at
+the line coming in, so the sails are seen full on rather than edge on.
+
+The branch keeps well out on the far side of the hill, where the ground is nearly level. Laying it
+closer to the tunnel carved a canyon beside the portal.
 
 ### Phase 10 — fitting the tablet
 
@@ -555,10 +585,9 @@ What remains for Phase 2 is whatever the play test says to change.
 2. **Whether one loop is enough to be "exploring".** ~~Right now the place is a single field with
    one station in it.~~ Phase 3 answered this as far as it can be answered without him: there are
    now six places to drive through and a lap takes a minute and forty. What is still open is whether
-   *a loop* is the right shape at all, or whether exploring means choosing where to go. The track
-   layer was rebuilt as a network so that a junction is a content change rather than a rewrite, but
-   nothing has been built and nothing is on screen. Watch whether he goes looking for somewhere the
-   rails do not take him.
+   *a loop* is the right shape at all, or whether exploring means choosing where to go. Phase 5 put
+   one choice in, after The Farm. Watch whether he notices the arrows, whether he picks the windmill
+   on purpose or only by accident, and whether he goes back to it.
 3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
    crawlers blocked, which was chosen to get it installed quickly. Swapping in original artwork
    would retire the question entirely; the content layer already supports it.

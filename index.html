@@ -29,6 +29,34 @@
       </svg>
     </button>
 
+    <!-- Only there while he is coming up to the points after The Farm. Each
+         way is an arrow and a picture of where it goes; nothing to read. -->
+    <div id="points" hidden>
+      <button class="way" data-line="0" type="button" aria-label="Through the tunnel">
+        <svg viewBox="0 0 64 88" aria-hidden="true">
+          <g class="pic">
+            <path d="M12 30V20a20 16 0 0 1 40 0v10Z" fill="#8a7a66"/>
+            <path d="M21 30v-8a11 9 0 0 1 22 0v8Z" fill="#26323a"/>
+          </g>
+          <path class="arrow" d="M40 82V64q0-12-12-12h-6" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="arrow" d="M26 41 14 52l12 11" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="way" data-line="1" type="button" aria-label="To the windmill">
+        <svg viewBox="0 0 64 88" aria-hidden="true">
+          <g class="pic">
+            <path d="M26 32l2-16h8l2 16Z" fill="#f4f1e8" stroke="#9e4a3c" stroke-width="1.5"/>
+            <path d="M25 17l7-6 7 6Z" fill="#9e4a3c"/>
+            <g stroke="#8d6e4e" stroke-width="3" stroke-linecap="round">
+              <path d="M32 18 21 7M32 18l11-11M32 18 21 29M32 18l11 11"/>
+            </g>
+          </g>
+          <path class="arrow" d="M32 82V46" fill="none" stroke-width="8" stroke-linecap="round"/>
+          <path class="arrow" d="M20 54 32 42l12 12" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
     <!-- Push up to go, let go to roll gently down, pull down to stop. -->
     <div id="lever" role="slider" tabindex="0" aria-label="Throttle"
          aria-orientation="vertical" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0">

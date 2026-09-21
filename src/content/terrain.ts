@@ -79,20 +79,28 @@ class TrackProximity {
   private readonly zs: number[] = [];
   private readonly ds: number[] = [];
 
-  constructor(track: Track, step = 1.5) {
+  /**
+   * The first track is the main line, and `at` is measured along it. Samples
+   * from any other line (a branch) report an `at` far outside every free span,
+   * since only the main line has bridges or tunnels to lift the ground for.
+   */
+  constructor(tracks: Track[], step = 1.5) {
     const p = new THREE.Vector3();
-    const n = Math.max(2, Math.round(track.length / step));
-    for (let i = 0; i < n; i++) {
-      const d = (i / n) * track.length;
-      track.positionAt(d, p);
-      this.xs.push(p.x);
-      this.zs.push(p.z);
-      this.ds.push(d);
-      const key = this.key(p.x, p.z);
-      const bucket = this.buckets.get(key);
-      if (bucket) bucket.push(i);
-      else this.buckets.set(key, [i]);
-    }
+    tracks.forEach((track, line) => {
+      const n = Math.max(2, Math.round(track.length / step));
+      for (let i = 0; i < n; i++) {
+        const d = (i / n) * track.length;
+        track.positionAt(d, p);
+        const index = this.xs.length;
+        this.xs.push(p.x);
+        this.zs.push(p.z);
+        this.ds.push(line === 0 ? d : -1e6);
+        const key = this.key(p.x, p.z);
+        const bucket = this.buckets.get(key);
+        if (bucket) bucket.push(index);
+        else this.buckets.set(key, [index]);
+      }
+    });
   }
 
   private key(x: number, z: number): number {
@@ -142,7 +150,8 @@ export function distanceToPath(path: [number, number][], x: number, z: number): 
   return best;
 }
 
-export function buildTerrain(track: Track, spec: TerrainSpec): Terrain {
+/** `tracks[0]` is the main line; any others are branches laid on the ground. */
+export function buildTerrain(tracks: Track[], spec: TerrainSpec): Terrain {
   const {
     freeSpans,
     river,
@@ -156,7 +165,7 @@ export function buildTerrain(track: Track, spec: TerrainSpec): Terrain {
     seaDepth = 16,
   } = spec;
 
-  const near = new TrackProximity(track);
+  const near = new TrackProximity(tracks);
 
   /** Whether the rails at this point along the route are off the ground. */
   const carried = (at: number): number => {

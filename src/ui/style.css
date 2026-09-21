@@ -425,3 +425,60 @@ html, body {
   background: #eef2f5;
 }
 #parents .p-plain:active { background: #dde5ea; }
+
+/* ---------------------------------------------------------------- points */
+
+/*
+ * Two big arrows, bottom centre, only while he is coming up to the junction.
+ * The one the points are set for is green, like the go end of the lever.
+ */
+#points {
+  position: absolute;
+  left: 50%;
+  bottom: var(--inset);
+  transform: translateX(-50%);
+  display: flex;
+  gap: calc(var(--camera) * 0.4);
+  pointer-events: none;
+  animation: points-in 320ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+#points[hidden] { display: none; }
+
+#ui #points .way {
+  position: relative;
+  pointer-events: auto;
+  width: calc(var(--primary) * 0.86);
+  height: calc(var(--primary) * 1.1);
+  border-radius: calc(var(--primary) * 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  color: #2b3a45;
+  box-shadow: 0 7px 0 rgba(43, 58, 69, 0.22), 0 12px 20px rgba(43, 58, 69, 0.22);
+}
+#ui #points .way svg { width: 74%; }
+#points .way .arrow { stroke: currentColor; }
+
+#ui #points .way.on {
+  background: #2e7d32;
+  color: #fff;
+  box-shadow: 0 7px 0 #1b5e20, 0 12px 20px rgba(43, 58, 69, 0.26);
+}
+#points .way.on .pic { filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7)); }
+#points.chosen .way:not(.on) { opacity: 0.6; }
+
+/* Until he picks one, both breathe: the same invitation as the yard. */
+#points:not(.chosen) .way { animation: breathe-way 2.2s ease-in-out infinite; }
+#points:not(.chosen) .way + .way { animation-delay: -1.1s; }
+#ui #points .way.press { transform: translateY(6px); }
+
+@keyframes breathe-way {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+@keyframes points-in {
+  from { transform: translateX(-50%) scale(0.6); opacity: 0; }
+  to   { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #points, #points .way { animation: none !important; }
+}

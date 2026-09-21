@@ -18,6 +18,7 @@ import { setNameplate } from './content/buildEngine';
 import { settings, tunedDriving } from './settings';
 import { mountParentPanel } from './ui/parents';
 import { keepAwake } from './ui/wakelock';
+import { mountPoints } from './ui/points';
 import { QualityGovernor } from './engine/quality';
 
 const SKY_TOP = 0x7fc8e6;
@@ -210,6 +211,37 @@ async function boot(): Promise<void> {
     camera: () => rig.cycle(),
   });
 
+  // --- the points ----------------------------------------------------------
+  // Two arrows as he comes up to the junction after The Farm. Setting them is
+  // only allowed while he is still short of it, which is also the only time
+  // the arrows are on screen.
+  const lines = world.track;
+  const APPROACH = 70;
+  const points = mountPoints({
+    touched: used,
+    choose(line) {
+      if (lines.set(line, train.distance)) {
+        points.mark(line);
+        audio.chime();
+      }
+    },
+  });
+  let approaching = false;
+  const watchPoints = () => {
+    const head = train.distance;
+    const before = lines.canSwitch(head);
+    const on = settings.get().junctions;
+    const near = on && before && lines.points - lines.wrap(head) <= APPROACH;
+    // Every time round starts set for the main line, so the branch is always
+    // something he chose rather than somewhere he was left.
+    if ((near && !approaching) || (!on && before)) {
+      lines.set(0, head);
+      points.mark(0);
+    }
+    approaching = near;
+    points.show(near);
+  };
+
   mountParentPanel({
     opened: () => train.setThrottle(0),
     resetTrain: () => roster.reset(),
@@ -256,6 +288,7 @@ async function boot(): Promise<void> {
     last = t;
 
     train.update(dt);
+    watchPoints();
     trainState.distance = train.distance;
     trainState.speed = train.speed;
     trainState.moving = train.moving;

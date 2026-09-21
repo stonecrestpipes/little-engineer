@@ -84,23 +84,39 @@ past. That is the whole of it.
 A single continuous loop, laid out so that most of it is visible at once in Wide view — the feel of
 looking down at a wooden train set on the floor.
 
-**Stations (MVP: three).** Each has a distinct silhouette and colour so it is identifiable with zero
+A lap is **642 metres**, about **a minute and forty** at the top of the lever, and most of it is
+visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
+level crossing → The Farm → up the hillside and through the tunnel → down to the river and over the
+bridge → The Harbour → back along the shore to home.
+
+**Stations (three).** Each has a distinct silhouette and colour so it is identifiable with zero
 reading:
 
 | Station | Identity | Signature moment |
 |---|---|---|
 | **The Sheds** | Red brick, home, where play begins | Doors open as the engine leaves |
-| **The Harbour** | Blue, boats, water, cranes | A boat passes and sounds its horn back |
-| **The Farm** | Green, barn, animals, hay | Sheep look up when whistled at |
+| **The Harbour** | Blue, boats, water, cranes | A boat sounds its horn back, lower and slower |
+| **The Farm** | Green, barn, animals, hay | Every sheep looks up at once, and answers |
 
 **Trackside features** between stations, so things happen while simply driving:
 
 - A **tunnel** — whistle inside produces an echo
 - A **level crossing** — gates lower, a car waits, the driver waves
-- A **bridge** — water underneath, a boat may be passing
+- A **bridge** — the river running underneath, and a boat working up and down it
+
+**The country itself** is a heightmap rather than a flat plane: rolling ground, a hill for the
+tunnel, a pond in the middle of the loop, a river running from it out to the sea, and a coastline
+at the back. There is one sheet of water across the whole map, and it shows wherever the ground has
+been dug below it — so the shoreline is a consequence of the land rather than a shape anyone drew.
 
 Track is a closed circuit. The engine always follows it. There is no steering, no switching, and no
 way to leave the rails.
+
+Underneath, though, it is a **network of ten named segments** rather than one closed curve — `sheds`,
+`meadow`, `farm`, `hillfoot`, `bore`, `descent`, `rivermouth`, `harbour`, `shore`, `westbank` — joined
+end to end and driven as one route. Nothing above the track layer knows this, and there is nothing to
+choose. It is there so that the junction in Phase 5 is one more segment joined onto an end that
+already has one, rather than a rewrite.
 
 ---
 
@@ -233,13 +249,16 @@ Harden what survived Phase 1 into a reusable system: track-following along a spl
 acceleration and braking curves, the station-proximity assist, the camera rig. Written so additional
 engines and additional routes reuse it unchanged.
 
-### Phase 3 — The complete loop
-Build out the full world: three stations, tunnel, crossing, bridge, and the polished station moment
-described above. The first version that is genuinely *the game* rather than a test.
+### Phase 3 — The complete loop *(built)*
+The full world: three stations, tunnel, crossing, bridge, and the polished station moment described
+above. The first version that is genuinely *the game* rather than a test.
 
-### Phase 4 — Activity system
-Small toys, added one at a time, never chores: freight wagons to collect and drop off, a findable
-animal, an engine wash, a branch to tap off the track, a visiting engine. Each must be ignorable.
+### ~~Phase 4 — Activity system~~ *(dropped)*
+This was to be freight wagons to collect and drop off, a findable animal, an engine wash. It is
+struck out deliberately: collecting and delivering is exactly the errand-running he disliked in
+*Magic Tracks*, and *Explicitly not in this game* now rules it out. What survives of the idea —
+things to pull, because pulling things is good — moves to Phase 6 as cars chosen at the shed, with
+nothing to do with them.
 
 ### Phase 5 — Expand the railway
 Extend the loop with new areas that connect to the existing world rather than replacing it. Junction
@@ -357,6 +376,46 @@ anything needing to be unpicked.
 
 ## Build log
 
+### Phase 3 — the complete loop
+
+Built after the Phase 1 test passed: he picked the tablet up, found the lever and drove, with
+nothing said to him. That was the gate, and it is now behind us.
+
+**The railway is six times the place it was.** One field with one station became a 642-metre circuit
+with three stations, a tunnel, a level crossing and a bridge — a lap of about a minute and forty at
+the top of the lever, against fifty seconds before. The ground is a heightmap now rather than a flat
+disc, with one sheet of water under it that shows through wherever the land has been dug below it.
+That one trick gives the pond, the river and the whole coastline for the price of a plane and a
+height function.
+
+**Every place is its own file** under `src/content/places/`, owning its geometry and its behaviour,
+and the world does no more than hand each one the engine's position and pass on the whistle. Adding
+a place is adding a file; none of them can reach each other.
+
+**Nothing in any of them asks him for anything.** The gates come down because a train is coming. The
+sheep look up because he whistled. The shed doors open because he is leaving. If he drives past all
+of it without noticing, nothing is missed and nothing is waiting for him next time.
+
+**The track is a network now.** Ten named segments joined end to end, assembled into one route that
+is driven exactly as the single closed curve used to be. Verified against the old loop before any of
+the world was built: same length to a tenth of a metre, closes to zero, no kink at any joint, and
+arc-length accurate to a fifth of a millimetre per quarter-metre step. Junctions are a content
+change now rather than a rewrite — which was the whole point of doing it first.
+
+Three things were wrong and are worth recording, because all three were invisible until something
+was looked at properly:
+
+- **The roofs were turned a quarter-circle**, so every pitched roof lay across its building and
+  read, from the wide view, as a grey slab dropped on the grass.
+- **The sun's target followed the engine while its position stayed put**, so the light direction
+  swung as he drove and dragged the edge of the shadow map across the fields. It is fixed over the
+  whole layout now, and shadows are the same everywhere.
+- **The level crossing had its sign backwards** and lowered its gates after he had gone through
+  rather than as he approached. The doc comment that caused it was wrong too, and is fixed.
+
+**Performance** is 194k triangles and 374 draw calls in the wide view, down from 905 before the woods
+were instanced. Untested on the tablet — that is the first thing to check.
+
 ### The lever, and the hello
 
 Two changes after watching him play *Magic Tracks*, both made before the Phase 1 test rather than
@@ -424,12 +483,13 @@ What remains for Phase 2 is whatever the play test says to change.
 1. **The engine's name.** Worth asking him — a four-year-old naming his own engine is free ownership
    of the game. The nameplate on the tank is blank until then, and it is the only text in the entire
    game.
-2. **Whether one loop is enough to be "exploring".** The thing he liked was travelling through a
-   place. Right now the place is a single field with one station in it, and a lap takes a minute, so
-   there is not much to travel through. That is Phase 3's job — tunnel, crossing, bridge, harbour,
-   farm — and it is the strongest argument for doing Phase 3 next rather than Phase 6. But the
-   Phase 1 test comes first either way: whether the lever works for him decides more than what he
-   drives past.
+2. **Whether one loop is enough to be "exploring".** ~~Right now the place is a single field with
+   one station in it.~~ Phase 3 answered this as far as it can be answered without him: there are
+   now six places to drive through and a lap takes a minute and forty. What is still open is whether
+   *a loop* is the right shape at all, or whether exploring means choosing where to go. The track
+   layer was rebuilt as a network so that a junction is a content change rather than a rewrite, but
+   nothing has been built and nothing is on screen. Watch whether he goes looking for somewhere the
+   rails do not take him.
 3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
    crawlers blocked, which was chosen to get it installed quickly. Swapping in original artwork
    would retire the question entirely; the content layer already supports it.

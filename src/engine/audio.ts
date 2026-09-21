@@ -20,8 +20,11 @@ export class Audio {
   private master!: GainNode;
   private noise!: AudioBuffer;
   private hissGain!: GainNode;
+  private waterGain!: GainNode;
   private nextChuff = 0;
+  private nextBird = 0;
   private speed = 0;
+  private birds = 0;
 
   constructor(private readonly spec: AudioSpec) {}
 
@@ -64,7 +67,29 @@ export class Audio {
     hiss.connect(hp).connect(this.hissGain).connect(this.master);
     hiss.start();
 
+    // Moving water, for the river and the harbour. One noise source, opened
+    // and closed by how near he is to any of it.
+    const wash = ctx.createBufferSource();
+    wash.buffer = this.noise;
+    wash.loop = true;
+    const wlp = ctx.createBiquadFilter();
+    wlp.type = 'lowpass';
+    wlp.frequency.value = 620;
+    wlp.Q.value = 0.4;
+    const swell = ctx.createOscillator();
+    swell.type = 'sine';
+    swell.frequency.value = 0.13;
+    const swellDepth = ctx.createGain();
+    swellDepth.gain.value = 180;
+    swell.connect(swellDepth).connect(wlp.frequency);
+    swell.start();
+    this.waterGain = ctx.createGain();
+    this.waterGain.gain.value = 0;
+    wash.connect(wlp).connect(this.waterGain).connect(this.master);
+    wash.start();
+
     this.nextChuff = ctx.currentTime;
+    this.nextBird = ctx.currentTime + 2;
   }
 
   private noiseSource(): AudioBufferSourceNode {
@@ -76,20 +101,35 @@ export class Audio {
   }
 
   whistle(): void {
+    if (!this.ctx) return;
+    this.whistleAt(this.ctx.currentTime, 1, 3200);
+  }
+
+  /**
+   * The tunnel. Two returns, each quieter and darker than the last, which is
+   * what an echo is: the bright part of the sound comes back least.
+   */
+  echo(): void {
     const ctx = this.ctx;
     if (!ctx) return;
-    const t = ctx.currentTime;
+    this.whistleAt(ctx.currentTime + 0.36, 0.36, 1400);
+    this.whistleAt(ctx.currentTime + 0.74, 0.15, 780);
+  }
+
+  private whistleAt(t: number, level: number, cutoff: number): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
     const f = this.spec.whistleHz;
 
     const out = ctx.createGain();
     out.gain.setValueAtTime(0.0001, t);
-    out.gain.exponentialRampToValueAtTime(0.5, t + 0.05);
-    out.gain.setValueAtTime(0.5, t + 0.5);
+    out.gain.exponentialRampToValueAtTime(0.5 * level, t + 0.05);
+    out.gain.setValueAtTime(0.5 * level, t + 0.5);
     out.gain.exponentialRampToValueAtTime(0.0001, t + 0.92);
 
     const shape = ctx.createBiquadFilter();
     shape.type = 'lowpass';
-    shape.frequency.value = 3200;
+    shape.frequency.value = cutoff;
     out.connect(shape).connect(this.master);
 
     const voice = (hz: number, type: OscillatorType, level: number) => {
@@ -119,7 +159,7 @@ export class Audio {
     bp.Q.value = 1.1;
     const ag = ctx.createGain();
     ag.gain.setValueAtTime(0.0001, t);
-    ag.gain.exponentialRampToValueAtTime(0.22, t + 0.04);
+    ag.gain.exponentialRampToValueAtTime(0.22 * level, t + 0.04);
     ag.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
     air.connect(bp).connect(ag).connect(out);
     air.start(t);
@@ -162,6 +202,152 @@ export class Audio {
     });
   }
 
+  /**
+   * A boat answering. Deliberately lower and slower than the engine's whistle,
+   * so the two read as two different things talking to each other.
+   */
+  horn(delay = 0): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime + delay;
+
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.4, t + 0.22);
+    out.gain.setValueAtTime(0.4, t + 1.25);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + 1.9);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 900;
+    out.connect(lp).connect(this.master);
+
+    for (const [hz, level, type] of [
+      [104, 0.5, 'sawtooth'],
+      [104 * 1.008, 0.42, 'sawtooth'],
+      [156, 0.22, 'triangle'],
+      [208, 0.1, 'sine'],
+    ] as [number, number, OscillatorType][]) {
+      const o = ctx.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(hz * 0.97, t);
+      o.frequency.linearRampToValueAtTime(hz, t + 0.3);
+      o.frequency.linearRampToValueAtTime(hz * 0.98, t + 1.9);
+      const g = ctx.createGain();
+      g.gain.value = level;
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 2.0);
+    }
+
+    const air = this.noiseSource();
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 220;
+    bp.Q.value = 0.9;
+    const ag = ctx.createGain();
+    ag.gain.setValueAtTime(0.0001, t);
+    ag.gain.exponentialRampToValueAtTime(0.14, t + 0.18);
+    ag.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+    air.connect(bp).connect(ag).connect(out);
+    air.start(t);
+    air.stop(t + 2.0);
+  }
+
+  /** A sheep. Wobbly on purpose — the wobble is the whole joke. */
+  bleat(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime + Math.random() * 0.12;
+    const base = 330 + Math.random() * 90;
+
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(base * 1.1, t);
+    o.frequency.linearRampToValueAtTime(base, t + 0.1);
+    o.frequency.linearRampToValueAtTime(base * 0.82, t + 0.62);
+
+    // The bleat itself: a fast tremor on the pitch.
+    const wobble = ctx.createOscillator();
+    wobble.type = 'sine';
+    wobble.frequency.value = 22;
+    const depth = ctx.createGain();
+    depth.gain.setValueAtTime(2, t);
+    depth.gain.linearRampToValueAtTime(26, t + 0.2);
+    wobble.connect(depth).connect(o.frequency);
+
+    const formant = ctx.createBiquadFilter();
+    formant.type = 'bandpass';
+    formant.frequency.value = base * 2.6;
+    formant.Q.value = 2.4;
+
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.2, t + 0.05);
+    g.gain.setValueAtTime(0.2, t + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.66);
+
+    o.connect(formant).connect(g).connect(this.master);
+    o.start(t);
+    wobble.start(t);
+    o.stop(t + 0.7);
+    wobble.stop(t + 0.7);
+  }
+
+  /** The crossing bell: a struck ding, repeated while the gates are down. */
+  bell(times = 8, gap = 0.52): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    for (let i = 0; i < times; i++) {
+      const at = ctx.currentTime + i * gap;
+      for (const [hz, level] of [[784, 0.13], [1176, 0.06], [2093, 0.025]] as [number, number][]) {
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = hz;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(level, at + 0.006);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.42);
+        o.connect(g).connect(this.master);
+        o.start(at);
+        o.stop(at + 0.45);
+      }
+    }
+  }
+
+  /** A single bird, somewhere off to the side. */
+  private chirp(at: number): void {
+    const ctx = this.ctx!;
+    const base = 2300 + Math.random() * 1500;
+    const notes = 2 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < notes; i++) {
+      const t = at + i * (0.07 + Math.random() * 0.05);
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(base * (0.9 + Math.random() * 0.3), t);
+      o.frequency.exponentialRampToValueAtTime(base * (1.1 + Math.random() * 0.4), t + 0.03);
+      o.frequency.exponentialRampToValueAtTime(base * 0.85, t + 0.07);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.035, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+      o.connect(g).connect(this.master);
+      o.start(t);
+      o.stop(t + 0.1);
+    }
+  }
+
+  /**
+   * How much of the countryside he can hear from where he is: water near the
+   * river and the harbour, birds over the fields. Both slide rather than cut,
+   * so crossing the bridge sounds like arriving somewhere.
+   */
+  setAmbience(mix: { water: number; birds: number }): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    this.waterGain.gain.setTargetAtTime(mix.water * 0.075, ctx.currentTime, 0.9);
+    this.birds = mix.birds;
+  }
+
   setSpeed(speed: number): void {
     this.speed = speed;
   }
@@ -173,6 +359,14 @@ export class Audio {
 
     const moving = this.speed > 0.08;
     this.hissGain.gain.setTargetAtTime(moving ? 0.012 : 0.05, ctx.currentTime, 0.4);
+
+    // Birds, scattered rather than looped, so they never fall into a pattern.
+    if (this.birds > 0.05 && ctx.currentTime > this.nextBird) {
+      this.chirp(ctx.currentTime + Math.random() * 0.3);
+      this.nextBird = ctx.currentTime + (1.4 + Math.random() * 4.5) / this.birds;
+    } else if (this.birds <= 0.05) {
+      this.nextBird = Math.max(this.nextBird, ctx.currentTime + 1);
+    }
 
     if (!moving) {
       this.nextChuff = Math.max(this.nextChuff, ctx.currentTime);

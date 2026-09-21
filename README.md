@@ -11,20 +11,28 @@ design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 
 ## Where this is up to
 
-**Phase 1 is built and deployed. It has not been play-tested.** That is the
-whole gate: Phase 1 is finished when he picks up the tablet and plays without
-being told how. Nothing after it should be built until that has happened,
-because the point of the phase is to find out whether the interaction is worth
-building on.
+**Phase 1 passed.** He picked the tablet up, found the lever and drove, with
+nothing said to him. That was the only gate that mattered, and it is behind us.
+
+**Phase 3 is built and deployed, and has not been played yet.** The railway is
+now a 642-metre circuit — The Sheds, the level crossing, The Farm, the tunnel,
+the bridge and The Harbour — about a minute and forty a lap at the top of the
+lever.
 
 ### The next thing to do
 
-1. Install it on the Pixel Tablet (see *Putting it on the Pixel Tablet*).
-2. Hand it to him. Say nothing.
-3. Watch what he does — especially whether he pushes the lever up unprompted,
-   whether letting go reads to him as "ease off" rather than "stop", whether he
-   whistles more than he drives, and whether he ever looks for something the
-   game does not do.
+1. Open it on the tablet. It updates itself on the next launch.
+2. Hand it to him. Say nothing, again.
+3. Watch what he does with a place that is six times the size — especially
+   whether he goes looking for things, whether he stops at all three stations
+   or only at one, whether the tunnel is exciting or alarming, and whether he
+   notices the sheep.
+
+**Check the frame rate on the actual tablet.** The wide view is 194k triangles
+and 374 draw calls, which should be comfortable on a Tensor G2 but has only
+been measured on a desktop. If it struggles, the first things to try are
+dropping the shadow map from 2048 to 1536 in `src/main.ts` and thinning the
+trees in `src/content/world.ts`.
 
 ### Decide after watching, not before
 
@@ -159,19 +167,39 @@ reinstalling on the tablet.
 ```
 src/
   engine/     reusable, knows nothing about Thomas or any particular railway
-    track.ts      closed spline; everything is addressed by metres travelled
+    track.ts      segments, how they join, and the route driven through them
     train.ts      the lever, speed curves, the platform glide path
     cameras.ts    three fixed views on one button
     audio.ts      every sound, synthesised — nothing is loaded
   content/    data: this engine, this railway
     engines/thomas.ts   colours, dimensions, driving feel, whistle pitch
     buildEngine.ts      the mesh, built from boxes and cylinders
-    world.ts            the loop, the station, the scenery
+    world.ts            the segments, the terrain, and what stands where
+    terrain.ts          the heightmap ground, and the water under it
+    scenery.ts          rails, ballast, trees, fences, people
     greeting.ts         the one spoken line, and his name
+    places/             one file each, geometry and behaviour together
+      place.ts            what a place is, and the frame it is built in
+      station.ts          the part all three stations share
+      sheds.ts  crossing.ts  farm.ts  tunnel.ts  bridge.ts  harbour.ts
   ui/         the lever, the whistle, the camera
     controls.ts   the lever drag, and the two buttons
     greeting.ts   speaking the hello, and coping when the device will not
 ```
+
+### Adding a place
+
+Write a file in `src/content/places/` exporting a function that takes a
+`PlaceContext` and returns a `Place`: a group to add to the scene, optionally a
+`stop`, and any of `arrive`, `depart`, `whistle` and `update`. Then add one line
+to the list in `world.ts`. Places cannot reach each other and nothing reaches
+into them; the world hands each one the engine's position every frame and passes
+on the whistle, and that is the whole contract.
+
+Build in the place's own frame — `frameAt(track, at)` gives a group sitting on
+the rails facing along them, where **+z is the direction of travel and +x is the
+right-hand side of the train**. A place built that way can be moved anywhere on
+the railway and still faces the right way.
 
 Nothing in `engine/` imports anything from `content/`. That is the separation
 that makes Phases 5 and 6 cheap.
@@ -220,6 +248,28 @@ simply brakes.
 nothing; it will not creep to a platform on its own. An arrival already under
 way survives him letting go back to the middle, because that only ever slows the
 engine — it never sets it moving.
+
+**The rails are a network, and the route is one way round it.** `track.ts` holds
+named `Segment`s joined end to end in a `Network`; a `Route` assembles some of
+them into the thing the train drives, addressed in metres exactly as the single
+closed curve used to be. Nothing above it knows the difference. A branch line is
+a segment joined onto an end that already has one.
+
+**The ground is a heightmap, and there is one sheet of water under the whole
+map.** Water shows wherever the land has been dug below it, which is what gives
+the pond, the river and the coastline. The ground is pulled flat along a
+corridor either side of the rails so the track always meets it — except across
+the bridge, which is listed in `freeSpans` so the river can run underneath.
+
+**A place owns its own clock.** Every place keeps the `elapsed` it is handed in
+`update` and times everything from that, rather than reading `performance.now()`
+in one method and taking `elapsed` in another. Those are the same number in the
+game and different numbers anywhere the world is stepped by hand, which is how
+the gates, the shed doors and the sheep are tested.
+
+**Nothing flat casts a shadow.** A road or a field lying on the ground casts a
+shadow that reads as a second road lying on the ground a few metres away. Use
+`flat()` from `scenery.ts` for anything lying down.
 
 **Buttons fire on `pointerdown`, not `click`.** A four-year-old's press drifts,
 and waiting for a matching pointerup feels broken. There is a `click` fallback
@@ -278,5 +328,34 @@ Math.abs(world.track.delta(train.distance, stopAt)); // → 0
 
 `train.setThrottle(v)` takes -1 (stop) through 0 (released) to +1 (full power),
 which is exactly what the lever hands it.
+
+The world can be stepped by hand the same way, which is how the places are
+checked without waiting for a train to arrive:
+
+```js
+const { world, train } = window.LE;
+let clock = 0;
+const dt = 1 / 60;
+const step = (seconds) => {
+  for (let i = 0; i < seconds * 60; i++) {
+    train.update(dt);
+    clock += dt;
+    world.update(dt, clock, {
+      distance: train.distance,
+      speed: train.speed,
+      moving: train.speed > 0.05,
+    });
+  }
+};
+```
+
+Verified this way, and worth re-checking after any change to a place: arriving
+lands exactly on the mark at all three platforms from any distance inside the
+window; the crossing gates are up 140 m out, down by 40 m out, and up again once
+he is clear; the shed doors open as he leaves home and close once he has gone;
+the sheep look up on a whistle and go back to the grass; a whistle is answered
+by the tunnel, the bridge and the harbour but not out in open country; and
+hammering the whistle eight times in half a second produces one answer, not
+eight.
 
 The hook is stripped from production builds.

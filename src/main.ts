@@ -70,7 +70,7 @@ async function boot(): Promise<void> {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(SKY_LOW, 210, 460);
+  scene.fog = new THREE.Fog(SKY_LOW, 260, 640);
   scene.add(skyDome());
 
   const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 1200);
@@ -78,22 +78,29 @@ async function boot(): Promise<void> {
   // --- light -------------------------------------------------------------
   scene.add(new THREE.HemisphereLight(0xdcf2ff, 0x6f9455, 1.05));
   const sun = new THREE.DirectionalLight(0xfff3d8, 1.5);
-  sun.position.set(-70, 96, 58);
+  // Fixed over the whole railway rather than following the engine. Following
+  // it swings the shadow direction as he drives and drags the edge of the
+  // shadow map across the fields, which reads as grey patches on the grass.
+  sun.position.set(-190, 260, 158);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.camera.near = 20;
-  sun.shadow.camera.far = 320;
-  const S = 100;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 60;
+  sun.shadow.camera.far = 700;
+  // Wide enough to take in the whole layout, so shadows never stop at a line.
+  const S = 215;
   sun.shadow.camera.left = -S;
   sun.shadow.camera.right = S;
   sun.shadow.camera.top = S;
   sun.shadow.camera.bottom = -S;
   sun.shadow.bias = -0.0012;
-  sun.shadow.normalBias = 0.03;
+  sun.shadow.normalBias = 0.05;
   scene.add(sun, sun.target);
 
   // --- world and engine --------------------------------------------------
-  const world = buildWorld(scene);
+  // Audio is built first because the places take it: the sheep, the boat and
+  // the crossing bell all belong to the world rather than to the engine.
+  const audio = new Audio(thomas.audio);
+  const world = buildWorld(scene, audio);
 
   let faceMap: THREE.Texture | null = null;
   try {
@@ -109,21 +116,23 @@ async function boot(): Promise<void> {
   scene.add(engineMesh.group);
 
   const train = new Train(world.track, thomas.driving, world.stops);
-  train.distance = world.stops[0].at - 40; // start just short of the platform
+  // start just short of the home platform
+  train.distance = world.track.wrap(world.stops[0].at - 40);
 
   const rig = new CameraRig(camera, world.track, {
     wide: world.wide,
     tracksideAnchors: world.tracksideAnchors,
   });
 
-  const audio = new Audio(thomas.audio);
+  /** Handed to the world every frame; the places read it, nothing writes it. */
+  const trainState = { distance: 0, speed: 0, moving: false };
 
   train.on((e) => {
     if (e.type === 'arrived') {
-      world.arrive();
+      world.arrive(e.stop);
       audio.chime();
     } else {
-      world.depart();
+      world.depart(e.stop);
     }
   });
 
@@ -167,6 +176,7 @@ async function boot(): Promise<void> {
     throttle: (v) => train.setThrottle(v),
     whistle: () => {
       audio.whistle();
+      world.whistle(trainState);
       for (let i = 0; i < 3; i++) emitPuff();
     },
     camera: () => rig.cycle(),
@@ -195,6 +205,9 @@ async function boot(): Promise<void> {
     last = t;
 
     train.update(dt);
+    trainState.distance = train.distance;
+    trainState.speed = train.speed;
+    trainState.moving = train.moving;
     const angle = train.advanceWheels(thomas.dims.wheelRadius, dt);
     animateRunningGear(engineMesh, angle);
 
@@ -202,8 +215,6 @@ async function boot(): Promise<void> {
     world.track.tangentAt(train.distance, fwd);
     engineMesh.group.position.copy(pos);
     engineMesh.group.lookAt(lookTarget.copy(pos).add(fwd));
-
-    sun.target.position.copy(pos);
 
     // steam, paced by speed
     puffTimer -= dt;
@@ -229,7 +240,7 @@ async function boot(): Promise<void> {
     audio.update();
 
     rig.update(dt, train.distance, pos, fwd);
-    world.update(dt, t);
+    world.update(dt, t, trainState);
     controls.reflect({ moving: train.moving, atStop: train.atStop !== null });
 
     renderer.render(scene, camera);
@@ -238,7 +249,7 @@ async function boot(): Promise<void> {
   // Dev-only handle, so the driving can be exercised without waiting for
   // real time to pass. Stripped from production builds.
   if (import.meta.env.DEV) {
-    (window as { LE?: unknown }).LE = { train, rig, world, audio, spec: thomas };
+    (window as { LE?: unknown }).LE = { train, rig, world, audio, spec: thomas, scene, camera, renderer, THREE };
   }
 
   // Pushed updates land the next time he opens the app, never mid-journey.

@@ -22,6 +22,7 @@ import { mountPoints } from './ui/points';
 import { QualityGovernor } from './engine/quality';
 import { Sky } from './engine/sky';
 import { Flock } from './content/flock';
+import { journal } from './journal';
 
 const now = () => performance.now() / 1000;
 
@@ -137,6 +138,7 @@ async function boot(): Promise<void> {
   train.on((e) => {
     if (e.type === 'arrived') {
       world.arrive(e.stop);
+      journal.stopped(e.stop.id);
       audio.chime();
     } else {
       world.depart(e.stop);
@@ -198,6 +200,7 @@ async function boot(): Promise<void> {
   const used = () => {
     touched = true;
     awake.touched();
+    journal.played();
     // The audio context can only be opened from inside a real gesture.
     audio.start();
   };
@@ -206,6 +209,7 @@ async function boot(): Promise<void> {
     throttle: (v) => train.setThrottle(v),
     whistle: () => {
       audio.whistle();
+      journal.whistled();
       world.whistle(trainState);
       startle();
       for (let i = 0; i < 3; i++) emitPuff();
@@ -229,9 +233,13 @@ async function boot(): Promise<void> {
     },
   });
   let approaching = false;
+  let wasBefore = lines.canSwitch(train.distance);
   const watchPoints = () => {
     const head = train.distance;
     const before = lines.canSwitch(head);
+    // Just went over the points: note which way, for the grown-ups' scrapbook.
+    if (wasBefore && !before) journal.turned(lines.line);
+    wasBefore = before;
     const on = settings.get().junctions;
     const near = on && before && lines.points - lines.wrap(head) <= APPROACH;
     // Every time round starts set for the main line, so the branch is always
@@ -290,6 +298,7 @@ async function boot(): Promise<void> {
     last = t;
 
     train.update(dt);
+    journal.drove(roster.engine.spec.id, train.speed * dt);
     watchPoints();
     trainState.distance = train.distance;
     trainState.speed = train.speed;

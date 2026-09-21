@@ -86,9 +86,12 @@ files are usable; several scraped ones contain the wrong subject entirely.
 ## The grown-ups' panel
 
 Hold the **top-right corner of the screen for three seconds**. A faint ring
-starts to fill after a second. The panel has his name for the hello, speed,
-how much help he gets stopping, volume, nameplates for each engine, and a
-reset. Changes take effect immediately. The build time at the bottom tells
+starts to fill after a second. At the top is a scrapbook of how he plays —
+days, distance, whistles, where he stops, what he drives, which way he goes
+at the points — which he never sees. Below that: his name for the hello,
+speed, how much help he gets stopping, volume, evenings, the branch line,
+the blue engine's face, nameplates for each engine, picture quality, and
+resets. Changes take effect immediately. The build time at the bottom tells
 you whether the tablet has the latest push.
 
 ## Running it
@@ -220,6 +223,7 @@ src/
       sheds.ts  crossing.ts  farm.ts  tunnel.ts  bridge.ts  harbour.ts
       windmill.ts         out on the branch line
   settings.ts the grown-ups' settings, and how they adjust each engine
+  journal.ts  the scrapbook: what he did, for the grown-ups only
   ui/         the lever, the whistle, the camera
     controls.ts   the lever drag, and the two buttons
     parents.ts    the hidden grown-ups' panel

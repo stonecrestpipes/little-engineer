@@ -285,9 +285,15 @@ rather than a screen that interrupts him.
 No unlocking, no cost, nothing earned. Every engine and every car is there the first time he opens
 the app, and an engine on its own is as valid a choice as three cars.
 
-### Phase 7 — Gentle progression
+### Phase 7 — Gentle progression *(built, as a grown-ups' scrapbook)*
 An optional local sticker book recording places visited and things seen. Nothing can be lost, nothing
 expires, nothing pressures him to return.
+
+As built, the record exists but he never sees it. A sticker book on screen would be collecting,
+which *Explicitly not in this game* rules out, and a fourth control besides. Instead the top of the
+grown-ups' panel is a scrapbook: days played, distance driven, whistles blown, stops made, which
+places he stops at, which engines he drives, and which way he goes at the points. It is kept only
+on the tablet, in `src/journal.ts`, and can be cleared from the panel.
 
 ### Phase 8 — Parent settings *(built)*
 Long-press gesture to a hidden panel: assist strength, speed control on/off, junctions on/off, which
@@ -405,6 +411,18 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Phase 7 — the scrapbook
+
+The sticker book turned into something for the grown-ups instead: `src/journal.ts` quietly counts
+days played, metres per engine, whistles, stops per place, and turns at the points, and writes them
+to the tablet every fifteen seconds and whenever the app is put away. The panel draws them as tiles
+and bars when it opens. It is also the most useful playtest tool the game has, since it records
+what he did when nobody was watching.
+
+Alongside it, the blue engine gained an **original drawn face**, switchable in the panel, and
+original app icons were drawn from it into `artwork/icons/`. Retiring the third-party imagery is
+now three small steps, listed under *Hosting* in the README.
 
 ### Phase 9 — a first pass of polish
 

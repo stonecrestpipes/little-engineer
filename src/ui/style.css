@@ -482,3 +482,30 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   #points, #points .way { animation: none !important; }
 }
+
+/* The scrapbook at the top of the grown-ups' panel. */
+#parents .p-section { padding: 14px 0 6px; border-bottom: 1px solid #eef2f5; }
+#parents h3 { margin: 16px 0 8px; font-size: 15px; color: #4a5a66; }
+#parents .p-title { margin-top: 0; font-size: 17px; color: inherit; }
+#parents .p-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 560px) { #parents .p-tiles { grid-template-columns: repeat(2, 1fr); } }
+#parents .p-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #eef5fb;
+}
+#parents .p-tile b { font-size: 22px; color: #1e5e9b; }
+#parents .p-tile small { color: #6b7c88; font-size: 13px; }
+#parents .p-bars {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 15px;
+}
+#parents .p-bar { height: 10px; border-radius: 5px; background: #eef2f5; overflow: hidden; }
+#parents .p-bar i { display: block; height: 100%; border-radius: 5px; background: #2e7d32; min-width: 2px; }
+#parents .p-note { margin: 14px 0 4px; color: #6b7c88; font-size: 14px; line-height: 1.5; }

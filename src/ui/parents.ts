@@ -1,5 +1,73 @@
 import { settings, SPEEDS, type Settings } from '../settings';
 import { ENGINES } from '../content/engines';
+import { journal } from '../journal';
+
+const PLACES: [string, string][] = [
+  ['sheds', 'The Sheds'],
+  ['farm', 'The Farm'],
+  ['windmill', 'The Windmill'],
+  ['harbour', 'The Harbour'],
+];
+
+const distance = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
+const count = (n: number) => n.toLocaleString();
+
+/** The scrapbook: how he plays, drawn fresh each time the panel opens. */
+function scrapbook(into: HTMLElement): void {
+  const j = journal.get();
+  const total = Object.values(j.metres).reduce((a, b) => a + b, 0);
+  const stops = Object.values(j.stops).reduce((a, b) => a + b, 0);
+  const tile = (value: string, label: string) =>
+    el('div', { className: 'p-tile' }, el('b', {}, value), el('small', {}, label));
+
+  const places = el('div', { className: 'p-bars' });
+  const most = Math.max(1, ...PLACES.map(([id]) => j.stops[id] ?? 0));
+  for (const [id, name] of PLACES) {
+    const n = j.stops[id] ?? 0;
+    const bar = el('i');
+    bar.style.width = `${(n / most) * 100}%`;
+    places.append(el('span', {}, name), el('span', { className: 'p-bar' }, bar), el('span', {}, count(n)));
+  }
+
+  const engines = el('div', { className: 'p-bars' });
+  const longest = Math.max(1, ...ENGINES.map((e) => j.metres[e.id] ?? 0));
+  for (const spec of ENGINES) {
+    const m = j.metres[spec.id] ?? 0;
+    const bar = el('i');
+    bar.style.width = `${(m / longest) * 100}%`;
+    bar.style.background = '#' + spec.colour.body.toString(16).padStart(6, '0');
+    const label = spec.name.replace(/^the /, '');
+    engines.append(
+      el('span', {}, label[0].toUpperCase() + label.slice(1)),
+      el('span', { className: 'p-bar' }, bar),
+      el('span', {}, distance(m)),
+    );
+  }
+
+  const tunnel = j.turns['0'] ?? 0;
+  const mill = j.turns['1'] ?? 0;
+  const since = new Date(j.since + 'T12:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
+
+  into.replaceChildren(
+    el('div', { className: 'p-tiles' },
+      tile(count(j.days.length), j.days.length === 1 ? 'day played' : 'days played'),
+      tile(distance(total), 'driven'),
+      tile(count(j.whistles), 'whistles'),
+      tile(count(stops), 'stops'),
+    ),
+    el('h3', {}, 'Where he stops'),
+    places,
+    el('h3', {}, 'What he drives'),
+    engines,
+    el('p', { className: 'p-note' },
+      tunnel + mill === 0
+        ? 'He has not been past the points after The Farm yet.'
+        : `At the points: the tunnel ${count(tunnel)} ${tunnel === 1 ? 'time' : 'times'}, the windmill ${count(mill)}.`,
+      el('br'),
+      `Kept on this tablet since ${since}. He never sees any of this.`,
+    ),
+  );
+}
 
 /**
  * The grown-ups' panel. Hidden behind a long hold on the top-right corner of
@@ -137,6 +205,14 @@ export function mountParentPanel(hooks: ParentHooks): void {
     plates.append(el('label', {}, swatch, input));
   }
 
+  const book = el('div', { className: 'p-book' });
+  const clearBook = el('button', { type: 'button', className: 'p-plain', textContent: 'Clear the scrapbook' });
+  clearBook.addEventListener('click', () => {
+    if (!window.confirm('Clear everything in the scrapbook? This cannot be undone.')) return;
+    journal.clear();
+    scrapbook(book);
+  });
+
   const resetTrain = el('button', { type: 'button', className: 'p-plain', textContent: 'Put his train back to the start' });
   resetTrain.addEventListener('click', () => hooks.resetTrain());
   const resetAll = el('button', { type: 'button', className: 'p-plain', textContent: 'Reset these settings' });
@@ -150,6 +226,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
   const body = el(
     'div',
     { className: 'p-body' },
+    el('section', { className: 'p-section' }, el('h3', { className: 'p-title' }, 'His railway so far'), book),
     row('His name', 'Used in the spoken hello, from the next time it opens', name),
     row('Say hello', 'Out loud, when the app opens', hello.node),
     row('Speed', 'For every engine', speed.node),
@@ -167,7 +244,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     { className: 'p-sheet', role: 'dialog', ariaLabel: 'Grown-ups' },
     el('header', {}, el('h2', {}, 'Grown-ups'), done),
     body,
-    el('footer', {}, resetTrain, resetAll, footnote),
+    el('footer', {}, resetTrain, resetAll, clearBook, footnote),
   );
   const panel = el('div', { id: 'parents', hidden: true }, sheet);
   document.body.append(panel);
@@ -188,6 +265,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
 
   const open = () => {
     syncs.forEach((f) => f());
+    scrapbook(book);
     footnote.textContent = `${hooks.status()} · Build ${__BUILD__}`;
     hooks.opened();
     panel.hidden = false;

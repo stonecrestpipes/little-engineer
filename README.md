@@ -1,8 +1,8 @@
 # Little Engineer
 
 A calm, offline train game for a four-year-old. Two buttons, one railway,
-nothing to do but drive and look. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled
-design and `Little Engineer - Game Plan.pdf` for the full phased plan.
+nothing to do but drive and look. See [GAME_DESIGN.md](GAME_DESIGN.md) for the
+settled design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 
 **Live:** https://stonecrestpipes.github.io/little-engineer/
 **Repo:** `stonecrestpipes/little-engineer` (public — see *Hosting* below)
@@ -27,7 +27,8 @@ built and waiting for the next go:
 - **Two voice buttons**, above the whistle: *All aboard!* and *Full steam
   ahead!*
 
-The rest of it he has still not seen:
+The rest of what is there. He has now had a first go at it, but how much of
+it he actually found is exactly what the scrapbook is for:
 
 - **The railway**: a 642-metre circuit — The Sheds, the level crossing, The
   Farm, the tunnel, the bridge and The Harbour — about a minute and forty a
@@ -37,7 +38,9 @@ The rest of it he has still not seen:
   Harbour, along the sea wall to The Lighthouse instead of straight home.
   Touch nothing and the train simply goes the usual way.
 - **Four engines and five cars**, picked by walking up to them in the yard at
-  The Sheds and tapping one.
+  The Sheds and tapping one. Up to three cars at once. The view now turns to
+  face the yard whenever he stops there, which is the fix for his one real
+  complaint.
 - **Things that answer the whistle** almost everywhere: sheep, the yard's
   engines, the car at the crossing, the tunnel's echo, the boat, the windmill,
   the lighthouse's foghorn, and birds out in the fields.
@@ -48,23 +51,41 @@ The rest of it he has still not seen:
 
 ### The next thing to do
 
-1. Open it on the tablet. It updates itself on the next launch.
+1. Open it on the tablet, then close it and open it again. The first launch
+   fetches the update and the second one runs it — a new build is never
+   swapped in mid-journey. The corner should read **v0.2.0**.
 2. Hand it to him. Say nothing, again.
-3. Watch what he does with a place that is many times the size — especially
+3. **Watch the buttons**, which are the new thing and the reason for this
+   build:
+   - Does he find the *second* press of green? Nothing points at it; the
+     upper chevron simply brightens when there is another press to be had.
+   - Does he ever press **R**? It is the one thing here that was a guess
+     rather than an answer to something he said.
+   - Does he leave the train running and wander off? See open question 5 in
+     [GAME_DESIGN.md](GAME_DESIGN.md) — there is a planned, unbuilt idle
+     coast for exactly that, and it is deliberately not built until he has
+     been watched.
+4. **Does he go and get himself a car now?** This is the whole point of the
+   change. Stopping at The Sheds turns the view to face the yard by itself,
+   so the spare engines and cars are in plain sight with nothing on top of
+   them, and a drag anywhere swings the view. If he still does not touch one,
+   the problem was never that he could not see them.
+5. Watch what he does with a place that is many times the size — especially
    whether he goes looking for things, which stations he stops at, whether the
    tunnel is exciting or alarming, and what he whistles at.
-4. Watch whether he finds the yard on his own. Nothing points at it: the other
-   engines are simply standing there, bobbing gently, whenever he is stopped at
-   home. If he never touches one, that is worth knowing before anything else is
-   built on top of it.
-5. Watch the arrows after The Farm and after The Harbour. Does he notice
+6. Watch the arrows after The Farm and after The Harbour. Does he notice
    them, does he pick the windmill or the lighthouse on purpose, and does he
    go back? If he ignores them, the train simply carries on as before. The
    scrapbook in the grown-ups' panel counts which way he went, and they can
    be switched off there too.
+7. Afterwards, open the grown-ups' panel (hold the top-right corner for three
+   seconds): the scrapbook at the top records what he did, including when
+   nobody was watching. It now counts **reverses** and **couplings**, which
+   are the numbers behind steps 3 and 4.
 
-6. Afterwards, open the grown-ups' panel: the scrapbook at the top records
-   what he did, including when nobody was watching.
+**If the screen feels busy**, the two voice buttons are the cheapest thing to
+remove: delete the two `.say` buttons from `index.html` and the `say` handler
+in `src/main.ts`. Nothing else depends on them.
 
 **Check the frame rate on the actual tablet.** The game measures it for you:
 on *Auto* it turns shadows down if it cannot hold about 46 fps, and the footer

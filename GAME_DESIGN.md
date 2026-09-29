@@ -738,11 +738,21 @@ What remains for Phase 2 is whatever the play test says to change.
    engine and original icons now exist (a *Familiar* / *Original* switch in the grown-ups' panel,
    and `artwork/icons/`). Once he takes to the new face, deleting the photograph retires the
    question entirely — see *Hosting* in the README.
-4. **How fast anything should go.** Each engine carries its own numbers now: 6.4 m/s at the top of
-   the lever for the slowest, 8.0 for the quickest, and 2.4 to 3.2 at the bottom of the green. A lap
+4. **How fast anything should go.** Each engine carries its own numbers now: 6.4 m/s on the second
+   press of green for the slowest, 8.0 for the quickest, and 2.4 to 3.2 on the first press. A lap
    is a minute and forty. All guesses until he drives them, and the spread between the engines is a
    guess on top of a guess — it is meant to be felt rather than noticed, and may be too small to
    feel at all.
+5. **Whether a latching green needs an idle coast.** *(Deferred on purpose — noted 2026-09-29, not
+   built.)* Green and red latch, so unlike the lever they can be walked away from and the engine
+   goes round and round on its own. The fix, if it turns out to be needed: after about a minute with
+   nothing touched at all, come off the power and let it roll to a stand on `coast` — never brake,
+   never stop it dead, and never while he is actually driving. That keeps his buttons exactly as
+   they are and puts back most of what the lever gave for free. It is roughly a dozen lines in
+   `src/main.ts`: a timer reset by `touched()`, calling `controls.letGo()` when it runs out.
+   **Do not build it until he has been watched with the buttons** — a train that stops itself while
+   he is looking out of the window is a worse problem than one that keeps going, and which of those
+   is true is exactly what the next play tells us.
 
 ---
 

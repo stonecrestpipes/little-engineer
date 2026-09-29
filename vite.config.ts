@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+const { version } = JSON.parse(readFileSync('./package.json', 'utf8')) as { version: string };
 
 // Deploying into a subfolder (GitHub Pages project sites) needs a base path.
 // Set BASE_PATH=/little-engineer/ at build time; defaults to root.
@@ -7,9 +10,13 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
-  // Shown at the foot of the grown-ups' panel, so you can tell at a glance
-  // whether the tablet has picked up the latest push.
-  define: { __BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')) },
+  // Shown in the corner of the screen and at the foot of the grown-ups'
+  // panel, so you can tell at a glance whether the tablet has picked up the
+  // latest push without having to remember what the last one looked like.
+  define: {
+    __BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')),
+    __VERSION__: JSON.stringify(version),
+  },
   server: { host: true, port: process.env.PORT ? Number(process.env.PORT) : undefined },
   build: { target: 'es2022', assetsInlineLimit: 0 },
   plugins: [

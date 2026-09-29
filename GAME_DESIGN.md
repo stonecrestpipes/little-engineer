@@ -30,10 +30,11 @@ He does **not** chase speed. He is not a throttle child; he is a *conductor of a
 
 Three design consequences follow directly:
 
-- **Driving is one lever, not a set of options.** He is not a throttle child chasing a top speed;
-  he wants to set off, roll along and pull up. One thing to hold does all three.
-- **The whistle is a primary control, not a garnish.** Equal visual weight to the lever, always
-  on screen, always responsive, and the world answers it.
+- **Driving is two buttons, not a set of options.** He is not a throttle child chasing a top
+  speed; he wants to set off, roll along and pull up. Green and red do all three, and how fast is
+  a second press of green rather than a question he has to answer.
+- **The whistle is a primary control, not a garnish.** Equal visual weight to the driving buttons,
+  always on screen, always responsive, and the world answers it.
 - **The camera button is a first-class control**, not a settings item. Flipping views is play.
 
 ### Later observation: what he liked in someone else's game
@@ -47,8 +48,9 @@ opposite directions:
   over the view. He wanted to drive through the place and look at it, and the game kept
   interrupting to hand him a job.
 
-So: take the lever, and take nothing else. This game is about going somewhere and watching it go
-past. That is the whole of it.
+So: take the driving, and take nothing else. This game is about going somewhere and watching it
+go past. That is the whole of it. (The control itself went lever, then back to buttons, when he
+asked — see the build log. What never moved is the *nothing else*.)
 
 ---
 
@@ -58,8 +60,8 @@ past. That is the whole of it.
 |---|---|
 | **Name** | Little Engineer |
 | **Core gameplay** | Drive a train round the railway; stop at stations; whistle at everything; watch it go |
-| **Controls** | One throttle lever, plus WHISTLE and CAMERA. Nothing else on screen, except two picture arrows while coming up to a junction |
-| **The lever** | Push up to go — further is faster. Let go and it centres itself and the engine eases down. Pull down to stop |
+| **Controls** | GREEN, RED and a small R, plus WHISTLE, two voice buttons and CAMERA. Two picture arrows as well, while coming up to a junction |
+| **Driving** | Green goes, and green again is full steam. Red stops, and near a platform it stops on the mark. R backs up while it is held |
 | **Objectives** | **None.** No errands, no collecting, no prizes, nothing that pops up over the view |
 | **Greeting** | Spoken by name when the app opens, and nothing else is ever spoken |
 | **Camera** | One big button cycles three fixed views: **Wide**, **Follow**, **Trackside** |
@@ -85,7 +87,7 @@ past. That is the whole of it.
 A single continuous loop, laid out so that most of it is visible at once in Wide view — the feel of
 looking down at a wooden train set on the floor.
 
-A lap is **642 metres**, about **a minute and forty** at the top of the lever, and most of it is
+A lap is **642 metres**, about **a minute and forty** at full steam, and most of it is
 visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
 level crossing → The Farm → up the hillside and through the tunnel → down to the river and over the
 bridge → The Harbour → back along the shore to home.
@@ -127,32 +129,48 @@ Designed landscape-first. A four-year-old holds a tablet like a steering wheel, 
 controls sit in the **bottom corners** where thumbs already are — never along the top.
 
 ```
-┌────────────────────────────────────────────────────┐
-│  [camera]                                   ┌──┐   │
-│                                             │▲▲│   │
-│                  the railway                │▲▲│ ● │
-│                                             │──│   │
-│  ┌─────────┐                                │■■│   │
-│  │ WHISTLE │                                └──┘   │
-│  └─────────┘                                       │
-└────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  [camera]                                   v0.2.0  │
+│                                           ╭───╮     │
+│                  the railway              │ ▲ │     │
+│   ( )  ( )                                ╰───╯     │
+│  ┌─────────┐                        (R)   ╭───╮     │
+│  │ WHISTLE │                              │ ■ │     │
+│  └─────────┘                              ╰───╯     │
+└─────────────────────────────────────────────────────┘
 ```
 
-- **THE LEVER** (bottom-right) — a tall slot with a ball in it. Push the ball up into the green and
-  the engine goes, faster the further up it is. Let go and it springs back to the middle by itself
-  and the engine rolls gently down to nothing. Pull it down into the amber and it stops properly.
+- **GREEN** (bottom-right, upper) — press it and the engine goes. Press it again and it goes at its
+  own top speed. A third press does nothing, so there is never a wrong number of presses.
+- **RED** (bottom-right, lower) — press it and the engine stops. Anywhere near a platform it stops
+  exactly on the mark.
+- **R** (bottom-right, small, beside red) — held down, the engine creeps backwards at about a metre
+  a second. Let go and it stops. It is for easing up to a car in the yard, not for getting anywhere.
 - **WHISTLE** (bottom-left) — always available, whether moving or stopped, always responds
   instantly, and can be hammered repeatedly with no penalty or cooldown.
+- **THE TWO VOICES** (bottom-left, small, above the whistle) — one says *All aboard!* and the other
+  *Full steam ahead!*, in the same device voice that says hello. Each says the same thing every
+  time, because that is the only way he can learn which is which without reading them.
 - **CAMERA** (top-left, small but clear) — cycles the three views.
+- **A drag anywhere on the railway** swings the view round, within limits that cannot put it
+  underground or point it at the sky, and it eases back to the proper shot once he is moving again.
+  A press that stays put still picks things up in the yard; a press that travels looks instead.
 
-Two things about the lever matter more than they look:
+Three things about the driving matter more than they look:
 
-- **It never latches.** A lever that stays where it was put is a lever that can be forgotten about,
-  and an engine left running is the game driving rather than him. Letting go always means letting go.
-- **Letting go and stopping are different, and feel different.** Released, the engine takes about
-  six seconds and twenty metres to come to rest — it is easing off. Pulled down, it takes two
-  seconds and eight metres — it is stopping. That difference is most of what the lever teaches, and
+- **Green and red latch. R never does.** Whatever he pressed last is what the engine is doing, and
+  it stays that way until he presses the other one — which is the whole reason he asked for
+  buttons. The trade is that an engine can now be left running by a control he has walked away from,
+  which the lever made impossible. R is the exception, because a train reversing on its own is the
+  one version of that worth refusing.
+- **Coasting and stopping are different, and feel different.** With no power on, the engine takes
+  about six seconds and twenty metres to come to rest — it is easing off. On red it takes two
+  seconds and eight metres — it is stopping. That difference is most of what the buttons teach, and
   it is learned by doing rather than by being told.
+- **Pressing R never lurches.** Whichever way it is rolling it comes to a stand first and sets off
+  backwards after, so R is safe to press at any moment — including at speed, where it is simply a
+  slower stop.
+
 
 **Touch targets: minimum 96 px, primary buttons ~160 px.** Well above the 48 px adult minimum;
 a four-year-old's aim is poor and the tablet is heavy.
@@ -421,6 +439,49 @@ anything needing to be unpicked.
 
 ## Build log
 
+### GO and STOP come back, and a way to look round the yard
+
+He played it, and asked for four things: buttons instead of the lever, other cars to hook up and
+haul around, a small R for reverse, and — separately, and the most useful sentence anyone has said
+about this game — that *the joystick covers the extra train cars, so it is hard to select and add
+them.*
+
+**The lever is gone; green and red are back.** This reverses the decision recorded below, which
+predicted its own reversal: *"if the Phase 1 test says otherwise, GO and STOP are a small change
+back."* It was a small change back. What the lever had that two buttons do not is that it could
+never be left set, and that is genuinely lost: the engine now goes round and round until he presses
+red. What it did not have is the thing he actually wanted, which is to put the train in a state and
+then have both hands back. Green keeps two speeds out of the lever's range — first press ambles,
+second press is full steam — so fast against slow survives as a second press rather than as a thumb
+held at a height.
+
+**R creeps backwards while it is held**, at 42% of the engine's gentlest forward speed, which is
+about 1.2 m/s. Pressing it at speed is a stop followed by a reversal rather than a lurch, so it
+cannot be pressed wrongly. Backing through a platform deliberately does not count as arriving.
+
+**Hauling cars was already built** — five of them, up to three at once, chosen by walking up to them
+in the yard and tapping one. The reason it looked missing is the fourth thing he said: the controls
+sit on top of the yard. Two answers, both built:
+
+- **The view turns to face the yard by itself** whenever he is standing still at The Sheds:
+  three-quarters on, from off the end of the two sidings, so every car and every spare engine is in
+  the clear at once. Square on would be better, but the engine shed stands beyond the car road and a
+  camera out there is looking at the back of it. What the buttons cover in that shot is the shed
+  roof — the one thing in frame he has no reason to touch. Backing up counts as still being in the
+  yard, because shunting is exactly what reverse is for; pulling forward gives the ordinary view
+  back, and so does the camera button.
+- **Dragging swings the view**, which is what he asked for in so many words. A press that stays put
+  is still a pick, so nothing was taken away to add it.
+
+**A fifth thing, unasked: the yard's flat ground was on the wrong side of the line.**
+`cross(tangent, up)` points at the engine's right and the yard is on its left, so the 24-metre patch
+meant to stop the sidings following the contours was being flattened 27 metres away in open country.
+Found while working out where to put the yard camera.
+
+**Two voice buttons**, saying one thing each, and **the version in the top-right corner** so whoever
+picks the tablet up can see whether it has caught the latest push without opening the grown-ups'
+panel.
+
 ### Fewer draw calls
 
 Two new places took the wide view to 1,559 draw calls with shadows, because everything is built
@@ -547,7 +608,8 @@ the siding puts him in it and puts his old one where that was; tapping a car cou
 tapping one that is already coupled up takes it off again. It does nothing anywhere else on the
 railway, so a stray thumb out on the line cannot change his train. Everything he could touch
 breathes gently while he is standing there, which is the only invitation besides the halo on the
-lever, and it stops the moment he sets off.
+green button, and it stops the moment he sets off. Standing still here is also what turns the view
+round to face the yard, so that what he can touch is what he can see.
 
 **What he chose is remembered** in `localStorage`. Coming back to find his engine put away and
 somebody else's on the rails would be the game taking something off him.

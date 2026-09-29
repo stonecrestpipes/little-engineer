@@ -70,6 +70,11 @@ function scrapbook(into: HTMLElement): void {
             `After The Harbour: ${turns('coast', 'home', 'the lighthouse')}.`
         : 'He has not been past any points yet.',
       el('br'),
+      // The two open questions about the buttons: does he use R at all, and
+      // does he go and get himself a car now he can see the yard.
+      `Backed up with R ${count(j.reverses)} times. ` +
+        `Changed what is behind the engine ${count(j.couplings)} times.`,
+      el('br'),
       `Kept on this tablet since ${since}. He never sees any of this.`,
     ),
   );

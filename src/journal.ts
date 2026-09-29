@@ -16,6 +16,10 @@ export interface Journal {
   /** metres driven, by engine id */
   metres: Record<string, number>;
   whistles: number;
+  /** times he has backed up with R */
+  reverses: number;
+  /** times he has coupled a car up or taken one off */
+  couplings: number;
   /** platform stops, by stop id */
   stops: Record<string, number>;
   /** times each way was taken at each set of points, as `junction:way` (0 main, 1 branch) */
@@ -33,7 +37,7 @@ const today = (): string => {
 };
 
 function empty(): Journal {
-  return { since: today(), days: [], metres: {}, whistles: 0, stops: {}, turns: {} };
+  return { since: today(), days: [], metres: {}, whistles: 0, reverses: 0, couplings: 0, stops: {}, turns: {} };
 }
 
 function load(): Journal {
@@ -44,7 +48,9 @@ function load(): Journal {
     const j = empty();
     if (typeof p.since === 'string') j.since = p.since;
     if (Array.isArray(p.days)) j.days = p.days.filter((d) => typeof d === 'string').slice(-MAX_DAYS);
-    if (typeof p.whistles === 'number') j.whistles = p.whistles;
+    for (const key of ['whistles', 'reverses', 'couplings'] as const) {
+      if (typeof p[key] === 'number' && p[key] >= 0) j[key] = p[key] as number;
+    }
     for (const key of ['metres', 'stops', 'turns'] as const) {
       const v = p[key];
       if (v && typeof v === 'object') {
@@ -91,6 +97,18 @@ class JournalStore {
 
   whistled(): void {
     this.j.whistles++;
+    this.dirty = true;
+  }
+
+  /** He held R. Whether reverse earns its place is the open question. */
+  reversed(): void {
+    this.j.reverses++;
+    this.dirty = true;
+  }
+
+  /** He changed what is behind the engine, which means he found the yard. */
+  coupled(): void {
+    this.j.couplings++;
     this.dirty = true;
   }
 

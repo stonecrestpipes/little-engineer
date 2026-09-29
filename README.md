@@ -1,7 +1,7 @@
 # Little Engineer
 
-A calm, offline train game for a four-year-old. One lever, one railway, nothing
-to do but drive and look. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled
+A calm, offline train game for a four-year-old. Two buttons, one railway,
+nothing to do but drive and look. See [GAME_DESIGN.md](GAME_DESIGN.md) for the settled
 design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 
 **Live:** https://stonecrestpipes.github.io/little-engineer/
@@ -11,15 +11,27 @@ design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 
 ## Where this is up to
 
-**Phase 1 passed.** He picked the tablet up, found the lever and drove, with
+**Phase 1 passed.** He picked the tablet up, found the control and drove, with
 nothing said to him. That was the only gate that mattered, and it is behind us.
 
-**Every planned phase is built and deployed, and none of it since Phase 1 has
-been played yet.** What is waiting for him:
+**He has now played the big railway, and asked for things.** All of them are
+built and waiting for the next go:
+
+- **Green and red instead of the lever**, which is what he asked for in those
+  words. Green goes, green again is full steam, red stops. A small **R** backs
+  up for as long as it is held.
+- **A look round the yard.** He could not pick the spare cars because the
+  controls sat on top of them. Now the view turns to face the yard by itself
+  whenever he is standing still at The Sheds, and a drag anywhere swings the
+  view round.
+- **Two voice buttons**, above the whistle: *All aboard!* and *Full steam
+  ahead!*
+
+The rest of it he has still not seen:
 
 - **The railway**: a 642-metre circuit — The Sheds, the level crossing, The
   Farm, the tunnel, the bridge and The Harbour — about a minute and forty a
-  lap at the top of the lever.
+  lap at full steam.
 - **Two branch lines**, each chosen with two big picture arrows: after The
   Farm, round the hill to The Windmill instead of the tunnel; after The
   Harbour, along the sea wall to The Lighthouse instead of straight home.
@@ -62,10 +74,10 @@ thing to try is thinning the trees in `src/content/world.ts`.
 
 ### Decide after watching, not before
 
-- **How the lever feels** is five numbers in `src/content/engines/thomas.ts`:
-  `cruise` 7.2 m/s at the top, `slow` 2.8 m/s at the bottom of the green,
-  `coast` 1.15 m/s² when he lets go (about six seconds to a halt), `brake` 3.4
-  when he pulls down, and `accel` 2.6. All guesses until he drives it, and the
+- **How the driving feels** is five numbers in `src/content/engines/thomas.ts`:
+  `cruise` 7.2 m/s on the second press of green, `slow` 2.8 m/s on the first,
+  `coast` 1.15 m/s² with no power on (about six seconds to a halt), `brake` 3.4
+  on red, and `accel` 2.6. Reverse is 42% of `slow`, in `src/engine/train.ts`. All guesses until he drives it, and the
   first numbers likely to want changing. The grown-ups' panel scales top speed
   and the stopping window on the tablet without touching these.
 - **The greeting** is a sentence in `src/content/greeting.ts`, and the name in
@@ -221,8 +233,8 @@ reinstalling on the tablet.
 src/
   engine/     reusable, knows nothing about Thomas or any particular railway
     track.ts      segments, how they join, and the route driven through them
-    train.ts      the lever, speed curves, the platform glide path
-    cameras.ts    three fixed views on one button
+    train.ts      go, stop, reverse, speed curves, the platform glide path
+    cameras.ts    three fixed views, the drag that swings them, the yard shot
     junction.ts   two whole loops seen as one track, and the points between them
     audio.ts      every sound, synthesised — nothing is loaded
     sky.ts        day, a golden evening and dusk, and back
@@ -234,7 +246,7 @@ src/
     world.ts            the segments, the terrain, and what stands where
     terrain.ts          the heightmap ground, and the water under it
     scenery.ts          rails, ballast, trees, fences, people
-    greeting.ts         the one spoken line
+    greeting.ts         the spoken hello, and what the voice buttons say
     faces.ts            engine faces, painted onto a canvas from numbers
     flock.ts            the birds that go up when he whistles
     cars.ts             coaches, wagons and the brake van
@@ -248,12 +260,12 @@ src/
       lighthouse.ts       out on the coast line
   settings.ts the grown-ups' settings, and how they adjust each engine
   journal.ts  the scrapbook: what he did, for the grown-ups only
-  ui/         the lever, the whistle, the camera
-    controls.ts   the lever drag, and the two buttons
+  ui/         the buttons, the whistle, the camera
+    controls.ts   green, red, R, the whistle, the voices and the camera
     parents.ts    the hidden grown-ups' panel
     points.ts     the two arrows at the junction
     wakelock.ts   keeps the screen on while he is playing
-    greeting.ts   speaking the hello, and coping when the device will not
+    greeting.ts   speaking, and coping when the device will not
 ```
 
 ### Adding a place
@@ -296,7 +308,7 @@ spacing from `length`.
 Cars are decoration and must stay that way. There is no cargo, nobody wants to
 get anywhere, and nothing about the railway changes depending on what is
 coupled up. Fetching and delivering is exactly what he disliked in the game the
-lever came from.
+idea came from.
 
 ### Adding track
 
@@ -319,23 +331,36 @@ that sag is most of what makes it sound like steam rather than a car horn.
 Retune it with `whistleHz` in the engine spec. No files, no licensing, and it
 cannot become a 2 MB download.
 
-**The lever never latches.** Let go and it springs back to the middle and the
-engine eases down on its own. This is the single most important thing about it:
-a control that stays where it was put is a control he can forget about, and an
-engine still running because of a lever nobody is holding is the game driving
-rather than him.
+**Green and red latch; R does not.** This replaced a lever that sprang back to
+the middle, and the trade is worth knowing before you change it: the lever could
+never be left set, so the engine could never be left running by a control nobody
+was holding. Two buttons can. He asked for two buttons anyway, because what he
+wanted was to set the train going and then have his hands back, and that is his
+call to make. R is the one exception — a train reversing on its own is the
+version of this worth refusing, so it stops the moment he lets go.
 
-**Letting go and stopping are deliberately different.** Released, the engine
-rolls about 20 m over 6 s. Pulled down, about 8 m over 2 s. Two separate
+**Coasting and stopping are deliberately different.** With no power on the
+engine rolls about 20 m over 6 s. On red, about 8 m over 2 s. Two separate
 deceleration rates (`coast` and `brake`), and the gap between them is what makes
-the middle of the lever mean something.
+pressing red mean something.
 
-**Pulling down near a platform means "arrive there", not "brake here."** Within
+**Red near a platform means "arrive there", not "brake here."** Within
 `stopWindow` (30 m) the engine follows a glide path `v(s) = v₀·√(s/s₀)` — constant
 deceleration spread over the whole remaining distance. It starts slowing within
-a fraction of a second so the lever visibly does something, and lands exactly on
+a fraction of a second so the button visibly does something, and lands exactly on
 the mark every time. Verified from 28 m down to 1 m. Outside that window it
 simply brakes.
+
+**Reverse is a creep, and it never lurches.** Holding R backs the engine up at
+42% of `slow`, about 1.2 m/s. Pressing it while still rolling forward is a stop
+followed by a reversal, never a jump, so it cannot be pressed at a wrong moment.
+Backing through a platform does not count as arriving there.
+
+**A drag on the railway swings the view; a tap still picks.** The camera rig
+orbits whatever the current shot is looking at, clamped so it can never end up
+underground or pointing at the sky, and it eases back once the train is moving.
+A press that travels more than 16 px is a look rather than a pick — which is
+generous on purpose, because his taps drift.
 
 **The engine never drives itself.** Pulling down while standing still does
 nothing; it will not creep to a platform on its own. An arrival already under
@@ -417,11 +442,11 @@ const dt = 1 / 60;
 train.setThrottle(0);
 train.speed = 0;
 train.distance = world.track.wrap(stopAt - 120);
-train.setThrottle(1); // lever to the top
+train.setThrottle(1); // both presses of green
 
 let t = 0;
 while (t < 60 && !train.atStop) {
-  // pull it down once the platform is 20 m ahead
+  // press red once the platform is 20 m ahead
   if (world.track.ahead(train.distance, stopAt) <= 20) train.setThrottle(-1);
   train.update(dt);
   t += dt;
@@ -429,8 +454,9 @@ while (t < 60 && !train.atStop) {
 Math.abs(world.track.delta(train.distance, stopAt)); // → 0
 ```
 
-`train.setThrottle(v)` takes -1 (stop) through 0 (released) to +1 (full power),
-which is exactly what the lever hands it.
+`train.setThrottle(v)` takes -1 (red) through 0 (no power) to +1 (full power);
+the green button sends 0.22 on its first press and 1 on its second.
+`train.setReverse(true|false)` is what R holds down.
 
 The world can be stepped by hand the same way, which is how the places are
 checked without waiting for a train to arrive:

@@ -12,8 +12,8 @@ import { CAR_WHEEL_RADIUS, turnCarWheels } from './content/cars';
 import { ENGINES } from './content/engines';
 import { mountControls } from './ui/controls';
 import { watchForUpdates } from './ui/updates';
-import { sayHello } from './ui/greeting';
-import { greetingFor } from './content/greeting';
+import { sayHello, say as speak } from './ui/greeting';
+import { greetingFor, PHRASES } from './content/greeting';
 import { setNameplate } from './content/buildEngine';
 import { settings, tunedDriving } from './settings';
 import { mountParentPanel } from './ui/parents';
@@ -104,6 +104,7 @@ async function boot(): Promise<void> {
   const rig = new CameraRig(camera, world.track, {
     wide: world.wide,
     tracksideAnchors: world.tracksideAnchors,
+    yard: world.yardView,
   });
 
   /**
@@ -208,9 +209,16 @@ async function boot(): Promise<void> {
     // The audio context can only be opened from inside a real gesture.
     audio.start();
   };
+  /** True once he has chosen a view himself, until he next drives away. */
+  let hisView = false;
   const controls = mountControls({
     touched: used,
     throttle: (v) => train.setThrottle(v),
+    reverse: (on) => {
+      train.setReverse(on);
+      if (on) journal.reversed();
+    },
+    say: (which) => speak(PHRASES[which] ?? PHRASES[0], settings.get().volume),
     whistle: () => {
       audio.whistle();
       journal.whistled();
@@ -218,8 +226,16 @@ async function boot(): Promise<void> {
       startle();
       for (let i = 0; i < 3; i++) emitPuff();
     },
-    camera: () => rig.cycle(),
+    camera: () => {
+      rig.cycle();
+      hisView = true;
+    },
   });
+
+  // Which build this is, for whoever picks the tablet up. Not for him: it
+  // cannot be pressed and he cannot read it.
+  const stamp = document.getElementById('version');
+  if (stamp) stamp.textContent = `v${__VERSION__} · ${__BUILD__.slice(5)}`;
 
   // --- the points ----------------------------------------------------------
   // Two arrows as he comes up to a junction: after The Farm, and after The
@@ -265,7 +281,7 @@ async function boot(): Promise<void> {
   };
 
   mountParentPanel({
-    opened: () => train.setThrottle(0),
+    opened: () => controls.letGo(),
     resetTrain: () => roster.reset(),
     status: () => ['Full detail', 'Shadows reduced', 'Shadows off'][quality.current],
   });
@@ -273,14 +289,70 @@ async function boot(): Promise<void> {
   // Touching the world itself, which only does anything in the yard: the
   // other engines and the spare cars are stood there, and he picks by
   // touching one. Everywhere else on the railway a tap does nothing at all.
+  //
+  // Dragging instead of tapping swings the view round. That is the only way to
+  // get a proper look at a yard the driving buttons are sat on top of, and it
+  // is deliberately the same finger doing the same thing a little further: a
+  // press that stays put picks, a press that travels looks.
   const picker = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
+  /** Travel further than this and it was a look, not a pick. Thumbs drift. */
+  const DRAG = 16;
+  let look: { id: number; fromX: number; fromY: number; x: number; y: number; far: number } | null = null;
+
   canvas.addEventListener('pointerdown', (e) => {
     used();
+    look = { id: e.pointerId, fromX: e.clientX, fromY: e.clientY, x: e.clientX, y: e.clientY, far: 0 };
+    rig.dragging = true;
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {
+      /* no capture available; the drag still works over the canvas itself */
+    }
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (look === null || look.id !== e.pointerId) return;
+    const dx = e.clientX - look.x;
+    const dy = e.clientY - look.y;
+    look.x = e.clientX;
+    look.y = e.clientY;
+    look.far = Math.max(look.far, Math.hypot(e.clientX - look.fromX, e.clientY - look.fromY));
+    if (look.far > DRAG) rig.nudge(dx, dy);
+  });
+
+  const endLook = (e: PointerEvent, mayPick: boolean): void => {
+    if (look === null || look.id !== e.pointerId) return;
+    const tapped = look.far <= DRAG;
+    look = null;
+    rig.dragging = false;
+    if (!mayPick || !tapped) return;
     ndc.set((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
     picker.setFromCamera(ndc, camera);
-    if (world.pick(picker, trainState)) audio.chime();
-  });
+    const had = roster.cars.length;
+    if (!world.pick(picker, trainState)) return;
+    audio.chime();
+    if (roster.cars.length !== had) journal.coupled();
+  };
+  canvas.addEventListener('pointerup', (e) => endLook(e, true));
+  canvas.addEventListener('pointercancel', (e) => endLook(e, false));
+
+  // --- standing at home ----------------------------------------------------
+  // Whenever he is stopped in the yard the view turns to face it, so the spare
+  // engines and cars are big and in the clear rather than behind his thumb.
+  // Pressing the camera button says he would rather look at something else,
+  // and that holds until he drives away.
+  const shedsStop = world.stops.find((s) => s.id === 'sheds');
+  /** Matches the range over which the yard itself will answer a touch. */
+  const YARD_RANGE = 26;
+  // Backing up counts as still being in the yard: shunting is what reverse is
+  // for, and throwing the view back out to the whole railway the moment he
+  // touches R would take away the very thing he is aiming at. Pulling forward
+  // is leaving, and that does give the view back.
+  const inTheYard = (): boolean =>
+    shedsStop !== undefined &&
+    (!train.moving || train.reversing) &&
+    Math.abs(world.track.delta(train.distance, shedsStop.at)) < YARD_RANGE;
 
   // --- frame loop --------------------------------------------------------
   const pos = new THREE.Vector3();
@@ -358,7 +430,10 @@ async function boot(): Promise<void> {
     audio.setSpeed(train.speed);
     audio.update();
 
-    rig.update(dt, train.distance, pos, fwd);
+    const home = inTheYard();
+    if (!home) hisView = false;
+    rig.showYard(home && !hisView);
+    rig.update(dt, train.distance, pos, fwd, train.moving);
     world.update(dt, t, trainState);
     controls.reflect({ moving: train.moving, atStop: train.atStop !== null });
 

@@ -1,9 +1,9 @@
 /**
- * The spoken hello.
+ * The speech: the hello when it opens, and the two things the voice buttons
+ * say.
  *
- * This is the only speech in the game, and it is synthesised by the device
- * rather than recorded — there is no audio file to ship, and changing the
- * words is changing a string.
+ * All of it is synthesised by the device rather than recorded — there is no
+ * audio file to ship, and changing the words is changing a string.
  *
  * The complication is that Chrome on Android will not speak until the page has
  * been touched, and an app launched from the home screen has not been touched.
@@ -27,6 +27,30 @@ function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null 
     (v.localService ? 1 : 0) +
     (v.lang.toLowerCase().startsWith('en-gb') ? 1 : 0);
   return english.reduce((best, v) => (score(v) > score(best) ? v : best), english[0]);
+}
+
+/**
+ * Say something, now. Used by the voice buttons, which he presses himself, so
+ * there is no waiting to see whether the device will speak and no falling back
+ * to the next touch: either it talks or it does not.
+ *
+ * A second press cuts the first off rather than queueing behind it. He will
+ * press it again and again, and a queue would still be talking minutes later.
+ */
+export function say(text: string, volume = 1): void {
+  const synth = window.speechSynthesis;
+  if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.95;
+  u.pitch = 1.15;
+  u.volume = Math.max(0, Math.min(1, volume));
+  const voice = pickVoice(synth.getVoices());
+  if (voice) {
+    u.voice = voice;
+    u.lang = voice.lang;
+  }
+  synth.cancel();
+  synth.speak(u);
 }
 
 /**

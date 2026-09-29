@@ -1,25 +1,26 @@
-/* Three things on screen: the lever, the whistle, and the camera. */
+/* What is on screen: the two that drive, the two that talk, the whistle and
+   the camera. */
 
 :root {
   --primary: 164px;
+  /* Green and red. A shade under the whistle, which is still his favourite. */
+  --drive: 152px;
+  /* R, and the two that talk. */
+  --small: 78px;
   --camera: 88px;
   --inset: 44px;
-  --lever-w: 168px;
-  --lever-h: 340px;
-  --knob: calc(var(--lever-w) * 0.46);
-  --radius: calc(var(--lever-w) * 0.26);
 }
 
 /* Keep the controls reachable if the window is shorter than a tablet. */
 @media (max-height: 620px) {
-  :root { --primary: 122px; --camera: 70px; --inset: 24px; --lever-w: 132px; --lever-h: 248px; }
+  :root { --primary: 122px; --drive: 112px; --small: 60px; --camera: 70px; --inset: 24px; }
 }
 @media (max-width: 760px) {
-  :root { --primary: 116px; --camera: 66px; --inset: 20px; --lever-w: 124px; --lever-h: 228px; }
+  :root { --primary: 116px; --drive: 108px; --small: 58px; --camera: 66px; --inset: 20px; }
 }
-/* Narrower still and the two would collide, so step them down again. */
+/* Narrower still and they would collide, so step them down again. */
 @media (max-width: 560px) {
-  :root { --primary: 96px; --camera: 56px; --inset: 14px; --lever-w: 104px; --lever-h: 190px; }
+  :root { --primary: 96px; --drive: 92px; --small: 50px; --camera: 56px; --inset: 14px; }
 }
 
 * { box-sizing: border-box; }
@@ -50,8 +51,8 @@ html, body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  /* A stacking context of its own, so the halo behind the lever (z-index -1)
-     stays above the canvas instead of disappearing behind it. */
+  /* A stacking context of its own, so the halo behind the green button
+     (z-index -1) stays above the canvas instead of disappearing behind it. */
   z-index: 0;
 }
 #ui[hidden] { display: none; }
@@ -70,12 +71,12 @@ html, body {
   color: #fff;
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 90ms ease, box-shadow 90ms ease, opacity 220ms ease;
+  transition: transform 90ms ease, box-shadow 90ms ease, opacity 220ms ease, filter 160ms ease;
 }
 
 #ui button svg { width: 32%; height: auto; display: block; }
 
-/* The whistle is his favourite thing, so it gets a whole corner to itself. */
+/* The whistle is his favourite thing, so it gets the corner to itself. */
 #ui #btn-whistle {
   left: var(--inset);
   bottom: var(--inset);
@@ -107,99 +108,101 @@ html, body {
 }
 #btn-camera.press { transform: translateY(3px); }
 
-/* ----------------------------------------------------------------- lever */
+/* ------------------------------------------------------------- the voices */
 
 /*
- * Push it up and the engine goes, further for faster. Let go and it comes back
- * to the middle by itself and the engine eases down. Pull it down and it stops.
- *
- * The picture column on the left never moves; it is what the colours mean.
- * The knob is the only thing that travels, so there is nothing to learn beyond
- * "the ball goes up".
+ * Two small bubbles above the whistle, each of which says one thing, the same
+ * way every time. He cannot read them; he learns which is which by pressing.
  */
-#lever {
-  position: absolute;
-  pointer-events: auto;
-  right: var(--inset);
-  bottom: var(--inset);
-  width: var(--lever-w);
-  height: var(--lever-h);
-  display: flex;
-  gap: calc(var(--lever-w) * 0.06);
-  touch-action: none;
-  outline: none;
-}
-
-#lever .zones {
-  flex: 0 0 42%;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: 0 6px 0 rgba(43, 58, 69, 0.2), 0 12px 20px rgba(43, 58, 69, 0.22);
-}
-
-#lever .zone {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: filter 140ms ease, opacity 140ms ease;
-}
-#lever .zone svg { width: 58%; height: auto; display: block; }
-
-#lever .zone-go    { flex: 2.6; background: #2e7d32; color: #ddf6d8; }
-#lever .zone-coast { flex: 1;   background: #eef3f6; color: #8b9aa4; }
-#lever .zone-stop  { flex: 2.6; background: #f0b23e; color: #4a3410; }
-#lever .zone-coast svg { width: 46%; }
-#lever .zone-stop svg  { width: 40%; }
-
-/* Whichever zone he is in lights up; the others step back. */
-#lever.up .zone-go,
-#lever.down .zone-stop { filter: brightness(1.18) saturate(1.1); }
-#lever.up .zone-stop,
-#lever.down .zone-go { opacity: 0.45; }
-
-#lever .slot {
-  position: relative;
-  flex: 1;
-  border-radius: var(--radius);
-  background: #dbe7ed;
-  box-shadow: inset 0 3px 8px rgba(43, 58, 69, 0.24), 0 6px 0 rgba(43, 58, 69, 0.14);
-  transition: background 180ms ease;
-}
-#lever.up .slot   { background: #c4e5c1; }
-#lever.down .slot { background: #f4e2bd; }
-
-#lever .knob {
-  position: absolute;
-  left: 50%;
-  width: var(--knob);
-  height: var(--knob);
-  margin-left: calc(var(--knob) / -2);
-  /* --p is 0 at the bottom of the slot and 1 at the top; controls.ts sets it */
-  bottom: calc(var(--p, 0.5) * (100% - var(--knob)));
+#ui .say {
+  bottom: calc(var(--inset) + var(--primary) + 14px);
+  width: var(--small);
+  height: var(--small);
   border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, #ffffff 0%, #cfe0e8 42%, #9db6c3 100%);
-  box-shadow: 0 5px 0 rgba(43, 58, 69, 0.26), 0 8px 14px rgba(43, 58, 69, 0.28);
-  transition: bottom 260ms cubic-bezier(0.2, 0.9, 0.3, 1), background 180ms ease;
 }
-/* While his thumb is on it the knob must track the thumb, not chase it. */
-#lever.dragging .knob { transition: background 180ms ease; }
+#ui .say svg { width: 54%; }
 
-#lever.up .knob {
-  background: radial-gradient(circle at 34% 30%, #d9ffd2 0%, #7bcb76 44%, #3f9442 100%);
+#ui #btn-aboard {
+  left: var(--inset);
+  background: rgba(255, 255, 255, 0.92);
+  color: #2b3a45;
+  box-shadow: 0 5px 0 rgba(43, 58, 69, 0.2), 0 9px 16px rgba(43, 58, 69, 0.2);
 }
-#lever.down .knob {
-  background: radial-gradient(circle at 34% 30%, #fff0cf 0%, #f3c163 44%, #c08a24 100%);
+#ui #btn-steam {
+  left: calc(var(--inset) + var(--small) + 12px);
+  background: #9ed2ea;
+  color: #1c4a63;
+  box-shadow: 0 5px 0 #6da8c4, 0 9px 16px rgba(43, 58, 69, 0.2);
+}
+/* While it is talking, so a second press is obviously a second press. */
+#ui .say.saying { filter: brightness(1.12); }
+
+/* -------------------------------------------------------------- the drive */
+
+/*
+ * Green goes, and a second press of green is full steam. Red stops, and near a
+ * platform it stops exactly on the mark. R creeps backwards while it is held.
+ *
+ * Green sits above red, which is the way round the lever put them, so what he
+ * already learned about up and down still holds.
+ */
+#drive { display: contents; }
+
+#ui #btn-go,
+#ui #btn-stop {
+  right: var(--inset);
+  width: var(--drive);
+  height: var(--drive);
+  border-radius: 50%;
 }
 
-/* A halo while he is standing at a platform: the only nudge in the game. */
-#lever.invite .slot::after {
+#ui #btn-go {
+  bottom: calc(var(--inset) + var(--drive) + 16px);
+  background: #2e7d32;
+  color: #eafce5;
+  box-shadow: 0 8px 0 #1b5e20, 0 14px 24px rgba(43, 58, 69, 0.26);
+}
+#ui #btn-go svg { width: 44%; }
+
+#ui #btn-stop {
+  bottom: var(--inset);
+  background: #d5392c;
+  color: #fff3f1;
+  box-shadow: 0 8px 0 #9c2419, 0 14px 24px rgba(43, 58, 69, 0.26);
+}
+#ui #btn-stop svg { width: 36%; }
+
+/* Whichever one is being obeyed is the bright one. */
+#ui #btn-go:not(.on),
+#ui #btn-stop:not(.on) { filter: saturate(0.78) brightness(0.97); }
+
+/* The second chevron is dim until there is a second press to be had, which is
+   the only hint that green has two speeds in it. */
+#btn-go .chev-more { opacity: 0.5; }
+#btn-go[data-notch='1'] .chev-more { opacity: 0.26; }
+#btn-go[data-notch='2'] .chev-more { opacity: 1; }
+
+#ui #btn-back {
+  right: calc(var(--inset) + var(--drive) + 18px);
+  bottom: var(--inset);
+  width: var(--small);
+  height: var(--small);
+  border-radius: 50%;
+  background: #7b8f9c;
+  color: #fff;
+  box-shadow: 0 5px 0 #5b6f7c, 0 9px 16px rgba(43, 58, 69, 0.2);
+}
+#ui #btn-back svg { width: 58%; }
+/* Held down, it stays down: the one control that does not latch. */
+#ui #btn-back.press { background: #8fa4b1; }
+
+/* A halo on green while he is standing at a platform: the only nudge. */
+#btn-go.invite::after {
   content: '';
   position: absolute;
-  inset: -18px;
-  border-radius: calc(var(--radius) + 18px);
-  background: rgba(76, 175, 80, 0.2);
+  inset: -16px;
+  border-radius: 50%;
+  background: rgba(76, 175, 80, 0.22);
   animation: breathe 2.4s ease-in-out infinite;
   z-index: -1;
 }
@@ -207,6 +210,24 @@ html, body {
 @keyframes breathe {
   0%, 100% { transform: scale(0.94); opacity: 0.5; }
   50%      { transform: scale(1.03); opacity: 0.95; }
+}
+
+/* ----------------------------------------------------------- which build */
+
+/*
+ * Not for him. It is there so that whoever picks the tablet up can see at a
+ * glance whether it has caught the latest push. Never pressable.
+ */
+#version {
+  position: absolute;
+  top: 54px;
+  right: 16px;
+  pointer-events: none;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(43, 58, 69, 0.42);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 /* ------------------------------------------------------------------ boot */
@@ -270,7 +291,7 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #lever.invite .slot::after, .boot-face, .boot-bar i { animation: none; }
+  #btn-go.invite::after, .boot-face, .boot-bar i { animation: none; }
 }
 
 /* ------------------------------------------------------------- grown-ups */
@@ -430,7 +451,7 @@ html, body {
 
 /*
  * Two big arrows, bottom centre, only while he is coming up to the junction.
- * The one the points are set for is green, like the go end of the lever.
+ * The one the points are set for is green, like the go button.
  */
 #points {
   position: absolute;

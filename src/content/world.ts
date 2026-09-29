@@ -18,7 +18,7 @@ import {
   sleepers,
   type Planting,
 } from './scenery';
-import type { Place, PlaceContext, TrainState } from './places/place';
+import { frameAt, type Place, type PlaceContext, type TrainState } from './places/place';
 import { buildSheds } from './places/sheds';
 import { buildCrossing } from './places/crossing';
 import { buildFarm } from './places/farm';
@@ -47,6 +47,8 @@ export interface World {
   groundAt(x: number, z: number): number;
   distanceToTrack(x: number, z: number): number;
   wide: { position: THREE.Vector3; target: THREE.Vector3 };
+  /** Looking into the yard at The Sheds, where he picks his train. */
+  yardView: { position: THREE.Vector3; target: THREE.Vector3 };
   arrive(stop: Stop): void;
   depart(stop: Stop): void;
   whistle(train: TrainState): void;
@@ -198,12 +200,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
 
   // The yard beside The Sheds wants to be flat ground rather than country,
   // since a siding and a line of stock stand on it.
+  //
+  // It sits on the engine's left, which in a place's own frame is negative x
+  // (see frameAt) — and cross(tangent, up) points the other way, at positive
+  // x. Getting that backwards put the flat patch 27 metres the wrong side of
+  // the line, where it flattened open country and left the sidings on the
+  // ground the terrain happened to give them.
   const shedsAt = middleOf('sheds');
   const yard = (() => {
     const p = route.positionAt(shedsAt);
     const t = route.tangentAt(shedsAt);
     const side = new THREE.Vector3().crossVectors(t, UP).normalize();
-    return { x: p.x - side.x * 12.5, z: p.z - side.z * 12.5, radius: 24 };
+    return { x: p.x + side.x * 12.5, z: p.z + side.z * 12.5, radius: 24 };
   })();
 
   // -------------------------------------------------------------- terrain
@@ -373,11 +381,37 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   };
 
   // Centred a little east of the loop, so the branch round the far side of
-  // the hill is in the picture as well and not hiding behind the lever.
+  // the hill is in the picture as well and not hiding behind the buttons.
   const wide = {
     position: new THREE.Vector3(22, 200, 262),
     target: new THREE.Vector3(22, 0, 28),
   };
+
+  /**
+   * Looking into the yard: three-quarters on, from off the end of the two
+   * sidings and over them, with the shed off to one side.
+   *
+   * Square on would be better, but the engine shed stands beyond the car road
+   * and a camera out there is looking at the back of it. From this end both
+   * roads are in the clear and nothing hides behind anything: every car, every
+   * spare engine and his own train at the platform, all at once. What the
+   * driving buttons are sat on top of, down in the corner, is the shed roof —
+   * which is the one thing in the shot he has no reason to touch.
+   *
+   * The rig swings round to this by itself whenever he is standing still at
+   * The Sheds, and it is the only reason the spare cars are ever big enough
+   * to pick out.
+   */
+  const yardView = (() => {
+    const frame = frameAt(route, shedsAt);
+    frame.updateMatrixWorld();
+    const at = (x: number, y: number, z: number) => {
+      const v = frame.localToWorld(new THREE.Vector3(x, 0, z));
+      v.y = Math.max(0, terrain.heightAt(v.x, v.z)) + y;
+      return v;
+    };
+    return { position: at(-28, 16.5, -36), target: at(-11.5, 1.2, 7) };
+  })();
 
   return {
     track: lines,
@@ -387,6 +421,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     distanceToTrack: terrain.distanceToTrack,
     tracksideAnchors,
     wide,
+    yardView,
     arrive(stop) {
       byStop.get(stop.id)?.arrive?.();
     },

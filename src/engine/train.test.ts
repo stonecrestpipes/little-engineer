@@ -4,9 +4,11 @@ import { Network } from './track';
 import { Train, type DrivingSpec, type Stop, type TrainEvent } from './train';
 
 /**
- * The promises the lever makes to him, checked: pulling down near a platform
- * always arrives exactly on the mark, never past it; letting go only ever
- * slows the engine; and nothing he does at a standstill makes it move.
+ * The promises the buttons make to him, checked: red near a platform always
+ * arrives exactly on the mark, never past it; coming off the power only ever
+ * slows the engine; nothing he does at a standstill makes it move; and R can
+ * be pressed at any moment without the engine ever lurching backwards while
+ * it is still going forwards.
  */
 
 const SPEC: DrivingSpec = {
@@ -124,5 +126,87 @@ describe('Train', () => {
     run(train, 5);
     expect(train.atStop).toBeNull();
     expect(Number.isFinite(train.distance)).toBe(true);
+  });
+  it('the second press of green is faster than the first', () => {
+    const gentle = setup(9999);
+    gentle.train.setThrottle(0.22);
+    run(gentle.train, 10);
+    const full = setup(9999);
+    full.train.setThrottle(1);
+    run(full.train, 10);
+    expect(gentle.train.speed).toBeGreaterThan(1);
+    expect(full.train.speed).toBeGreaterThan(gentle.train.speed * 1.5);
+  });
+
+  it('holding R backs it up gently, and letting go brings it to a stand', () => {
+    const { train } = setup(9999);
+    train.distance = 100;
+    train.setReverse(true);
+    run(train, 4);
+    expect(train.reversing).toBe(true);
+    expect(train.direction).toBe(-1);
+    expect(train.distance).toBeLessThan(100);
+    // A creep. Reverse is for easing up to a car, not for getting anywhere.
+    expect(train.speed).toBeLessThan(SPEC.slow * 0.6);
+
+    const back = train.distance;
+    train.setReverse(false);
+    run(train, 4);
+    expect(train.speed).toBe(0);
+    expect(train.distance).toBeLessThan(back);
+    // And it is pointing forwards again, ready for green.
+    expect(train.direction).toBe(1);
+  });
+
+  it('pressing R while it is still rolling forward stops it first', () => {
+    const { train } = setup(9999);
+    train.distance = 100;
+    train.speed = 6;
+    train.setReverse(true);
+    let last = train.distance;
+    let turned = false;
+    for (let i = 0; i < 60 * 12; i++) {
+      train.update(1 / 60);
+      if (train.direction === -1) turned = true;
+      // Nothing may go backwards while it is still going forwards.
+      if (!turned) expect(train.distance).toBeGreaterThanOrEqual(last);
+      last = train.distance;
+    }
+    expect(turned).toBe(true);
+    expect(train.distance).toBeLessThan(100);
+  });
+
+  it('red stops it even while he is holding R', () => {
+    const { train } = setup(9999);
+    train.distance = 100;
+    train.setReverse(true);
+    run(train, 3);
+    expect(train.reversing).toBe(true);
+    train.setThrottle(-1);
+    run(train, 4);
+    expect(train.speed).toBe(0);
+    expect(train.direction).toBe(1);
+  });
+
+  it('backing up through a platform never counts as arriving', () => {
+    const { train, stop, events } = setup();
+    train.distance = stop.at + 6;
+    train.setReverse(true);
+    run(train, 12);
+    expect(train.distance).toBeLessThan(stop.at);
+    expect(train.atStop).toBeNull();
+    expect(events.filter((e) => e.type === 'arrived')).toHaveLength(0);
+  });
+
+  it('backing away from a platform says he has left it', () => {
+    const { train, stop, events } = setup();
+    train.distance = stop.at - 5;
+    train.speed = 3;
+    train.setThrottle(-1);
+    run(train, 5);
+    expect(train.atStop?.id).toBe('here');
+    train.setReverse(true);
+    expect(train.atStop).toBeNull();
+    expect(events.map((e) => e.type)).toEqual(['arrived', 'departed']);
   });
 });

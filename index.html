@@ -21,11 +21,34 @@
       </svg>
     </button>
 
+    <!-- Which build this is, for whoever hands him the tablet. He cannot read
+         it, it cannot be pressed, and it is the last thing in the tab order. -->
+    <div id="version" aria-hidden="true"></div>
+
     <button id="btn-whistle" type="button" aria-label="Whistle">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M4 9.5h3l4-3v11l-4-3H4Z" fill="currentColor"/>
         <path d="M15 8.5a5 5 0 0 1 0 7"/>
         <path d="M18 5.5a9 9 0 0 1 0 13"/>
+      </svg>
+    </button>
+
+    <!-- The two that talk, stood above the whistle: the left corner is where
+         every noise in the game comes from. -->
+    <button id="btn-aboard" class="say" type="button" data-say="0" aria-label="Say all aboard">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 8a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9l-6 5v-5H8a3 3 0 0 1-3-3Z"/>
+        <circle cx="16" cy="9.5" r="2.1" fill="currentColor" stroke="none"/>
+        <path d="M16 12.6v4M12.8 14.4h6.4M14 20l2-3.4 2 3.4"/>
+      </svg>
+    </button>
+
+    <button id="btn-steam" class="say" type="button" data-say="1" aria-label="Say full steam ahead">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 11a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-6 5v-5H8a3 3 0 0 1-3-3Z"/>
+        <circle cx="12.5" cy="15" r="2.4" fill="currentColor" stroke="none"/>
+        <circle cx="18" cy="14.2" r="3" fill="currentColor" stroke="none"/>
+        <circle cx="23" cy="15.4" r="2" fill="currentColor" stroke="none"/>
       </svg>
     </button>
 
@@ -70,30 +93,28 @@
       </button>
     </div>
 
-    <!-- Push up to go, let go to roll gently down, pull down to stop. -->
-    <div id="lever" role="slider" tabindex="0" aria-label="Throttle"
-         aria-orientation="vertical" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0">
-      <div class="zones">
-        <div class="zone zone-go">
-          <svg viewBox="0 0 24 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M5 13 12 6l7 7"/>
-            <path d="M5 21l7-7 7 7"/>
-            <path d="M5 29l7-7 7 7"/>
-          </svg>
-        </div>
-        <div class="zone zone-coast">
-          <svg viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
-            <path d="M5 5h14"/>
-            <path d="M8 10h8"/>
-          </svg>
-        </div>
-        <div class="zone zone-stop">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <rect x="5.5" y="5.5" width="13" height="13" rx="3"/>
-          </svg>
-        </div>
-      </div>
-      <div class="slot"><div class="knob"></div></div>
+    <!-- Green to go, green again for full steam, red to stop. R backs up for
+         as long as it is held, and lets go the moment he does. -->
+    <div id="drive">
+      <button id="btn-go" type="button" data-notch="0" aria-label="Go">
+        <svg viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path class="chev chev-more" d="M5 12 12 5l7 7"/>
+          <path class="chev" d="M5 25l7-7 7 7"/>
+        </svg>
+      </button>
+
+      <button id="btn-stop" type="button" aria-label="Stop">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <rect x="5.5" y="5.5" width="13" height="13" rx="3"/>
+        </svg>
+      </button>
+
+      <button id="btn-back" type="button" aria-label="Back up">
+        <svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 17V5h5.6a3.2 3.2 0 0 1 0 6.6H12m4.6 0L21.5 17"/>
+          <path d="M24 27H11m0 0 4.2-4.2M11 27l4.2 4.2"/>
+        </svg>
+      </button>
     </div>
   </div>
 

@@ -17,7 +17,7 @@ import { drawFace } from './faces';
  * and somebody else's on the rails would be the game taking something off him.
  */
 
-/** Over the buffers, to match `CarSpec.length`. */
+/** Over the buffers, to match `CarSpec.length`. What a tank engine measures. */
 export const ENGINE_LENGTH = 6.0;
 
 /** More than this and the tail of the train is out of shot in every view. */
@@ -139,7 +139,9 @@ export async function buildRoster(scene: THREE.Scene, anisotropy: number): Promi
     },
     vehicles() {
       return [
-        { object: roster.engine.group, length: ENGINE_LENGTH },
+        // A tender engine is nearly twice the length of a tank engine, and the
+        // first car has to stand behind the tender rather than inside it.
+        { object: roster.engine.group, length: roster.engine.spec.dims.length ?? ENGINE_LENGTH },
         ...roster.cars.map((c) => ({ object: c.group, length: c.spec.length })),
       ];
     },

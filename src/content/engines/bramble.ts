@@ -1,18 +1,26 @@
 import type { EngineSpec } from './spec';
 
 /**
- * Bramble — big, maroon, and never hurried. Original work for this project.
+ * Bramble — big, red, and never hurried. Original work for this project.
  *
- * The deepest whistle and the slowest to get going, with tall wheels and a
- * long roll when the lever is let go. Kind, slightly sleepy face.
+ * The one tender engine here: no tanks at all, a tender of coal behind her,
+ * and over eleven metres end to end against the others' six. That is the
+ * difference he will see first and from furthest away — a tank engine is one
+ * thing and a tender engine is two — and it is why she carries the biggest
+ * number and the deepest whistle.
+ *
+ * Slowest to get going, with tall wheels and a long roll when the power comes
+ * off. Kind, slightly sleepy face.
  */
 
 const WHEEL_RADIUS = 0.72;
 
 export const bramble: EngineSpec = {
   id: 'bramble',
-  name: 'the big maroon one',
+  name: 'the big red one',
   nameplate: '',
+  kind: 'tender',
+  number: 5,
   face: {
     skin: 0xf2e4d0,
     browTilt: 0.3,
@@ -24,9 +32,9 @@ export const bramble: EngineSpec = {
     cheeks: 0.45,
   },
   colour: {
-    body: 0x8e3a44,
-    bodyLight: 0xa9525c,
-    bodyDark: 0x6b2830,
+    body: 0xc0392b,
+    bodyLight: 0xd45a46,
+    bodyDark: 0x8e2318,
     trim: 0xe4d8be,
     metal: 0x30383e,
     metalLight: 0x4c5a64,
@@ -38,6 +46,8 @@ export const bramble: EngineSpec = {
     wheelRadius: WHEEL_RADIUS,
     wheelGauge: 1.1,
     faceRadius: 1.16,
+    // Engine and tender over the buffers, which is what the cars couple to.
+    length: 11.4,
   },
   shape: { funnelHeight: 1.06, funnelFlare: 0.85, dome: true },
   driving: {

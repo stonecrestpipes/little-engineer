@@ -3,8 +3,10 @@ import type { EngineSpec } from './spec';
 /**
  * Marigold — yellow, bright, wide awake. Original work for this project.
  *
- * Middle of the three in every way, which is the point of her: she is the one
- * to drive when he does not want a character, just a train.
+ * Middle of them all in every way, which is the point of her: with the others
+ * now shaped like engines he can name, she is deliberately nobody — the one to
+ * drive when he does not want a character, just a train. A plain side-tank
+ * engine with a 2 on her tanks and a tall bell-mouthed chimney.
  */
 
 const WHEEL_RADIUS = 0.62;
@@ -13,6 +15,8 @@ export const marigold: EngineSpec = {
   id: 'marigold',
   name: 'the yellow one',
   nameplate: '',
+  kind: 'tank',
+  number: 2,
   face: {
     skin: 0xf7ecdd,
     browTilt: 0.12,

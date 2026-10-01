@@ -2,8 +2,13 @@ import type { EngineSpec } from './spec';
 
 /**
  * The first engine, and the only one whose face is a photograph rather than
- * drawn. It is left exactly as it is because he already knows it; every engine
- * added after it is original work — see the others in this folder.
+ * drawn. It is the blue tank engine with the 1 on its tanks: a tall firebox,
+ * side tanks, six coupled wheels and a short stovepipe, which is the shape he
+ * means when he says "train".
+ *
+ * Everything about it is original work for this project bar the photograph,
+ * which the grown-ups' panel can swap for a drawn face at any time — see
+ * `originalFace` below and *Asset and IP separation* in GAME_DESIGN.md.
  */
 
 const WHEEL_RADIUS = 0.62;
@@ -12,6 +17,8 @@ export const thomas: EngineSpec = {
   id: 'thomas',
   name: 'the blue one',
   nameplate: '',
+  kind: 'tank',
+  number: 1,
   faceTexture: `${import.meta.env.BASE_URL}assets/engines/thomas/face.png`,
   // His own face, for when the photograph goes: round, kind and a little
   // surprised to see you, in keeping with the others but nobody's in particular.
@@ -41,6 +48,7 @@ export const thomas: EngineSpec = {
     wheelGauge: 1.05,
     faceRadius: 1.12,
   },
+  shape: { funnelHeight: 0.82, funnelFlare: 0.1, dome: false },
   driving: {
     // Deliberately unhurried. He did not pick "going fast" as something he
     // enjoys, so the top of the lever is a speed you can watch rather than

@@ -12,11 +12,24 @@ import type { FaceSpec } from '../faces';
 export interface EngineSpec {
   id: string;
   /**
-   * What shape of engine to build. Everything on this railway is a little
-   * tank engine except the Orion Express, which is a streamliner — a long
-   * fluted stainless body with a shovel nose, no rods and no chimney.
+   * What shape of engine to build, which is the thing a four-year-old reads
+   * from right across the layout — long before the colour and long, long
+   * before any name:
+   *
+   * - `tank`      side tanks either side of the boiler. The default.
+   * - `saddle`    one tank draped over the boiler like a saddle. Squat.
+   * - `tender`    no tanks at all, and a separate tender behind it.
+   * - `streamliner`  the Orion Express, and nothing else.
    */
-  kind?: 'tank' | 'streamliner';
+  kind?: 'tank' | 'saddle' | 'tender' | 'streamliner';
+  /**
+   * The number painted on its side.
+   *
+   * Numerals are not reading. He cannot read a word and will not try, but he
+   * knows the *shape* of a number on the side of an engine the way he knows
+   * the shape of a face — which is exactly why real engines carry them.
+   */
+  number?: number;
   /** Only ever used in code. Nothing in the game is labelled. */
   name: string;
   /** blank until he names it; the only text anywhere in the game */
@@ -45,6 +58,8 @@ export interface EngineSpec {
     wheelRadius: number;
     wheelGauge: number;
     faceRadius: number;
+    /** End to end over the buffers. Defaults to a tank engine's six metres. */
+    length?: number;
   };
   /** Small differences in silhouette, so they are not all the same engine. */
   shape?: {

@@ -3,6 +3,11 @@ import type { EngineSpec } from './spec';
 /**
  * Pip — small, green, and in a hurry. Original work for this project.
  *
+ * The little green saddle tank with the 6 on him — one tank draped over the
+ * boiler instead of a pair down the sides, which makes him rounder and squatter
+ * than anything else in the yard and tells you which one he is from the far end
+ * of the layout.
+ *
  * The quickest of them off the mark and the highest whistle, with small wheels
  * that spin visibly faster than anyone else's at the same speed. Cheeky face.
  */
@@ -13,6 +18,8 @@ export const pip: EngineSpec = {
   id: 'pip',
   name: 'the small green one',
   nameplate: '',
+  kind: 'saddle',
+  number: 6,
   face: {
     skin: 0xf6ead6,
     browTilt: -0.12,

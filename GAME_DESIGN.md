@@ -242,6 +242,31 @@ glides, never cuts.
 
 ---
 
+## The engines, and telling them apart
+
+Five of them, and the thing that tells them apart has to work from right across the layout, long
+before the colour and long, long before any name. So each one has **a different silhouette and a
+number painted on its side**:
+
+| | Shape | | |
+|---|---|---|---|
+| **1** | side tanks, plain stovepipe, no dome | blue | the one he started with |
+| **2** | side tanks, tall bell-mouthed chimney, dome | yellow | deliberately nobody in particular |
+| **5** | **a tender engine** — no tanks, splashers over the wheels, a tender of coal behind | red | eleven metres against everyone else's six |
+| **6** | **a saddle tank** — one tank draped over the boiler | green | squat, round, the smallest |
+| **—** | **a streamliner** | silver and blue | the Orion Express |
+
+**Numerals are not reading.** He cannot read a word and will not try, but he knows the shape of a
+number on the side of an engine the way he knows the shape of a face — which is exactly why real
+engines carry them. Each is painted big and plain, in that engine's own trim colour on a disc so it
+reads against any livery. If a grown-up paints a name on the tanks instead, the number hides: nothing
+on an engine's side is ever two things at once.
+
+All of it is original work, built from the same boxes and cylinders as everything else — see *Asset
+and IP separation* below. What was bought with the shapes is recognition, not resemblance.
+
+---
+
 ## The Orion Express
 
 Five engines now, and the fifth is not like the others. Every one of them is a stubby little tank

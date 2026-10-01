@@ -58,6 +58,10 @@ export interface World {
   update(dt: number, elapsed: number, train: TrainState): void;
   /** He touched the world rather than a button. True if anywhere acted on it. */
   pick(ray: THREE.Raycaster, train: TrainState): boolean;
+  /** True while somewhere is moving his engine itself — the yard, shunting. */
+  shunting(): boolean;
+  /** Finish any shunt at once, because he has asked to drive. */
+  settle(): void;
 }
 
 /**
@@ -137,11 +141,11 @@ const SEGMENTS: Record<string, number[][]> = {
   // straight — because the city has a platform and a platform is a straight
   // thing. The long way back round is deliberately wide: the tightest curve
   // on it is about twenty-three metres, which is the same as the headland.
-  citynorth: [[-78, 74], [-68, 88], [-70, 104], [-84, 116], [-102, 120]],
-  cityrun: [[-102, 120], [-122, 126], [-142, 132]],
+  citynorth: [[-78, 74], [-66, 90], [-68, 110], [-84, 128], [-106, 138]],
+  cityrun: [[-106, 138], [-129, 147], [-152, 156]],
   cityback: [
-    [-142, 132], [-150, 146], [-146, 162], [-130, 170], [-110, 168],
-    [-90, 158], [-68, 142], [-46, 124], [-24, 108], [-2, 98],
+    [-152, 156], [-164, 174], [-160, 194], [-140, 206], [-114, 206],
+    [-88, 194], [-62, 172], [-44, 146], [-30, 124], [-18, 108], [-2, 98],
   ],
 };
 
@@ -305,7 +309,9 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     const p = route.positionAt(shedsAt);
     const t = route.tangentAt(shedsAt);
     const side = new THREE.Vector3().crossVectors(t, UP).normalize();
-    return { x: p.x + side.x * 12.5, z: p.z + side.z * 12.5, radius: 24 };
+    // Wide enough for the whole roundhouse fan and both throat roads, which
+    // reach a good thirty metres off the running line.
+    return { x: p.x + side.x * 17, z: p.z + side.z * 17, radius: 36 };
   })();
 
   // -------------------------------------------------------------- terrain
@@ -556,19 +562,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   };
 
   /**
-   * Looking into the yard: three-quarters on, from off the end of the two
-   * sidings and over them, with the shed off to one side.
+   * Looking into the yard: from over the platform end, three-quarters on, so
+   * the roundhouse fan is spread across the frame with the turntable in front
+   * of it and the car siding running away to the near side.
    *
-   * Square on would be better, but the engine shed stands beyond the car road
-   * and a camera out there is looking at the back of it. From this end both
-   * roads are in the clear and nothing hides behind anything: every car, every
-   * spare engine and his own train at the platform, all at once. What the
-   * driving buttons are sat on top of, down in the corner, is the shed roof —
-   * which is the one thing in the shot he has no reason to touch.
+   * Square on to the roundhouse would hide four roads behind the fifth. From
+   * here every door is in the clear, every spare car is in the clear, and his
+   * own train is at the platform in the middle of it — which is the whole job
+   * this shot has to do, because it is the only time the stock is ever big
+   * enough to pick out from under his own thumb.
    *
    * The rig swings round to this by itself whenever he is standing still at
-   * The Sheds, and it is the only reason the spare cars are ever big enough
-   * to pick out.
+   * The Sheds.
    */
   const yardView = (() => {
     const frame = frameAt(route, shedsAt);
@@ -578,7 +583,12 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       v.y = Math.max(0, terrain.heightAt(v.x, v.z)) + y;
       return v;
     };
-    return { position: at(-28, 16.5, -36), target: at(-11.5, 1.2, 7) };
+    // From beyond the far end of the platform, looking back down the yard:
+    // the roundhouse fan spread across the frame with the turntable in front
+    // of it, his own train at the platform, and the car siding running away
+    // behind. Looking the other way would put the city on the skyline
+    // straight behind the shed, which is a busy thing to pick an engine out of.
+    return { position: at(16, 28, 26), target: at(-22, 3.5, -8) };
   })();
 
   return {
@@ -602,6 +612,12 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     pick(ray, train) {
       for (const place of places) if (place.pick?.(ray, as(place, train))) return true;
       return false;
+    },
+    shunting() {
+      return places.some((p) => p.busy?.() === true);
+    },
+    settle() {
+      for (const place of places) place.settle?.();
     },
     update(dt, elapsed, train) {
       for (const place of places) place.update?.(dt, elapsed, as(place, train));

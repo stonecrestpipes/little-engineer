@@ -47,10 +47,17 @@ export class Consist {
     return total + COUPLING * Math.max(0, vehicles.length - 1);
   }
 
-  /** Place the whole train, given where the engine has got to. */
-  place(vehicles: Vehicle[], distance: number): void {
+  /**
+   * Place the whole train, given where the engine has got to.
+   *
+   * `from` skips the first few — which in practice means the engine, while
+   * the yard has it out shunting and is driving it along a path of its own.
+   * The cars stay exactly where they were: they are placed from the train's
+   * distance, not from wherever the engine happens to have got to.
+   */
+  place(vehicles: Vehicle[], distance: number, from = 0): void {
     const offsets = this.offsets(vehicles);
-    for (let i = 0; i < vehicles.length; i++) {
+    for (let i = from; i < vehicles.length; i++) {
       const d = this.track.wrap(distance - offsets[i]);
       this.track.positionAt(d, this.at);
       this.track.tangentAt(d, this.ahead);

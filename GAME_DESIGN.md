@@ -97,7 +97,7 @@ reading:
 
 | Station | Identity | Signature moment |
 |---|---|---|
-| **The Sheds** | Red brick, home, where play begins | Doors open as the engine leaves |
+| **The Sheds** | Red brick, home, the roundhouse | The doors come open one by one, and the swap |
 | **The Harbour** | Blue, boats, water, cranes | A boat sounds its horn back, lower and slower |
 | **The Farm** | Green, barn, animals, hay | Every sheep looks up at once, and answers |
 | **The City** | Grey towers, a street, the rescue station | The siren goes and the helicopter lifts off the pad |
@@ -173,6 +173,11 @@ controls sit in the **bottom corners** where thumbs already are — never along 
   *Full steam ahead!*, in the same device voice that says hello. Each says the same thing every
   time, because that is the only way he can learn which is which without reading them.
 - **CAMERA** (top-left, small but clear) — cycles the four views.
+- **The junction arrows never show while he is standing still.** The city's points are twenty metres
+  off the end of The Sheds, so they used to come up over the middle of the yard — over the
+  turntable, the roundhouse doors and the spare cars, which are the whole of what he is looking at
+  while he is standing there. Arrows are for choosing where to go; they are back the moment he
+  presses green.
 - **A drag anywhere on the railway** swings the view round, within limits that cannot put it
   underground or point it at the sky, and it eases back to the proper shot once he is moving again.
   A press that stays put still picks things up in the yard; a press that travels looks instead.
@@ -228,6 +233,37 @@ put it underground or aimed at the sky, and a high shot is additionally floored 
 beneath it — except while the engine is under the hill, where lifting the camera clear would put the
 hill between him and his own train for the best five seconds of the lap. Transitions are smooth
 glides, never cuts.
+
+---
+
+## The roundhouse, and how he picks an engine
+
+Five roads round a turntable, a pair of doors on each, and an engine asleep behind every door but
+the one whose engine is out on the train. **This is the only way to pick an engine**; there is no
+list, no panel and no siding full of spares to choose from. It replaced exactly that, because two
+ways to do one thing is one too many.
+
+Standing still in the yard, the doors come open by themselves, one after another rather than all at
+once, and the turntable swings round to whichever is widest. Touching an engine behind an open door
+takes it. Touching one behind a shut door opens the door — which is the whole of "open the door,
+then pick the engine" without a second control to learn.
+
+**The swap takes about twelve seconds and nothing else happens while it does.** His old engine pulls
+forward off its train and sets back down the *arrival* road into its own place; at the same moment
+the new one comes out of its road, up the *departure* road past the platform, and sets back onto the
+front of the train, finishing with a clank. Two throat roads rather than one is the whole reason it
+is twelve seconds instead of twenty: on a single road the second engine cannot start until the first
+has finished with it.
+
+It is the longest single thing in the game, and it is meant to be — a thing to watch rather than a
+menu, in the same spirit as the station arrival. **Pressing green abandons it instantly**, with
+every engine put where it was going, because wanting to drive always wins. That rule is why the
+twelve seconds are affordable at all.
+
+Underneath, `src/engine/shunting.ts` knows nothing about engines, sheds or doors: a move is an
+object, a list of points, a speed, and which way round the thing faces while it travels — which is
+the whole of what "setting back" means. Everything else on the railway is placed from one number,
+how far the train has got; this is the only thing that is not.
 
 ---
 

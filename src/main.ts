@@ -215,6 +215,9 @@ async function boot(): Promise<void> {
   const controls = mountControls({
     touched: used,
     throttle: (v) => {
+      // Asking to drive always wins: whatever the yard is in the middle of,
+      // it puts everything where it was going and gets out of the way.
+      world.settle();
       train.setThrottle(v);
       // Setting off from the shot of the whole railway, where the train is a
       // speck: come down to it, so pressing green is visibly a thing he did
@@ -222,6 +225,7 @@ async function boot(): Promise<void> {
       if (v > 0) rig.toTrain();
     },
     reverse: (on) => {
+      if (on) world.settle();
       train.setReverse(on);
       if (on) journal.reversed();
     },
@@ -267,6 +271,13 @@ async function boot(): Promise<void> {
   const watchPoints = () => {
     const head = lines.wrap(train.distance);
     const on = settings.get().junctions;
+    // Not while he is standing still. The city's points are twenty metres off
+    // the end of The Sheds, so the arrows used to come up over the middle of
+    // the yard — over the turntable, the roundhouse doors and the spare cars,
+    // which are the whole of what he is looking at while he is standing there.
+    // Arrows are for choosing where to go; if he is not going, he does not
+    // need them, and they are back the moment he presses green.
+    const standing = !train.moving;
     let showing: Junction | null = null;
     let soonest = Infinity;
     for (const j of world.junctions) {
@@ -276,7 +287,7 @@ async function boot(): Promise<void> {
       if (wasBefore.get(j.id) && !before) journal.turned(j.id, lines.line & j.bit ? 1 : 0);
       wasBefore.set(j.id, before);
       const gap = at - head;
-      const near = on && before && gap <= APPROACH;
+      const near = on && before && gap <= APPROACH && !standing;
       // Every time round starts set for the main line, so a branch is always
       // somewhere he chose rather than somewhere he was left.
       if ((near && current !== j) || (!on && before)) lines.set(via(j, false), head);
@@ -413,7 +424,9 @@ async function boot(): Promise<void> {
     const cars = roster.cars;
     for (const car of cars) turnCarWheels(car, carAngle);
 
-    consist.place(roster.vehicles(), train.distance);
+    // While the yard has his engine out on a road of its own, it places it;
+    // the cars still stand where the train is, which is where they were left.
+    consist.place(roster.vehicles(), train.distance, world.shunting() ? 1 : 0);
     world.track.positionAt(train.distance, pos);
     world.track.tangentAt(train.distance, fwd);
 

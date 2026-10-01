@@ -535,6 +535,48 @@ export class Audio {
     o.stop(at + 0.1);
   }
 
+  /**
+   * Buffers meeting: the sound of an engine setting back onto its train.
+   *
+   * Two knocks, the second softer, each a short burst of filtered noise over
+   * a low thump. It is the full stop at the end of the shunt, and it is the
+   * only way he can tell from across the room that it is coupled on.
+   */
+  clank(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    for (const [delay, level] of [[0, 0.17], [0.11, 0.08]] as number[][]) {
+      const at = t0 + delay;
+
+      const thump = ctx.createOscillator();
+      thump.type = 'sine';
+      thump.frequency.setValueAtTime(130, at);
+      thump.frequency.exponentialRampToValueAtTime(48, at + 0.17);
+      const tg = ctx.createGain();
+      tg.gain.setValueAtTime(0.0001, at);
+      tg.gain.exponentialRampToValueAtTime(level, at + 0.006);
+      tg.gain.exponentialRampToValueAtTime(0.0001, at + 0.22);
+      thump.connect(tg).connect(this.master);
+      thump.start(at);
+      thump.stop(at + 0.24);
+
+      const rattle = ctx.createBufferSource();
+      rattle.buffer = this.noise;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 2100;
+      bp.Q.value = 1.3;
+      const rg = ctx.createGain();
+      rg.gain.setValueAtTime(0.0001, at);
+      rg.gain.exponentialRampToValueAtTime(level * 0.5, at + 0.004);
+      rg.gain.exponentialRampToValueAtTime(0.0001, at + 0.13);
+      rattle.connect(bp).connect(rg).connect(this.master);
+      rattle.start(at, Math.random() * 0.5);
+      rattle.stop(at + 0.15);
+    }
+  }
+
   /** The crossing bell: a struck ding, repeated while the gates are down. */
   bell(times = 8, gap = 0.52): void {
     const ctx = this.ctx;

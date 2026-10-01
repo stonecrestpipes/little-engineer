@@ -54,6 +54,16 @@ export interface Place {
   whistle?(train: TrainState): void;
   update?(dt: number, elapsed: number, train: TrainState): void;
   /**
+   * True while this place is driving stock about under its own steam, and the
+   * train must leave its engine alone. Only the yard ever says yes.
+   */
+  busy?(): boolean;
+  /**
+   * Stop whatever it is doing at once, with everything left exactly where it
+   * was going. Called the moment he asks to drive, which always wins.
+   */
+  settle?(): void;
+  /**
    * He touched the world rather than a button. Return true if this place did
    * something about it, so nowhere else tries to.
    *

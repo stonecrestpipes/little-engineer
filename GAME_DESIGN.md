@@ -907,9 +907,10 @@ What remains for Phase 2 is whatever the play test says to change.
    crawlers blocked, which was chosen to get it installed quickly. *Raised again on 2026-10-01 and
    deliberately left public* — but note what has changed since: the engines now carry numbers and
    shapes chosen to be recognised, which is a good reason to retire the question rather than a
-   reason to forget it. An original face for the blue engine and original icons exist (a *Familiar*
-   / *Original* switch in the grown-ups' panel, and `artwork/icons/`). Once he takes to the new
-   face, deleting the photograph retires it entirely — see *Hosting* in the README.
+   reason to forget it. **The blue engine wears its own drawn face from v0.3.1**, which is the half
+   of this that was always waiting on him. The photograph is still in the repo and still one tap
+   away in the grown-ups' panel. If he takes to the drawn face, deleting the photograph retires the
+   question entirely — see *Hosting* in the README.
 4. **How fast anything should go.** Each engine carries its own numbers: 6.4 m/s on the second
    press of green for the slowest, **9.0 for the Orion Express**, and 2.4 to 3.2 on the first press.
    The main lap is a minute and forty; taking every branch is nearer three minutes. All guesses

@@ -35,6 +35,17 @@ export interface Settings {
   originalFace: boolean;
 }
 
+/**
+ * Bumped whenever a *default* changes in a way an already-saved tablet has to
+ * pick up.
+ *
+ * Settings are remembered, and a remembered value beats a new default — which
+ * is right for everything a grown-up actually chose, and wrong for a default
+ * that has since been decided differently. Without this, changing a default
+ * would silently do nothing at all on the one tablet that matters.
+ */
+const REVISION = 1;
+
 export const SPEEDS = [
   { value: 0.75, label: 'Slower' },
   { value: 1, label: 'Normal' },
@@ -53,7 +64,7 @@ const DEFAULTS: Settings = {
   junctions: true,
   dayNight: true,
   quality: 'auto',
-  originalFace: false,
+  originalFace: true,
 };
 
 const SAVE_KEY = 'little-engineer:settings';
@@ -65,7 +76,7 @@ function load(): Settings {
   try {
     const raw = window.localStorage.getItem(SAVE_KEY);
     if (!raw) return s;
-    const p = JSON.parse(raw) as Partial<Settings>;
+    const p = JSON.parse(raw) as Partial<Settings> & { revision?: number };
     if (typeof p.speed === 'number' && p.speed >= 0.5 && p.speed <= 1.5) s.speed = p.speed;
     if (p.stopHelp && p.stopHelp in STOP_WINDOW) s.stopHelp = p.stopHelp;
     if (typeof p.volume === 'number') s.volume = Math.max(0, Math.min(1, p.volume));
@@ -78,7 +89,11 @@ function load(): Settings {
     }
     if (typeof p.junctions === 'boolean') s.junctions = p.junctions;
     if (typeof p.dayNight === 'boolean') s.dayNight = p.dayNight;
-    if (typeof p.originalFace === 'boolean') s.originalFace = p.originalFace;
+    // The drawn face is the default from revision 1. A tablet saved before
+    // that kept the photograph without anyone choosing it, so an older save
+    // does not get to hold on to it.
+    const saved = typeof p.revision === 'number' ? p.revision : 0;
+    if (saved >= 1 && typeof p.originalFace === 'boolean') s.originalFace = p.originalFace;
     if (p.quality === 'auto' || p.quality === 'high' || p.quality === 'low') s.quality = p.quality;
   } catch {
     // Unreadable or blocked storage: the defaults are the game as designed.
@@ -97,7 +112,7 @@ class SettingsStore {
   set(patch: Partial<Settings>): void {
     this.state = { ...this.state, ...patch };
     try {
-      window.localStorage.setItem(SAVE_KEY, JSON.stringify(this.state));
+      window.localStorage.setItem(SAVE_KEY, JSON.stringify({ ...this.state, revision: REVISION }));
     } catch {
       // Still applies for this session; it just will not be remembered.
     }

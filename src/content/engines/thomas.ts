@@ -1,8 +1,13 @@
 import type { EngineSpec } from './spec';
 
 /**
- * The first engine, and the only one whose face is a photograph rather than
- * drawn. It is the blue tank engine with the 1 on its tanks: a tall firebox,
+ * The first engine, and the only one with two faces to choose between.
+ *
+ * It wears the drawn one by default from v0.3.1. The photograph is still here
+ * and still one tap away in the grown-ups' panel, because he has known that
+ * face longer than he has known this game — but the moment he takes to the
+ * drawn one, deleting `faceTexture` and the file it points at closes the last
+ * thing in this repository that is not original work. It is the blue tank engine with the 1 on its tanks: a tall firebox,
  * side tanks, six coupled wheels and a short stovepipe, which is the shape he
  * means when he says "train".
  *

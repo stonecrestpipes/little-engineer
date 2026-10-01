@@ -248,7 +248,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Volume', '', volume),
     row('Evenings', 'The sky slowly turns golden, then dusk, and back', dayNight.node),
     row('Branch lines', 'Arrows at the four places the railway divides', junction.node),
-    row('Blue engine’s face', 'Original is drawn for this game and safe to share', face.node),
+    row('Blue engine’s face', 'Original is drawn for this game and safe to share. Familiar is the photograph', face.node),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
     row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),
   );

@@ -78,7 +78,7 @@ for.
 ## The next thing to do
 
 1. Open it on the tablet, then close it and open it again. The corner should
-   read **v0.3.0**.
+   read **v0.3.1**.
 2. Hand it to him. Say nothing, as before.
 3. **Watch the roundhouse.** It is the biggest new thing and the biggest
    gamble. Does he work out that touching an engine behind an open door takes
@@ -128,8 +128,14 @@ thing to try is thinning the trees in `src/content/world.ts`.
 - **Whether the station reaction is enough.** Right now: lamp lights, flag goes
   up, passengers bob, chime plays, and the engine sighs out steam. Worth
   building on only if arriving turns out to be the thing he likes most.
-- **Which face the blue engine wears.** *Familiar* until he has seen the
-  original; once he is happy with it, see *Hosting*.
+- **Which face the blue engine wears.** It wears its **own drawn face** from
+  v0.3.1 — the first time he will have seen it. The photograph is still in the
+  repo and one tap away in the grown-ups' panel (*Blue engine's face →
+  Familiar*), because he has known that face far longer than he has known this
+  game. **If he takes to the drawn one, delete `faceTexture` from
+  `src/content/engines/thomas.ts` and the file it points at**: that is the last
+  thing here that is not original work, and removing it closes the hosting
+  question for good. If he rejects it, one tap puts it back.
 
 ### Known-good, do not re-litigate
 

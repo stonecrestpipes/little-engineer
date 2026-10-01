@@ -11,77 +11,86 @@ settled design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 
 ## Where this is up to
 
-**Phase 1 passed.** He picked the tablet up, found the control and drove, with
-nothing said to him. That was the only gate that mattered, and it is behind us.
+**Phase 1 passed** long ago: he picked the tablet up, found the control and
+drove, with nothing said to him.
 
-**He has now played the big railway, and asked for things.** All of them are
-built and waiting for the next go:
+**He has played the big railway, asked for twenty-odd things, and this build is
+most of them.** It is a much larger game than the one he last saw. Nothing
+below has been in front of him yet — that is the whole of what the next go is
+for.
 
-- **Green and red instead of the lever**, which is what he asked for in those
-  words. Green goes, green again is full steam, red stops. A small **R** backs
-  up for as long as it is held.
-- **A look round the yard.** He could not pick the spare cars because the
-  controls sat on top of them. Now the view turns to face the yard by itself
-  whenever he is standing still at The Sheds, and a drag anywhere swings the
-  view round.
-- **Two voice buttons**, above the whistle: *All aboard!* and *Full steam
-  ahead!*
+### What he asked for, and what is there
 
-The rest of what is there. He has now had a first go at it, but how much of
-it he actually found is exactly what the scrapbook is for:
+- **A roundhouse.** Five roads round a turntable, a pair of doors on each, and
+  an engine asleep behind every door but the one whose engine is out. It is now
+  the *only* way to pick an engine — the siding full of spares is gone. Stand
+  still in the yard and the doors come open one after another; touch an engine
+  and you watch the swap: his old one pulls forward off its train and sets back
+  into its own road while the new one comes out, runs up past the platform and
+  sets back onto the front of the train with a clank. **About twelve seconds,
+  and pressing green abandons it instantly.**
+- **A fourth view.** Between "the whole county" and "the back of the engine"
+  there was nothing. *Above* is a bird's-eye that follows the train, pulled back
+  from the train's real length so it holds the engine and everything behind it.
+  **Pressing green from the wide shot now comes down to the train.**
+- **Two more junctions**, so four altogether and sixteen whole loops. Leaving
+  The Sheds: the meadow or the city. Across the meadow: The Farm or the woods.
+  Main lap 642 m; taking every branch, **1,284 m**.
+- **The woods** — seventy metres with the canopy closed over the line, A-frame
+  cabins with their windows lit, deer that bolt at a whistle, an owl.
+- **The capybara ranch** — a fenced field, a pool, eight of them, two standing
+  in the water. Whistle and every head turns and they squeak back.
+- **The city** — seven towers with windows that light up at dusk, a street with
+  cars and people, a platform, **the rescue station** (three bays, a fire engine,
+  a tow truck, a control tower, and a helicopter that winds up and lifts off the
+  pad when he whistles) and **a building site** with a tower crane and a digger.
+- **The SS Badger** alongside the quay at The Harbour, four times the size of
+  anything else on the water, and what answers the whistle now.
+- **A drawbridge** where the lighthouse line crosses the creek. It stands *up*,
+  with a boat going under it, and rings its bell and lowers itself as he comes
+  round the bend.
+- **The lighthouse is Big Sable Point** — white with the black band, taller, red
+  brick keeper's dwelling.
+- **A working water tower** in the yard: stop under it and the spout swings down.
+- **Engines you can tell apart from the far end of the layout** — a blue tank
+  engine **1**, a yellow tank engine **2**, a red **tender engine 5** (eleven
+  metres against everyone else's six), a green **saddle tank 6**, and
+- **the Orion Express**: a silver-and-blue streamliner named after him, with two
+  silver coaches, the quickest thing on the railway.
 
-- **The railway**: a 642-metre circuit — The Sheds, the level crossing, The
-  Farm, the tunnel, the bridge and The Harbour — about a minute and forty a
-  lap at full steam.
-- **Two branch lines**, each chosen with two big picture arrows: after The
-  Farm, round the hill to The Windmill instead of the tunnel; after The
-  Harbour, along the sea wall to The Lighthouse instead of straight home.
-  Touch nothing and the train simply goes the usual way.
-- **Four engines and five cars**, picked by walking up to them in the yard at
-  The Sheds and tapping one. Up to three cars at once. The view now turns to
-  face the yard whenever he stops there, which is the fix for his one real
-  complaint.
-- **Things that answer the whistle** almost everywhere: sheep, the yard's
-  engines, the car at the crossing, the tunnel's echo, the boat, the windmill,
-  the lighthouse's foghorn, and birds out in the fields.
-- **Slow evenings**: every eight minutes the sky goes golden, then dusk, and
-  back. Never dark.
-- **A hidden grown-ups' panel** (below) with his settings and a scrapbook of
-  how he plays.
+### What he asked for that is *not* here
 
-### The next thing to do
+- **The little shunting engine** that fetches cars. The spare cars sit in a
+  shunting yard beside the roundhouse and tapping one still couples it
+  instantly. The machinery for doing it properly exists
+  (`src/engine/shunting.ts`, the same thing the roundhouse swap runs on); what
+  it needs is the yard laid out around it.
 
-1. Open it on the tablet, then close it and open it again. The first launch
-   fetches the update and the second one runs it — a new build is never
-   swapped in mid-journey. The corner should read **v0.2.0**.
-2. Hand it to him. Say nothing, again.
-3. **Watch the buttons**, which are the new thing and the reason for this
-   build:
-   - Does he find the *second* press of green? Nothing points at it; the
-     upper chevron simply brightens when there is another press to be had.
-   - Does he ever press **R**? It is the one thing here that was a guess
-     rather than an answer to something he said.
-   - Does he leave the train running and wander off? See open question 5 in
-     [GAME_DESIGN.md](GAME_DESIGN.md) — there is a planned, unbuilt idle
-     coast for exactly that, and it is deliberately not built until he has
-     been watched.
-4. **Does he go and get himself a car now?** This is the whole point of the
-   change. Stopping at The Sheds turns the view to face the yard by itself,
-   so the spare engines and cars are in plain sight with nothing on top of
-   them, and a drag anywhere swings the view. If he still does not touch one,
-   the problem was never that he could not see them.
-5. Watch what he does with a place that is many times the size — especially
-   whether he goes looking for things, which stations he stops at, whether the
-   tunnel is exciting or alarming, and what he whistles at.
-6. Watch the arrows after The Farm and after The Harbour. Does he notice
-   them, does he pick the windmill or the lighthouse on purpose, and does he
-   go back? If he ignores them, the train simply carries on as before. The
-   scrapbook in the grown-ups' panel counts which way he went, and they can
-   be switched off there too.
-7. Afterwards, open the grown-ups' panel (hold the top-right corner for three
-   seconds): the scrapbook at the top records what he did, including when
-   nobody was watching. It now counts **reverses** and **couplings**, which
-   are the numbers behind steps 3 and 4.
+---
+
+## The next thing to do
+
+1. Open it on the tablet, then close it and open it again. The corner should
+   read **v0.3.0**.
+2. Hand it to him. Say nothing, as before.
+3. **Watch the roundhouse.** It is the biggest new thing and the biggest
+   gamble. Does he work out that touching an engine behind an open door takes
+   it? Does he sit through the twelve seconds, or does he press green half way?
+   *Either answer is useful* — if he presses green, the swap is too long and
+   should be shortened, not defended.
+4. **Watch which branch he takes**, now there are four choices a lap. The
+   scrapbook counts every one. If he never leaves the main line, the arrows are
+   not working and no amount of new country fixes that.
+5. **Watch whether he notices the numbers on the engines.** They are there
+   because a numeral is a shape rather than a word. If he starts naming engines
+   by number, that is the single cheapest thing in this build and worth more of.
+6. **Watch what he does with the Orion Express.** It is the only engine that
+   looks nothing like the others and the only one with a name already on it.
+7. **Still open from last time: does he press R?** It remains the one control
+   that was a guess rather than an answer to something he said.
+8. **Still open: does he leave the train running and wander off?** See open
+   question 5 in [GAME_DESIGN.md](GAME_DESIGN.md) — the idle coast is designed
+   and deliberately unbuilt until he has been watched.
 
 **If the screen feels busy**, the two voice buttons are the cheapest thing to
 remove: delete the two `.say` buttons from `index.html` and the `say` handler
@@ -95,7 +104,8 @@ thing to try is thinning the trees in `src/content/world.ts`.
 
 ### Decide after watching, not before
 
-- **How the driving feels** is five numbers in `src/content/engines/thomas.ts`:
+- **How the driving feels** is five numbers per engine, in
+  `src/content/engines/`. For the blue one, in `thomas.ts`:
   `cruise` 7.2 m/s on the second press of green, `slow` 2.8 m/s on the first,
   `coast` 1.15 m/s² with no power on (about six seconds to a halt), `brake` 3.4
   on red, and `accel` 2.6. Reverse is 42% of `slow`, in `src/engine/train.ts`. All guesses until he drives it, and the
@@ -103,9 +113,11 @@ thing to try is thinning the trees in `src/content/world.ts`.
   and the stopping window on the tablet without touching these.
 - **The greeting** is a sentence in `src/content/greeting.ts`, and the name in
   it is set in the grown-ups' panel.
-- **The nameplates are blank** until a name is typed into the grown-ups' panel.
-  They are meant to carry whatever he decides to call each engine, and are the
-  only text anywhere in the game.
+- **The nameplates are blank** until a name is typed into the grown-ups' panel —
+  except the Orion Express, which carries its own. They are meant to hold
+  whatever he decides to call each engine, and are the only *words* in the game.
+  Typing one onto an engine hides that engine's number, since nothing on an
+  engine's side is ever two things at once.
 - **Whether the station reaction is enough.** Right now: lamp lights, flag goes
   up, passengers bob, chime plays, and the engine sighs out steam. Worth
   building on only if arriving turns out to be the thing he likes most.

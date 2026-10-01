@@ -65,7 +65,7 @@ asked — see the build log. What never moved is the *nothing else*.)
 | **Objectives** | **None.** No errands, no collecting, no prizes, nothing that pops up over the view |
 | **Greeting** | Spoken by name when the app opens, and nothing else is ever spoken |
 | **Camera** | One big button cycles four fixed views: **Wide**, **Above**, **Follow**, **Trackside**. Green from Wide comes down to the train |
-| **World** | A loop with four branch lines and eight stations, visible as a play-mat layout. No end, no fail |
+| **World** | A loop with four branch lines, six stations and six more places to drive through, as a play-mat layout. No end, no fail |
 | **View style** | Storybook 3/4 — angled overhead, toy railway on a table |
 | **Activities** | Station comes alive · the world answers the whistle · choose a way at the points |
 | **Track interaction** | Automatic, except four junctions he may choose at. Touching nothing always goes the usual way |
@@ -157,7 +157,7 @@ controls sit in the **bottom corners** where thumbs already are — never along 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  [camera]                                   v0.3.0  │
+│  [camera]                                  version  │
 │                                           ╭───╮     │
 │                  the railway              │ ▲ │     │
 │   ( )  ( )                                ╰───╯     │
@@ -897,7 +897,8 @@ What remains for Phase 2 is whatever the play test says to change.
    about is whichever he actually drives.
 2. **Whether one loop is enough to be "exploring".** ~~Right now the place is a single field with
    one station in it.~~ Phase 3 answered this as far as it can be answered without him: there are
-   now ten places to drive through and the main lap takes a minute and forty. What is still open is
+   now twelve places to drive through — six of them with a platform — and the main lap takes a
+   minute and forty. What is still open is
    whether *a loop* is the right shape at all, or whether exploring means choosing where to go.
    There are **four** choices a lap now — the city, the woods, the windmill and the lighthouse — and
    taking all of them makes a lap 1,284 m. Watch whether he notices the arrows, whether he picks a
@@ -944,4 +945,4 @@ by anything, and neither is worth updating unless somebody wants a printable ver
 - `Little Engineer - Game Plan.pdf` — this document as it stood at Phase 0, typeset for printing.
   It predates the lever, the world and the engines, so read this file instead.
 - `mockups/` — eight artboards at true Pixel Tablet size (1280 × 800). They show GO and STOP rather
-  than the lever, and one station rather than six places. Superseded by the game itself.
+  than the lever, and one station rather than twelve places. Superseded by the game itself.

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Vehicle } from '../engine/consist';
 import { buildEngine, type EngineMesh } from './buildEngine';
+import { buildStreamliner } from './buildStreamliner';
 import { CARS, buildCar, type CarMesh } from './cars';
 import { ENGINES, engineById } from './engines';
 import { drawFace } from './faces';
@@ -106,7 +107,7 @@ export async function buildRoster(scene: THREE.Scene, anisotropy: number): Promi
   const faces = new Map<string, { built: THREE.Texture | null; drawn?: THREE.Texture }>();
   for (const spec of ENGINES) {
     const built = await faceFor(spec, anisotropy);
-    const mesh = buildEngine(spec, built);
+    const mesh = spec.kind === 'streamliner' ? buildStreamliner(spec, built) : buildEngine(spec, built);
     engines.set(spec.id, mesh);
     faces.set(spec.id, { built });
     scene.add(mesh.group);

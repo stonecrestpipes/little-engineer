@@ -259,7 +259,7 @@ export function buildSheds(ctx: PlaceContext): Place {
   // Where the spare cars stand: behind the platform, clear of both throats
   // and of the nearest roundhouse road, and far enough over that the whole
   // line of them is in the yard shot rather than out at the edge of it.
-  group.add(siding(-13, -38, -5));
+  group.add(siding(-13, -49, -1));
 
   // -------------------------------------------------------- the water tower
   const tower = new THREE.Group();
@@ -315,7 +315,7 @@ export function buildSheds(ctx: PlaceContext): Place {
   ENGINES.forEach((spec, i) => roadOf.set(spec.id, i % BAYS));
   // One slot per car, spaced by more than the longest of them. Fewer slots
   // than cars would stand two of them in the same place.
-  const CAR_SLOTS = [-34, -27.5, -21, -14.5, -8];
+  const CAR_SLOTS = [-45, -37.8, -30.6, -23.4, -16.2, -9, -4];
 
   /** Everything standing in the yard right now, and what it is. */
   let parked: { object: THREE.Object3D; engine?: string; car?: string; road?: number; y: number }[] = [];

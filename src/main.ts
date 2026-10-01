@@ -171,6 +171,8 @@ async function boot(): Promise<void> {
 
   const funnelWorld = new THREE.Vector3();
   function emitPuff(): void {
+    // The Orion Express does not burn coal, so nothing comes off its roof.
+    if (roster.engine.spec.shape?.smoke === false) return;
     const p = puffs[puffNext];
     puffNext = (puffNext + 1) % PUFFS;
     const engine = roster.engine;

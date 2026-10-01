@@ -236,6 +236,23 @@ glides, never cuts.
 
 ---
 
+## The Orion Express
+
+Five engines now, and the fifth is not like the others. Every one of them is a stubby little tank
+engine; the Orion Express is a **streamliner** — one long fluted stainless body with a shovel nose, a
+deep blue roof and skirt, the wheels tucked away underneath, no rods and no chimney — with two silver
+coaches of its own, one of them round-ended. It is the quickest thing on the railway, the smoothest
+away from a stand, and the only one you can name from the other side of the layout.
+
+It is named after the boy whose railway this is, and it is the only engine that comes with a
+nameplate already painted on.
+
+Mechanically it is one flag: `kind: 'streamliner'` on the spec picks `buildStreamliner` instead of
+`buildEngine`, and both return the same thing, so nothing above that file knows there are two kinds.
+`shape.smoke: false` keeps the steam off a roof that has no chimney on it.
+
+---
+
 ## The roundhouse, and how he picks an engine
 
 Five roads round a turntable, a pair of doors on each, and an engine asleep behind every door but

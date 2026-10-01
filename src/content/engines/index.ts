@@ -3,6 +3,7 @@ import { thomas } from './thomas';
 import { marigold } from './marigold';
 import { pip } from './pip';
 import { bramble } from './bramble';
+import { orion } from './orion';
 
 export type { EngineSpec } from './spec';
 
@@ -13,7 +14,7 @@ export type { EngineSpec } from './spec';
  * choice is remembered, because having to find his engine again every morning
  * would be the game taking something back off him.
  */
-export const ENGINES: EngineSpec[] = [thomas, marigold, pip, bramble];
+export const ENGINES: EngineSpec[] = [thomas, marigold, pip, bramble, orion];
 
 export function engineById(id: string): EngineSpec {
   return ENGINES.find((e) => e.id === id) ?? ENGINES[0];

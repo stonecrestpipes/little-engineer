@@ -11,6 +11,12 @@ import type { FaceSpec } from '../faces';
  */
 export interface EngineSpec {
   id: string;
+  /**
+   * What shape of engine to build. Everything on this railway is a little
+   * tank engine except the Orion Express, which is a streamliner — a long
+   * fluted stainless body with a shovel nose, no rods and no chimney.
+   */
+  kind?: 'tank' | 'streamliner';
   /** Only ever used in code. Nothing in the game is labelled. */
   name: string;
   /** blank until he names it; the only text anywhere in the game */
@@ -42,6 +48,8 @@ export interface EngineSpec {
   };
   /** Small differences in silhouette, so they are not all the same engine. */
   shape?: {
+    /** False for anything that does not burn coal. No steam from the roof. */
+    smoke?: boolean;
     /** how tall the chimney stands */
     funnelHeight?: number;
     /** 0 is a plain stovepipe, 1 is a wide bell mouth */

@@ -29,6 +29,7 @@ import { buildWindmill } from './places/windmill';
 import { buildLighthouse } from './places/lighthouse';
 import { buildWoods } from './places/woods';
 import { buildRanch } from './places/ranch';
+import { buildCity } from './places/city';
 
 /** Somewhere the railway divides and he gets to choose. */
 export interface Junction {
@@ -97,9 +98,7 @@ const SEGMENTS: Record<string, number[][]> = {
   shore: [[-36, -92], [-64, -84], [-84, -64]],
   // Split where the coast line comes back in.
   westbank: [[-84, -64], [-95, -38]],
-  westfield: [[-95, -38], [-96, -4]],
-  // And split again where the city line goes out.
-  westhome: [[-96, -4], [-94, 16], [-92, 34]],
+  westfield: [[-95, -38], [-96, -4], [-94, 16], [-92, 34]],
 
   // The windmill branch. Kept well out on the far side of the hill, where the
   // ground is nearly level, so laying it does not carve a canyon next to the
@@ -127,9 +126,23 @@ const SEGMENTS: Record<string, number[][]> = {
   ranch: [[34, 152], [60, 154], [84, 146]],
   woodsback: [[84, 146], [98, 128], [92, 110], [70, 97], [40, 90]],
 
-  // And the city, out west, instead of the last straight run home.
-  city: [[-96, -4], [-122, -10], [-146, 2], [-156, 24]],
-  cityback: [[-156, 24], [-150, 46], [-130, 56], [-110, 50], [-92, 34]],
+  // And the city, away north-west, instead of the run across the meadow.
+  //
+  // It leaves where the main line is already swinging from north-east to
+  // east, so carrying straight on north is the fork rather than a turn out of
+  // one. That matters more than it sounds: a branch that leaves a straight
+  // line at forty-five degrees does not read as a railway at all.
+  //
+  // `cityrun` is two equal legs on one bearing — forty-five metres dead
+  // straight — because the city has a platform and a platform is a straight
+  // thing. The long way back round is deliberately wide: the tightest curve
+  // on it is about twenty-three metres, which is the same as the headland.
+  citynorth: [[-78, 74], [-68, 88], [-70, 104], [-84, 116], [-102, 120]],
+  cityrun: [[-102, 120], [-122, 126], [-142, 132]],
+  cityback: [
+    [-142, 132], [-150, 146], [-146, 162], [-130, 170], [-110, 168],
+    [-90, 158], [-68, 142], [-46, 124], [-24, 108], [-2, 98],
+  ],
 };
 
 const FARM_WAY = ['farm'];
@@ -138,8 +151,8 @@ const TUNNEL_WAY = ['hillfoot', 'bore', 'descent'];
 const WINDMILL_WAY = ['eastline', 'windmill', 'eastback'];
 const HOME_WAY = ['shore', 'westbank'];
 const COAST_WAY = ['coast', 'lighthouse', 'coastback'];
-const HOME_RUN = ['westhome'];
-const CITY_WAY = ['city', 'cityback'];
+const MEADOW_WAY = ['meadow'];
+const CITY_WAY = ['citynorth', 'cityrun', 'cityback'];
 
 /**
  * Loop number bits: which branches a loop takes. Four junctions, so sixteen
@@ -160,14 +173,14 @@ const BY_CITY = 8;
  * loop that skipped a junction would have nowhere to put the question.
  */
 const loopOf = (n: number): string[] => [
-  'sheds', 'meadow',
+  'sheds',
+  ...(n & BY_CITY ? CITY_WAY : MEADOW_WAY),
   ...(n & BY_WOODS ? WOODS_WAY : FARM_WAY),
   'farmend',
   ...(n & BY_WINDMILL ? WINDMILL_WAY : TUNNEL_WAY),
   'rivermouth', 'harbour',
   ...(n & BY_LIGHTHOUSE ? COAST_WAY : HOME_WAY),
   'westfield',
-  ...(n & BY_CITY ? CITY_WAY : HOME_RUN),
 ];
 const LOOPS = 16;
 const MAIN_LINE = 0;
@@ -193,13 +206,14 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   net.chain(loopOf(MAIN_LINE), true);
   for (const way of [WOODS_WAY, WINDMILL_WAY, COAST_WAY, CITY_WAY]) net.chain(way);
   net.join({ segment: 'meadow', end: 'end' }, { segment: 'woods', end: 'start' });
+  net.join({ segment: 'cityback', end: 'end' }, { segment: 'woods', end: 'start' });
   net.join({ segment: 'woodsback', end: 'end' }, { segment: 'farmend', end: 'start' });
   net.join({ segment: 'farmend', end: 'end' }, { segment: 'eastline', end: 'start' });
   net.join({ segment: 'eastback', end: 'end' }, { segment: 'rivermouth', end: 'start' });
   net.join({ segment: 'harbour', end: 'end' }, { segment: 'coast', end: 'start' });
   net.join({ segment: 'coastback', end: 'end' }, { segment: 'westfield', end: 'start' });
-  net.join({ segment: 'westfield', end: 'end' }, { segment: 'city', end: 'start' });
-  net.join({ segment: 'cityback', end: 'end' }, { segment: 'sheds', end: 'start' });
+  net.join({ segment: 'sheds', end: 'end' }, { segment: 'citynorth', end: 'start' });
+  net.join({ segment: 'cityback', end: 'end' }, { segment: 'farm', end: 'start' });
   const loops: Route[] = Array.from({ length: LOOPS }, (_, n) =>
     net.route(loopOf(n).map((segment) => ({ segment }))),
   );
@@ -216,7 +230,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       { id: 'woods', bit: BY_WOODS, main: 'farm', branch: 'woods' },
       { id: 'farm', bit: BY_WINDMILL, main: 'hillfoot', branch: 'eastline' },
       { id: 'coast', bit: BY_LIGHTHOUSE, main: 'shore', branch: 'coast' },
-      { id: 'city', bit: BY_CITY, main: 'westhome', branch: 'city' },
+      { id: 'city', bit: BY_CITY, main: 'meadow', branch: 'citynorth' },
     ] as const
   ).map(({ id, bit, main, branch }) => ({
     id,
@@ -281,6 +295,11 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   const ranchAt = middleOfOn(BY_WOODS, 'ranch');
   const ranchField = patchBeside(BY_WOODS, ranchAt, 22, 30, 18);
 
+  // And so does the city, for the same reason and more of it: streets, a
+  // yard full of rescue vehicles and a building site are all flat things.
+  const cityAt = middleOfOn(BY_CITY, 'cityrun');
+  const cityGround = { ...patchBeside(BY_CITY, cityAt, 0, 46, 26) };
+
   const shedsAt = middleOf('sheds');
   const yard = (() => {
     const p = route.positionAt(shedsAt);
@@ -302,7 +321,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       // the new branches rather than under them: a hill the railway is laid
       // through is a cutting the railway has to be dug out of, and the woods
       // and the city branches both used to run straight into one.
-      { x: -222, z: 112, radius: 104, height: 26 },
+      { x: -258, z: 104, radius: 112, height: 28 },
       { x: 26, z: 236, radius: 96, height: 22 },
       { x: -150, z: -150, radius: 84, height: 21 },
       // the point the lighthouse stands on, out beyond the end of the branch
@@ -318,7 +337,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       { x: -8, z: -118, radius: 42, depth: 12 },
     ],
     // The city stands on level ground, the way a city does.
-    flats: [yard, ranchField, { x: -142, z: 24, radius: 34, blend: 24 }],
+    flats: [yard, ranchField, cityGround],
     shore: -100,
     deep: -128,
     seaDepth: 15,
@@ -375,6 +394,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   branchPlace(buildWindmill, 'windmill', BY_WINDMILL);
   branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE, 0.76);
   branchPlace(buildRanch, 'ranch', BY_WOODS);
+  branchPlace(buildCity, 'cityrun', BY_CITY);
 
   // The woods are the one place that is a length of railway rather than a
   // point on it: the canopy has to close over the whole run or it is just
@@ -455,7 +475,9 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   /** Where the scattered countryside stops, because a place stands there. */
   const keepClear = [
     { x: ranchField.x, z: ranchField.z, radius: ranchField.radius + 6 },
-    { x: -142, z: 24, radius: 44 },
+    // Tighter than the levelled ground it stands on: the city plants its own
+    // street trees, and the wood should come right up to the edge of it.
+    { x: cityGround.x, z: cityGround.z, radius: 40 },
   ];
   const taken: [number, number][] = [];
   for (let i = 0; i < 420; i++) {

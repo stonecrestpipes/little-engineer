@@ -6,6 +6,7 @@ const PLACES: [string, string][] = [
   ['sheds', 'The Sheds'],
   ['farm', 'The Farm'],
   ['windmill', 'The Windmill'],
+  ['city', 'The City'],
   ['harbour', 'The Harbour'],
   ['lighthouse', 'The Lighthouse'],
 ];
@@ -66,10 +67,10 @@ function scrapbook(into: HTMLElement): void {
     engines,
     el('p', { className: 'p-note' },
       anyTurns
-        ? `Across the meadow: ${turns('woods', 'The Farm', 'the woods')}. ` +
+        ? `Leaving The Sheds: ${turns('city', 'the meadow', 'the city')}. ` +
+            `Across the meadow: ${turns('woods', 'The Farm', 'the woods')}. ` +
             `After The Farm: ${turns('farm', 'the tunnel', 'the windmill')}. ` +
-            `After The Harbour: ${turns('coast', 'home', 'the lighthouse')}. ` +
-            `On the way home: ${turns('city', 'straight home', 'the city')}.`
+            `After The Harbour: ${turns('coast', 'home', 'the lighthouse')}.`
         : 'He has not been past any points yet.',
       el('br'),
       // The two open questions about the buttons: does he use R at all, and

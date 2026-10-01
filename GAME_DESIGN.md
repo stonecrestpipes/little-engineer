@@ -88,7 +88,7 @@ A single continuous loop, laid out so that most of it is visible at once in Wide
 looking down at a wooden train set on the floor.
 
 The main lap is **642 metres**, about **a minute and forty** at full steam. Taking every branch is
-**about 1.1 km**, nearer three minutes. Most of it is visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
+**1,284 metres** — twice round the long way, and nearer three minutes. Most of it is visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
 level crossing → The Farm → up the hillside and through the tunnel → down to the river and over the
 bridge → The Harbour → back along the shore to home.
 
@@ -100,6 +100,7 @@ reading:
 | **The Sheds** | Red brick, home, where play begins | Doors open as the engine leaves |
 | **The Harbour** | Blue, boats, water, cranes | A boat sounds its horn back, lower and slower |
 | **The Farm** | Green, barn, animals, hay | Every sheep looks up at once, and answers |
+| **The City** | Grey towers, a street, the rescue station | The siren goes and the helicopter lifts off the pad |
 
 **Trackside features** between stations, so things happen while simply driving:
 
@@ -110,6 +111,8 @@ reading:
   closed over the line, A-frame cabins among the trees with their windows lit, and
   deer that put their heads up at a whistle and bound away through the wood. An owl
   answers. It is the brick tunnel done in leaves, and it is the reason to take that branch.
+- **The building site**, at the end of the city's street — one more tower going up, with a
+  tower crane that swings all day, a digger working its arm, scaffolding and hoardings.
 - **The ranch**, at the top of the same branch — a fenced field with a pool in it and
   eight capybaras, two of them standing in the water. Whistle and every head turns toward
   the engine and they squeak back; the two in the pool heave themselves up out of it.
@@ -125,10 +128,10 @@ arrows let him pick. Touch nothing and it goes the usual way.
 
 | Where | The usual way | The branch |
 |---|---|---|
+| Leaving The Sheds | across **the meadow** and over the level crossing | the long way round to **the city** |
 | Across the meadow | past **The Farm** | round through **the woods** and the ranch |
 | After The Farm | through **the tunnel** | round the hill to **The Windmill** |
 | After The Harbour | **home** along the shore | out to **The Lighthouse** on the point |
-| On the way home | **straight home** | out west through **the city** |
 
 Underneath it is a **network of named segments** rather than one closed curve, joined end to end and
 driven as one route. Four junctions means **sixteen whole loops**, each a list of references to the

@@ -79,3 +79,21 @@ describe('Route', () => {
     expect(main.ahead(main.length - 2, 3)).toBeCloseTo(5, 6);
   });
 });
+
+describe('a distance that is not on this line', () => {
+  it('converts to NaN rather than to somewhere wrong', () => {
+    const { branch, lines } = layout();
+    // Out on the bulge, which the main line has no rails anywhere near.
+    const onBranch = branch.startOf('x') + 20;
+    expect(Number.isNaN(lines.convert(onBranch, 1, 0))).toBe(true);
+  });
+
+  it('is refused by the route rather than crashing inside the curve', () => {
+    const { main } = layout();
+    // A place on a branch that reads the engine's position without checking
+    // used to take the whole frame loop down from six calls deep inside
+    // three.js, saying nothing about why.
+    expect(() => main.positionAt(NaN)).toThrow(/not a number/);
+    expect(() => main.tangentAt(NaN)).toThrow(/not a number/);
+  });
+});

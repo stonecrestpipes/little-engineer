@@ -4,11 +4,26 @@ import type { Stop } from '../../engine/train';
 import type { Audio } from '../../engine/audio';
 import type { Roster } from '../roster';
 
-/** What the world tells a place about the engine, every frame. */
+/**
+ * What the world tells a place about the engine, every frame.
+ *
+ * **`distance` is NaN while the engine is on rails this place's line does not
+ * share.** That is deliberate and it is what makes a place on a branch simply
+ * not hear him: every comparison with NaN is false, so `isNear` and `gapTo`
+ * are safe to use without checking. Doing arithmetic with it is not — and
+ * handing it to `track.positionAt` throws from deep inside the curve, which
+ * takes the whole frame loop with it. Use `watching` before reading a
+ * position out of it.
+ */
 export interface TrainState {
   distance: number;
   speed: number;
   moving: boolean;
+}
+
+/** True while the engine is somewhere this place's own line can measure. */
+export function watching(train: TrainState): boolean {
+  return Number.isFinite(train.distance);
 }
 
 export interface PlaceContext {

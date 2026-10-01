@@ -1,6 +1,15 @@
 import * as THREE from 'three';
 import { C, flat, mat, person, shadowed, tree } from '../scenery';
-import { clearOfRails, frameAt, isNear, localGround, railsNear, type Place, type PlaceContext } from './place';
+import {
+  clearOfRails,
+  frameAt,
+  isNear,
+  localGround,
+  railsNear,
+  watching,
+  type Place,
+  type PlaceContext,
+} from './place';
 import { moving } from '../../engine/merge';
 
 /**
@@ -191,14 +200,19 @@ export function buildRanch(ctx: PlaceContext): Place {
       const looking = elapsed < lookUntil;
 
       // Where the engine is, in this place's own frame, so a head that comes
-      // up comes up pointing at him rather than at nothing.
-      ctx.track.positionAt(train.distance, look);
-      group.worldToLocal(look);
+      // up comes up pointing at him rather than at nothing. Only asked for
+      // while he is actually on a line that runs past here: off it his
+      // distance is NaN, and a NaN handed to the curve throws.
+      const here = looking && watching(train);
+      if (here) {
+        ctx.track.positionAt(train.distance, look);
+        group.worldToLocal(look);
+      }
 
       for (const c of herd) {
         // Heads turn toward the train and tip up; otherwise down in the grass.
-        const want = looking ? Math.atan2(look.x - c.group.position.x, look.z - c.group.position.z) : c.group.rotation.y;
-        if (looking) {
+        if (here) {
+          const want = Math.atan2(look.x - c.group.position.x, look.z - c.group.position.z);
           let turn = want - c.group.rotation.y;
           while (turn > Math.PI) turn -= Math.PI * 2;
           while (turn < -Math.PI) turn += Math.PI * 2;

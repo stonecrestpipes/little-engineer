@@ -499,6 +499,42 @@ export class Audio {
     }
   }
 
+  /**
+   * The rescue station answering: a two-tone siren, four times, well back in
+   * the distance. Kept quiet and kept short — it is the only urgent sound in
+   * the game and it is here because he asked for a rescue station, not
+   * because anything is ever actually wrong.
+   */
+  siren(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t0 = ctx.currentTime + 0.3;
+    const o = ctx.createOscillator();
+    o.type = 'triangle';
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.085, t0 + 0.12);
+
+    let at = t0;
+    for (let i = 0; i < 4; i++) {
+      o.frequency.setValueAtTime(523, at);
+      o.frequency.setValueAtTime(392, at + 0.42);
+      at += 0.84;
+    }
+    g.gain.setValueAtTime(0.085, at - 0.3);
+    g.gain.exponentialRampToValueAtTime(0.0001, at);
+
+    // Softened, so it is a siren heard across a city rather than one next to
+    // his ear.
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 1400;
+
+    o.connect(lp).connect(g).connect(this.master);
+    o.start(t0);
+    o.stop(at + 0.1);
+  }
+
   /** The crossing bell: a struck ding, repeated while the gates are down. */
   bell(times = 8, gap = 0.52): void {
     const ctx = this.ctx;

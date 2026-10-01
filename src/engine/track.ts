@@ -253,6 +253,18 @@ export class Route implements Track {
 
   /** The leg covering a distance, and how far into it that is. */
   private locate(d: number): { leg: Leg; local: number } {
+    // NaN means "the engine is not on rails this route shares" — see
+    // TrainState in src/content/places/place.ts. It is safe to compare with
+    // and never safe to look up. Caught here because the alternative is a
+    // null dereference six frames deep inside the curve, which takes the
+    // whole animation loop down and says nothing about why.
+    if (!Number.isFinite(d)) {
+      throw new Error(
+        'track: asked where a route is at a distance that is not a number — ' +
+          'the usual cause is a place on a branch reading the engine’s position ' +
+          'while the engine is on a line that branch does not share',
+      );
+    }
     const at = this.wrap(d);
     // Few enough legs that a scan beats an index, and it never allocates.
     let leg = this.legs[0];

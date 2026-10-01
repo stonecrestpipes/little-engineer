@@ -308,6 +308,18 @@ menu, in the same spirit as the station arrival. **Pressing green abandons it in
 every engine put where it was going, because wanting to drive always wins. That rule is why the
 twelve seconds are affordable at all.
 
+**The yard pilot** is the other thing in there: a little green saddle tank on a road of its own
+beside the spare cars. He cannot drive it and it is not in the roundhouse — it shuffles up and down
+all day with a pause at each end, and when he takes a car it runs down to where that car was
+standing and whistles, because *something* put it on the train. Tapping a car still couples it
+instantly: a car is three taps to build a train and it has to stay quick.
+
+Driving the whole car across the yard is designed and not built. It wants a fan of short spurs
+rather than one siding — a second roundhouse, essentially — because on a single road the fifth car
+cannot come out without pushing through the four in front of it, and the exit has to sit behind the
+tail of a three-car train, which puts the yard fifty metres further back and every delivery at
+thirteen to eighteen seconds. Worth doing if the pilot turns out to be the thing he watches.
+
 Underneath, `src/engine/shunting.ts` knows nothing about engines, sheds or doors: a move is an
 object, a list of points, a speed, and which way round the thing faces while it travels — which is
 the whole of what "setting back" means. Everything else on the railway is placed from one number,

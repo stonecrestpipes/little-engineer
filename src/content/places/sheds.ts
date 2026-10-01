@@ -260,6 +260,64 @@ export function buildSheds(ctx: PlaceContext): Place {
   // and of the nearest roundhouse road, and far enough over that the whole
   // line of them is in the yard shot rather than out at the edge of it.
   group.add(siding(-13, -49, -1));
+  // And the pilot's own road beside it, so the little engine has somewhere to
+  // work that is not on top of the rake it is working.
+  group.add(siding(-18, -34, -8));
+
+  // --------------------------------------------------------- the yard pilot
+  // A little four-wheeled saddle tank that lives in the yard and never leaves
+  // it. He cannot drive it and it is not in the roundhouse: it is one of the
+  // things that is simply *going on* while he is here, like the cranes at the
+  // harbour and the sails on the windmill. It shuffles up and down its road
+  // all day, and when he takes a car it runs down to where that car was
+  // standing and whistles, because something put it on the train.
+  const pilot = new THREE.Group();
+  const pilotGreen = mat(0x2f6b3d);
+  const pilotIron = mat(0x2b3139, 0.6);
+  {
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.18, 3.6), pilotIron);
+    plate.position.y = 0.82;
+    pilot.add(plate);
+    for (const end of [-1, 1] as const) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(2.24, 0.42, 0.18), mat(C.trim));
+      beam.position.set(0, 0.88, end * 1.84);
+      pilot.add(beam);
+    }
+    const boiler = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 2.0, 20), pilotIron);
+    boiler.rotateX(Math.PI / 2);
+    boiler.position.set(0, 1.56, 0.62);
+    pilot.add(boiler);
+    // The saddle over it, which is what makes a pilot a pilot.
+    const saddle = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.76, 0.76, 1.8, 18, 1, true, Math.PI, Math.PI),
+      pilotGreen,
+    );
+    saddle.rotateX(Math.PI / 2);
+    saddle.position.set(0, 1.56, 0.66);
+    pilot.add(saddle);
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.86, 1.5, 1.3), pilotGreen);
+    cab.position.set(0, 1.72, -0.95);
+    const cabRoof = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.14, 1.5), mat(C.slate));
+    cabRoof.position.set(0, 2.52, -0.95);
+    pilot.add(cab, cabRoof);
+    const chimney = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.7, 12), pilotIron);
+    chimney.position.set(0, 2.38, 1.5);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.26, 14, 9, 0, Math.PI * 2, 0, Math.PI / 2), mat(0xdaa738));
+    dome.position.set(0, 2.1, 0.5);
+    pilot.add(chimney, dome);
+    for (const side of [-1, 1] as const) {
+      for (const z of [0.95, -0.75]) {
+        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.14, 16).rotateZ(Math.PI / 2), pilotIron);
+        w.position.set(side * 0.86, 0.42, z);
+        const r = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.16, 16).rotateZ(Math.PI / 2), mat(C.trim));
+        r.position.set(side * 0.88, 0.42, z);
+        pilot.add(w, r);
+      }
+    }
+  }
+  pilot.name = 'pilot';
+  group.add(pilot);
+  shadowed(pilot);
 
   // -------------------------------------------------------- the water tower
   const tower = new THREE.Group();
@@ -318,8 +376,17 @@ export function buildSheds(ctx: PlaceContext): Place {
   const CAR_SLOTS = [-45, -37.8, -30.6, -23.4, -16.2, -9, -4];
 
   /** Everything standing in the yard right now, and what it is. */
-  let parked: { object: THREE.Object3D; engine?: string; car?: string; road?: number; y: number }[] = [];
+  let parked: {
+    object: THREE.Object3D;
+    engine?: string;
+    car?: string;
+    /** which roundhouse road it lives on, or which siding slot it stands at */
+    road?: number;
+    slot?: number;
+    y: number;
+  }[] = [];
 
+  /** The engine swap, which holds his engine and stops the train placing it. */
   const shunting = new Shunting();
 
   function park(): void {
@@ -333,8 +400,9 @@ export function buildSheds(ctx: PlaceContext): Place {
     }
     ctx.roster.spareCars().forEach((mesh, i) => {
       if (shunting.holds(mesh.group)) return;
-      parkAt(mesh.group, new THREE.Vector2(-13, CAR_SLOTS[i % CAR_SLOTS.length]), 0);
-      parked.push({ object: mesh.group, car: mesh.spec.id, y: mesh.group.position.y });
+      const slot = CAR_SLOTS[i % CAR_SLOTS.length];
+      parkAt(mesh.group, new THREE.Vector2(-13, slot), 0);
+      parked.push({ object: mesh.group, car: mesh.spec.id, slot, y: mesh.group.position.y });
     });
   }
   park();
@@ -372,7 +440,54 @@ export function buildSheds(ctx: PlaceContext): Place {
   let answered = -99;
   const hopAt = new Map<string, number>();
 
-  moving(...bayDoors.flat(), deck, spoutArm);
+  moving(...bayDoors.flat(), deck, spoutArm, pilot);
+
+  // ------------------------------------------------------- the pilot's day
+  // Up and down its own road, with a pause at each end. Driven by hand rather
+  // than by `Shunting`, and for a reason: everything that machinery moves is a
+  // child of the scene and its paths are in world coordinates, and the pilot
+  // belongs to the yard's own frame. Handing it a world path put it through
+  // the yard's transform twice and left the engine seventy metres out in a
+  // field. A straight run along one siding does not need a curve anyway.
+  const PILOT_ROAD: [number, number] = [-31, -11];
+  const PILOT_X = -18;
+  /** Where it is on its road, where it is going, and how long it is standing. */
+  let pilotZ = PILOT_ROAD[0];
+  let pilotWant = PILOT_ROAD[1];
+  let pilotSpeed = 3.2;
+  let pilotStand = 2;
+  pilot.position.set(PILOT_X, 0, pilotZ);
+
+  /** It ran down to where that car was standing, and said so. */
+  const pilotFetched = (slot: number): void => {
+    pilotWant = THREE.MathUtils.clamp(slot + 6, PILOT_ROAD[0] - 6, PILOT_ROAD[1]);
+    pilotSpeed = 5.5;
+    pilotStand = 0;
+    ctx.audio.answer(1040, 0.1);
+  };
+
+  function workTheYard(dt: number): void {
+    if (pilotStand > 0) {
+      pilotStand -= dt;
+      return;
+    }
+    const gap = pilotWant - pilotZ;
+    if (Math.abs(gap) < 0.2) {
+      // Arrived: stand a moment, then set off for whichever end it is not at.
+      pilotZ = pilotWant;
+      pilotWant = Math.abs(pilotZ - PILOT_ROAD[0]) < Math.abs(pilotZ - PILOT_ROAD[1])
+        ? PILOT_ROAD[1]
+        : PILOT_ROAD[0];
+      pilotSpeed = 3.2;
+      pilotStand = 2.5 + Math.random() * 4;
+      return;
+    }
+    const step = Math.sign(gap) * Math.min(Math.abs(gap), pilotSpeed * dt);
+    pilotZ += step;
+    pilot.position.z = pilotZ;
+    // It turns round rather than sliding backwards, the way a pilot does.
+    pilot.rotation.y = step > 0 ? 0 : Math.PI;
+  }
 
   /**
    * The whole swap, as two journeys that happen at once.
@@ -449,6 +564,8 @@ export function buildSheds(ctx: PlaceContext): Place {
     group,
     stop: { id: 'sheds', at: ctx.at },
     busy() {
+      // Only while his *engine* is off the rails. The pilot is always doing
+      // something, and the train must not wait on it.
       return shunting.busy;
     },
     settle() {
@@ -494,15 +611,19 @@ export function buildSheds(ctx: PlaceContext): Place {
             return true;
           }
           swap(item.engine, train.distance);
-        } else if (item.car) {
-          ctx.roster.toggleCar(item.car);
+        } else if (item.car && ctx.roster.toggleCar(item.car)) {
+          ctx.audio.clank();
+          pilotFetched(item.slot ?? PILOT_ROAD[0]);
         }
         return true;
       }
       // And a car already coupled up: tap it to take it off again.
       for (const car of ctx.roster.cars) {
         if (ray.intersectObject(car.group, true).length === 0) continue;
-        ctx.roster.toggleCar(car.spec.id);
+        if (ctx.roster.toggleCar(car.spec.id)) {
+          ctx.audio.clank();
+          pilotFetched(PILOT_ROAD[0]);
+        }
         return true;
       }
       return false;
@@ -510,6 +631,7 @@ export function buildSheds(ctx: PlaceContext): Place {
     update(dt, elapsed, train) {
       clock = elapsed;
       shunting.update(dt);
+      workTheYard(dt);
       station.update(elapsed);
 
       inTheYard = !train.moving && isNear(ctx.track, train, ctx.at, 26);

@@ -58,13 +58,20 @@ for.
 - **the Orion Express**: a silver-and-blue streamliner named after him, with two
   silver coaches, the quickest thing on the railway.
 
+- **A yard pilot** — a little green saddle tank on its own road beside the
+  spare cars, shuffling up and down all day. Take a car and it runs down to
+  where that car was standing and whistles.
+
 ### What he asked for that is *not* here
 
-- **The little shunting engine** that fetches cars. The spare cars sit in a
-  shunting yard beside the roundhouse and tapping one still couples it
-  instantly. The machinery for doing it properly exists
-  (`src/engine/shunting.ts`, the same thing the roundhouse swap runs on); what
-  it needs is the yard laid out around it.
+- **The pilot actually carrying the car across the yard.** Tapping a car still
+  couples it instantly, which is quick and he already knows it. Doing it
+  properly needs a fan of short spurs instead of one siding — on a single road
+  the fifth car cannot come out without pushing through the four in front of it
+  — and would add thirteen to eighteen seconds per car, forty-odd to build a
+  three-car train. The reasoning is in
+  [GAME_DESIGN.md](GAME_DESIGN.md); worth building if the pilot turns out to be
+  the thing he watches.
 
 ---
 

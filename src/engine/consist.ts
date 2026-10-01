@@ -40,6 +40,13 @@ export class Consist {
     return out;
   }
 
+  /** End to end over the buffers, engine and everything behind it. */
+  length(vehicles: Vehicle[]): number {
+    let total = 0;
+    for (const v of vehicles) total += v.length;
+    return total + COUPLING * Math.max(0, vehicles.length - 1);
+  }
+
   /** Place the whole train, given where the engine has got to. */
   place(vehicles: Vehicle[], distance: number): void {
     const offsets = this.offsets(vehicles);

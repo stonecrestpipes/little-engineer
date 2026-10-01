@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { C, mat, person, rock, shadowed } from '../scenery';
+import { C, mat, person, pitchedRoof, rock, shadowed } from '../scenery';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
 import { moving } from '../../engine/merge';
@@ -7,13 +7,23 @@ import { moving } from '../../engine/merge';
 /**
  * The Lighthouse — out along the sea wall from The Harbour, on the headland.
  *
- * The second place he has to choose to go to. Red and white, with a lamp that
- * turns all the time and gulls wheeling round the top of it. Whistle and the
+ * The second place he has to choose to go to. White with a broad black band
+ * round its middle — Big Sable Point, at Ludington — with a lamp that turns
+ * all the time and gulls wheeling round the top of it. Whistle and the
  * foghorn answers, the lamp flares and spins, and the gulls scatter wider.
  */
 
-/** Where the tower stands, on the high ground of the headland. */
-const HEADLAND = new THREE.Vector3(-136, 0, -98);
+/** Where the tower stands, out on the point beyond the end of the branch. */
+const HEADLAND = new THREE.Vector3(-166, 0, -92);
+
+/**
+ * The tower's bands, bottom to top. Big Sable Point is a white tower with a
+ * wide black band across the middle of it, which is the whole of why it is
+ * recognisable from a mile out at sea — and it is the one thing on this map
+ * that is a real place rather than an invented one.
+ */
+const BLACK = 0x2b2b2e;
+const BANDS = [C.white, C.white, BLACK, BLACK, C.white, C.white];
 
 export function buildLighthouse(ctx: PlaceContext): Place {
   const group = frameAt(ctx.track, ctx.at);
@@ -33,17 +43,19 @@ export function buildLighthouse(ctx: PlaceContext): Place {
   const tower = new THREE.Group();
   tower.position.set(at.x, base - 0.4, at.z);
 
-  const H = 16;
-  const stripes = 5;
+  // Taller and slimmer than it was: the real one is a hundred and twelve feet
+  // of brick cased in steel, and the proportion is most of the silhouette.
+  const H = 21;
+  const stripes = BANDS.length;
   for (let i = 0; i < stripes; i++) {
     const h = H / stripes;
-    const r0 = 2.9 - (i / stripes) * 1.0;
-    const r1 = 2.9 - ((i + 1) / stripes) * 1.0;
-    const band = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, h, 20), mat(i % 2 ? C.white : C.trim));
+    const r0 = 2.7 - (i / stripes) * 0.75;
+    const r1 = 2.7 - ((i + 1) / stripes) * 0.75;
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, h, 20), mat(BANDS[i]));
     band.position.y = h * i + h / 2;
     tower.add(band);
   }
-  const gallery = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 0.3, 20), mat(0x2b3a45));
+  const gallery = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 0.3, 20), mat(BLACK));
   gallery.position.y = H + 0.15;
   const glass = new THREE.MeshStandardMaterial({
     color: 0xfff6d8,
@@ -53,7 +65,7 @@ export function buildLighthouse(ctx: PlaceContext): Place {
   });
   const lantern = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 2.0, 12), glass);
   lantern.position.y = H + 1.3;
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(1.7, 1.6, 12), mat(C.trim));
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(1.7, 1.6, 12), mat(BLACK));
   roof.position.y = H + 3.1;
   tower.add(gallery, lantern, roof);
 
@@ -77,13 +89,19 @@ export function buildLighthouse(ctx: PlaceContext): Place {
   tower.add(beam);
 
   // the keeper's cottage, and the keeper
+  // The keeper's dwelling, attached to the foot of the tower the way the real
+  // one is: red brick, two storeys, with a dark pitched roof.
   const cottage = new THREE.Group();
-  cottage.position.set(4.5, 0, 5);
-  const walls = new THREE.Mesh(new THREE.BoxGeometry(4.5, 3, 5), mat(C.white));
-  walls.position.y = 1.5;
-  const cap = new THREE.Mesh(new THREE.BoxGeometry(5, 0.5, 5.6), mat(0x2f6f96));
-  cap.position.y = 3.2;
+  cottage.position.set(6.2, 0, 2);
+  const walls = new THREE.Mesh(new THREE.BoxGeometry(7, 5.4, 9), mat(C.brick));
+  walls.position.y = 2.7;
+  const cap = pitchedRoof(7.8, 9.6, 2.2, BLACK);
+  cap.position.y = 5.4;
   cottage.add(walls, cap);
+  // The covered way between the dwelling and the tower door.
+  const link = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3, 3), mat(C.brick));
+  link.position.set(-1.6, 1.5, 2);
+  cottage.add(link);
   tower.add(cottage);
   group.add(tower);
 

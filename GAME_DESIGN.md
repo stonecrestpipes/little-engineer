@@ -151,7 +151,7 @@ controls sit in the **bottom corners** where thumbs already are — never along 
 - **THE TWO VOICES** (bottom-left, small, above the whistle) — one says *All aboard!* and the other
   *Full steam ahead!*, in the same device voice that says hello. Each says the same thing every
   time, because that is the only way he can learn which is which without reading them.
-- **CAMERA** (top-left, small but clear) — cycles the three views.
+- **CAMERA** (top-left, small but clear) — cycles the four views.
 - **A drag anywhere on the railway** swings the view round, within limits that cannot put it
   underground or point it at the sky, and it eases back to the proper shot once he is moving again.
   A press that stays put still picks things up in the yard; a press that travels looks instead.
@@ -183,15 +183,30 @@ realism.
 
 ## Camera system
 
-One button, three fixed views, cycling in a fixed order so the sequence becomes predictable:
+One button, four fixed views, cycling in a fixed order — widest first, each one closer in than the
+last — so the sequence becomes predictable:
 
-1. **Wide** — the whole layout, train small, best for watching it go round. Default.
-2. **Follow** — close behind and slightly above the engine, track moving beneath. The "driving" view.
-3. **Trackside** — a low fixed shot near the rails; the train enters, passes, and leaves the frame.
-   Cinematic, and the one that makes a toy railway feel like a real one.
+1. **Wide** — the whole layout from 200 m up and 230 m back, train small, best for watching it go
+   round. Default.
+2. **Above** — a bird's-eye that follows the train from behind and about 36° above it, pulled back
+   far enough that the engine *and everything coupled to it* are in frame at once. How far back is
+   worked out from the train's actual length, so it frames a light engine and a three-car train
+   equally well. This is the view that answers "I want to see my whole train".
+3. **Follow** — 14.5 m behind the engine and 6.4 m up, looking 12 m ahead, track moving beneath.
+   The "driving" view. The engine fills the frame and the cars are mostly behind the camera.
+4. **Trackside** — a low fixed shot 10.5 m beside the rails, picking whichever of twelve anchors
+   the train is heading toward; the train enters, passes, and leaves the frame. Cinematic, and the
+   one that makes a toy railway feel like a real one.
 
-No free camera, no pinch-zoom, no drag. He cannot get the view stuck underground or aimed at the
-sky. Transitions are smooth glides, never cuts.
+**Pressing green from Wide brings the camera down to the train**, into *Above*. Setting off from a
+shot where the train is a speck means the one thing he just did is invisible, which makes the button
+feel broken. The other three views are already at train level and are left alone.
+
+No free camera and no pinch-zoom. A drag swings whichever view he is in, within limits that cannot
+put it underground or aimed at the sky, and a high shot is additionally floored at the ground
+beneath it — except while the engine is under the hill, where lifting the camera clear would put the
+hill between him and his own train for the best five seconds of the lap. Transitions are smooth
+glides, never cuts.
 
 ---
 

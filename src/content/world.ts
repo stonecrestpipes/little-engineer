@@ -99,11 +99,17 @@ const SEGMENTS: Record<string, number[][]> = {
   windmill: [[166, 30], [170, 4], [164, -20]],
   eastback: [[164, -20], [148, -34], [126, -36], [106, -40], [90, -56]],
 
-  // The coast line, right along the water's edge, up round the headland and
+  // The coast line, right along the water's edge, out round the headland and
   // back in to the west bank.
-  coast: [[-36, -92], [-60, -94], [-86, -104], [-110, -102]],
-  lighthouse: [[-110, -102], [-122, -88], [-118, -72]],
-  coastback: [[-118, -72], [-108, -62], [-96.5, -51], [-95, -38]],
+  //
+  // The headland leg is deliberately long, and deliberately straight for its
+  // last forty metres. A station is thirty-four metres of straight platform
+  // built in one frame, so putting one on a curve lays it across its own
+  // rails — which is exactly what used to happen here, and is the reason the
+  // building by the lighthouse sat in the middle of the track.
+  coast: [[-36, -92], [-62, -96], [-88, -106], [-112, -110]],
+  lighthouse: [[-112, -110], [-132, -106], [-142, -92], [-142, -74], [-138, -56]],
+  coastback: [[-138, -56], [-128, -58], [-116, -60], [-106, -56], [-99, -48], [-95, -38]],
 };
 
 const TUNNEL_WAY = ['hillfoot', 'bore', 'descent'];
@@ -227,6 +233,8 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       { x: -168, z: 58, radius: 96, height: 24 },
       { x: 40, z: 168, radius: 88, height: 19 },
       { x: -150, z: -150, radius: 84, height: 21 },
+      // the point the lighthouse stands on, out beyond the end of the branch
+      { x: -168, z: -94, radius: 40, height: 11 },
       { x: 186, z: -96, radius: 78, height: 17 },
     ],
     ponds: [
@@ -276,19 +284,59 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   ];
   // Each branch place is built on a loop that takes its branch.
   const onLoop = new Map<Place, number>();
-  const branchPlace = (build: (c: PlaceContext) => Place, segment: string, line: number) => {
+  const branchPlace = (
+    build: (c: PlaceContext) => Place,
+    segment: string,
+    line: number,
+    /** How far along the segment it stands. The middle, unless it needs to
+        be somewhere the rails are straighter than that. */
+    where = 0.5,
+  ) => {
     const loop = loops[line];
-    const place = build(context(loop.startOf(segment) + net.get(segment).length / 2, loop));
+    const place = build(context(loop.startOf(segment) + net.get(segment).length * where, loop));
     onLoop.set(place, line);
     places.push(place);
   };
   branchPlace(buildWindmill, 'windmill', BY_WINDMILL);
-  branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE);
+  branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE, 0.76);
   for (const place of places) {
     mergeStatic(place.group);
     scene.add(place.group);
   }
   const lineOf = (p: Place) => onLoop.get(p) ?? MAIN_LINE;
+
+  // A station is thirty-four metres of straight platform built in one frame.
+  // Put one where the rails bend and it lays itself across them, which is how
+  // the building by the lighthouse came to be standing in the middle of the
+  // track. Caught here, at build time, rather than by somebody noticing it in
+  // a screenshot three weeks later.
+  if (import.meta.env.DEV) {
+    const PLATFORM = 36;
+    const mid = new THREE.Vector3();
+    const fwd = new THREE.Vector3();
+    const here = new THREE.Vector3();
+    for (const place of places) {
+      if (!place.stop) continue;
+      const line = loops[lineOf(place)];
+      line.positionAt(place.stop.at, mid);
+      line.tangentAt(place.stop.at, fwd);
+      let worst = 0;
+      for (let d = -PLATFORM / 2; d <= PLATFORM / 2; d += 1.5) {
+        line.positionAt(place.stop.at + d, here).sub(mid);
+        worst = Math.max(worst, here.addScaledVector(fwd, -here.dot(fwd)).length());
+      }
+      // A gentle bend under a platform reads fine — the slab is low and the
+      // building on it is only twelve metres long. This is looking for the
+      // case where the rails leave the platform altogether and come back
+      // through the far end of it.
+      if (worst > 3.2) {
+        console.warn(
+          `world: the platform at ${place.stop.id} is on a curve — over its own ` +
+            `length the rails stray ${worst.toFixed(1)} m from the straight line it is built on`,
+        );
+      }
+    }
+  }
 
   // Each stop's distance is read live, in terms of whichever line the engine
   // is on now. A stop on the other line reads NaN and is never arrived at.

@@ -89,15 +89,18 @@ html, body {
 }
 #ui #btn-whistle svg { width: 52%; }
 
-#btn-camera {
+/* The `#ui button` rule above is a tag more specific than a bare id, so the
+   colour has to be set at the same strength or the icon is painted white on
+   a white button and the control looks blank. It was, for a while. */
+#ui #btn-camera {
   left: 32px;
   top: 32px;
   width: var(--camera);
   height: var(--camera);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   color: #2b3a45;
-  box-shadow: 0 4px 0 rgba(43, 58, 69, 0.18);
+  box-shadow: 0 4px 0 rgba(43, 58, 69, 0.22), 0 8px 18px rgba(43, 58, 69, 0.18);
 }
 #ui #btn-camera svg { width: 50%; }
 
@@ -106,7 +109,7 @@ html, body {
   transform: translateY(7px);
   box-shadow: 0 1px 0 rgba(43, 58, 69, 0.3);
 }
-#btn-camera.press { transform: translateY(3px); }
+#ui #btn-camera.press { transform: translateY(3px); }
 
 /* ------------------------------------------------------------- the voices */
 

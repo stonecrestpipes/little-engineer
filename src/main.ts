@@ -105,6 +105,7 @@ async function boot(): Promise<void> {
     wide: world.wide,
     tracksideAnchors: world.tracksideAnchors,
     yard: world.yardView,
+    groundAt: world.groundAt,
   });
 
   /**
@@ -213,7 +214,13 @@ async function boot(): Promise<void> {
   let hisView = false;
   const controls = mountControls({
     touched: used,
-    throttle: (v) => train.setThrottle(v),
+    throttle: (v) => {
+      train.setThrottle(v);
+      // Setting off from the shot of the whole railway, where the train is a
+      // speck: come down to it, so pressing green is visibly a thing he did
+      // to his train rather than to nothing in particular.
+      if (v > 0) rig.toTrain();
+    },
     reverse: (on) => {
       train.setReverse(on);
       if (on) journal.reversed();
@@ -433,7 +440,7 @@ async function boot(): Promise<void> {
     const home = inTheYard();
     if (!home) hisView = false;
     rig.showYard(home && !hisView);
-    rig.update(dt, train.distance, pos, fwd, train.moving);
+    rig.update(dt, train.distance, pos, fwd, train.moving, consist.length(roster.vehicles()));
     world.update(dt, t, trainState);
     controls.reflect({ moving: train.moving, atStop: train.atStop !== null });
 

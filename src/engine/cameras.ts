@@ -1,8 +1,17 @@
 import * as THREE from 'three';
 import type { Track } from './track';
 
-export type ViewName = 'wide' | 'follow' | 'trackside';
-export const VIEW_ORDER: ViewName[] = ['wide', 'follow', 'trackside'];
+export type ViewName = 'wide' | 'above' | 'follow' | 'trackside';
+/**
+ * The order the one button cycles, widest first, each shot closer in than the
+ * one before it. `above` sits where the gap was: from `wide` the train is a
+ * speck, and `follow` is close enough behind the engine that the cars it is
+ * pulling are off the bottom of the screen.
+ */
+export const VIEW_ORDER: ViewName[] = ['wide', 'above', 'follow', 'trackside'];
+
+/** The two shots that are of the railway rather than of the train. */
+const OF_THE_RAILWAY: ViewName[] = ['wide'];
 
 export interface RigOptions {
   /** where the whole-layout shot sits, and what it looks at */
@@ -11,6 +20,8 @@ export interface RigOptions {
   tracksideAnchors: THREE.Vector3[];
   /** looking into the yard at The Sheds, where he picks his train */
   yard: { position: THREE.Vector3; target: THREE.Vector3 };
+  /** Ground height anywhere, so a high shot never ends up inside a hill. */
+  groundAt(x: number, z: number): number;
 }
 
 /** How far a drag can swing the view round, and how far it can tilt. */
@@ -24,7 +35,7 @@ const TILT_RATE = 0.0035;
 const UP = new THREE.Vector3(0, 1, 0);
 
 /**
- * Three fixed views on one button, and a drag that swings whichever one he is
+ * Four fixed views on one button, and a drag that swings whichever one he is
  * in. The drag cannot get the view stuck underground or pointing at the sky —
  * it only ever orbits what the shot was already looking at, within limits —
  * and it eases back to the proper shot as soon as the train is moving again.
@@ -54,6 +65,8 @@ export class CameraRig {
   private swing = 0;
   private tilt = 0;
   private yard = false;
+  /** End to end of engine and cars, so `above` frames whatever he is pulling. */
+  private trainLength = 6;
 
   constructor(
     private readonly camera: THREE.PerspectiveCamera,
@@ -71,6 +84,20 @@ export class CameraRig {
     // Asking for a view is asking for that view, not for the yard.
     this.showYard(false);
     return this.view;
+  }
+
+  /**
+   * He has set off from a shot of the whole railway, where the train is a
+   * speck and nothing he does to it is visible. Come down to it.
+   *
+   * Only from `wide`: `above` already holds the whole train, and `follow` and
+   * `trackside` are at train level already. The glide is the ordinary one, so
+   * this reads as the camera coming down to meet him rather than a cut.
+   */
+  toTrain(): void {
+    if (!OF_THE_RAILWAY.includes(this.view)) return;
+    this.view = 'above';
+    this.recentre();
   }
 
   /**
@@ -106,7 +133,9 @@ export class CameraRig {
     trainPos: THREE.Vector3,
     trainFwd: THREE.Vector3,
     moving = false,
+    trainLength = this.trainLength,
   ): void {
+    this.trainLength = trainLength;
     if (this.yard) {
       this.wantPos.copy(this.opts.yard.position);
       this.wantAim.copy(this.opts.yard.target);
@@ -116,6 +145,24 @@ export class CameraRig {
           this.wantPos.copy(this.opts.wide.position);
           this.wantAim.copy(this.opts.wide.target);
           break;
+
+        case 'above': {
+          // High and behind, far enough back that the engine and everything
+          // coupled to it are all in frame at once — which is the whole point
+          // of this shot, so the reach is worked out from the train's length
+          // rather than fixed. Aimed at the middle of the train, not the
+          // front of it, so the cars are not pushed off the bottom.
+          const reach = 14 + this.trainLength * 0.8;
+          this.wantPos
+            .copy(trainPos)
+            .addScaledVector(trainFwd, -reach)
+            .add(new THREE.Vector3(0, reach * 0.58, 0));
+          this.wantAim
+            .copy(trainPos)
+            .addScaledVector(trainFwd, -this.trainLength * 0.35)
+            .add(new THREE.Vector3(0, 1.2, 0));
+          break;
+        }
 
         case 'follow':
           this.wantPos
@@ -157,7 +204,23 @@ export class CameraRig {
     }
 
     this.camera.position.copy(this.swung());
+    this.floor(trainPos);
     this.camera.lookAt(this.aim);
+  }
+
+  /**
+   * Keep the camera above the ground.
+   *
+   * Only while the engine itself is out in the open. Under the hill the
+   * ground over the tunnel stands eighteen metres up, and lifting the camera
+   * clear of that would put the hill between him and his own train for the
+   * five seconds that are the best part of the lap.
+   */
+  private floor(trainPos: THREE.Vector3): void {
+    if (this.opts.groundAt(trainPos.x, trainPos.z) > 3) return;
+    const p = this.camera.position;
+    const ground = this.opts.groundAt(p.x, p.z) + 2.5;
+    if (p.y < ground) p.y = ground;
   }
 
   /** Pick the trackside shot the train is heading toward. */

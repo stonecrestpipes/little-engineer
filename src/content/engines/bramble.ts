@@ -46,8 +46,10 @@ export const bramble: EngineSpec = {
     wheelRadius: WHEEL_RADIUS,
     wheelGauge: 1.1,
     faceRadius: 1.16,
-    // Engine and tender over the buffers, which is what the cars couple to.
-    length: 11.4,
+    // Engine and tender *over the buffers*, which is what the cars couple to —
+    // not nose to tail. Measured 11.4 and the buffers stick out past both
+    // ends, which left the first coach a hundred millimetres off the tender.
+    length: 11.7,
   },
   shape: { funnelHeight: 1.06, funnelFlare: 0.85, dome: true },
   driving: {

@@ -38,10 +38,19 @@ const BAYS = 5;
 /** Which way the middle road points, and how far the others spread from it. */
 const FAN_BEARING = 235;
 const FAN_SPREAD = 22.5;
-/** Radius of the doors, of a standing engine, and of the back wall. */
+/**
+ * Radius of the doors and of the back wall.
+ *
+ * Deep enough for the longest engine on the railway, which is the tender one
+ * at eleven and a half metres against everyone else's six. Every engine used
+ * to stand at the same radius, which worked for exactly as long as they were
+ * all the same length: the red one hung out of the doorway and over the
+ * turntable at one end and through the back wall at the other.
+ */
 const DOOR_R = 11;
-const ENGINE_R = 16;
-const BACK_R = 21;
+const BACK_R = 25;
+/** Where an engine of a given length stands: buffers just inside the door. */
+const standsAt = (length: number): number => DOOR_R + 1.8 + length / 2;
 
 /**
  * The two throat roads, each as a bearing off the turntable and a list of
@@ -187,10 +196,16 @@ export function buildSheds(ctx: PlaceContext): Place {
       wall.position.set((side * W) / 2, H / 2, mid);
       bay.add(wall);
     }
-    const back = new THREE.Mesh(new THREE.BoxGeometry(W, H, 0.5), mat(C.brick));
+    // The back wall and the roof are cut to the spacing of the roads at the
+    // *back* of the shed, not at the doors. The roads fan apart as they go in,
+    // so a back wall the width of a doorway leaves daylight between every bay
+    // and a roof the same width leaves the roofline notched like a saw. They
+    // overlap their neighbours at the front instead, which is just brick.
+    const SPAN = 2 * BACK_R * Math.sin(rad(FAN_SPREAD / 2)) + 0.6;
+    const back = new THREE.Mesh(new THREE.BoxGeometry(SPAN, H, 0.5), mat(C.brick));
     back.position.set(0, H / 2, BACK_R - 0.25);
     bay.add(back);
-    const roof = new THREE.Mesh(new THREE.BoxGeometry(W + 0.5, 0.5, depth + 1.8), mat(C.slate));
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(SPAN, 0.5, depth + 1.8), mat(C.slate));
     roof.position.set(0, H + 0.2, DOOR_R + 0.9 + depth / 2);
     bay.add(roof);
 
@@ -260,9 +275,11 @@ export function buildSheds(ctx: PlaceContext): Place {
   // and of the nearest roundhouse road, and far enough over that the whole
   // line of them is in the yard shot rather than out at the edge of it.
   group.add(siding(-13, -49, -1));
-  // And the pilot's own road beside it, so the little engine has somewhere to
-  // work that is not on top of the rake it is working.
-  group.add(siding(-18, -34, -8));
+  // And the pilot's own road, so the little engine has somewhere to work that
+  // is not on top of the rake it is working. It sits between the spare cars
+  // and the running line: the far side belongs to the roundhouse now that its
+  // roads are deep enough for a tender engine.
+  group.add(siding(-6, -42, -18));
 
   // --------------------------------------------------------- the yard pilot
   // A little four-wheeled saddle tank that lives in the yard and never leaves
@@ -395,7 +412,8 @@ export function buildSheds(ctx: PlaceContext): Place {
       const road = roadOf.get(mesh.spec.id) ?? 0;
       // Anything the shunt is driving is where the shunt says it is.
       if (shunting.holds(mesh.group)) continue;
-      parkAt(mesh.group, off(bayBearing(road), ENGINE_R), rad(bayBearing(road)) + Math.PI);
+      const stand = standsAt(mesh.spec.dims.length ?? 6);
+      parkAt(mesh.group, off(bayBearing(road), stand), rad(bayBearing(road)) + Math.PI);
       parked.push({ object: mesh.group, engine: mesh.spec.id, road, y: mesh.group.position.y });
     }
     ctx.roster.spareCars().forEach((mesh, i) => {
@@ -419,8 +437,8 @@ export function buildSheds(ctx: PlaceContext): Place {
   };
 
   /** Out of road `i` as far as the turntable, in world space. */
-  const outOfRoad = (road: number) =>
-    [ENGINE_R, DOOR_R - 1, 4].map((r) => at(off(bayBearing(road), r)));
+  const outOfRoad = (road: number, length: number) =>
+    [standsAt(length), DOOR_R - 1, 4].map((r) => at(off(bayBearing(road), r)));
   /** A throat road, in world space, running outward from the turntable. */
   const throatWorld = (spec: typeof ARRIVAL) => throat(spec).map(at);
 
@@ -449,8 +467,8 @@ export function buildSheds(ctx: PlaceContext): Place {
   // belongs to the yard's own frame. Handing it a world path put it through
   // the yard's transform twice and left the engine seventy metres out in a
   // field. A straight run along one siding does not need a curve anyway.
-  const PILOT_ROAD: [number, number] = [-31, -11];
-  const PILOT_X = -18;
+  const PILOT_ROAD: [number, number] = [-39, -21];
+  const PILOT_X = -6;
   /** Where it is on its road, where it is going, and how long it is standing. */
   let pilotZ = PILOT_ROAD[0];
   let pilotWant = PILOT_ROAD[1];
@@ -523,7 +541,7 @@ export function buildSheds(ctx: PlaceContext): Place {
       arrived() {
         shunting.start({
           object: outgoing.group,
-          path: [...onTrack(inJoin, inJoin - 6), ...throatWorld(ARRIVAL).reverse(), ...outOfRoad(home).reverse()],
+          path: [...onTrack(inJoin, inJoin - 6), ...throatWorld(ARRIVAL).reverse(), ...outOfRoad(home, outgoing.spec.dims.length ?? 6).reverse()],
           speed: BACK,
           facing: -1,
           wait: 0.4,
@@ -538,7 +556,7 @@ export function buildSheds(ctx: PlaceContext): Place {
     // --- and the new one, out past the platform and back onto the train
     shunting.start({
       object: incoming.group,
-      path: [...outOfRoad(road), ...throatWorld(DEPARTURE), ...onTrack(outJoin - 8, outJoin)],
+      path: [...outOfRoad(road, incoming.spec.dims.length ?? 6), ...throatWorld(DEPARTURE), ...onTrack(outJoin - 8, outJoin)],
       speed: OUT,
       // Long enough for its door to be properly out of the way.
       wait: 1.1,

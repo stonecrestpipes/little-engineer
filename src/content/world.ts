@@ -30,6 +30,7 @@ import { buildLighthouse } from './places/lighthouse';
 import { buildWoods } from './places/woods';
 import { buildRanch } from './places/ranch';
 import { buildCity } from './places/city';
+import { buildDrawbridge } from './places/drawbridge';
 
 /** Somewhere the railway divides and he gets to choose. */
 export interface Junction {
@@ -270,6 +271,14 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   const BRIDGE_HALF = 17;
   const bridge = { from: bridgeAt - BRIDGE_HALF, to: bridgeAt + BRIDGE_HALF };
 
+  // The creek the lighthouse line crosses, and the drawbridge over it. It is
+  // on a branch, which is new: free spans used to work only on the main line
+  // because every sample off it reported a distance outside every span.
+  const COAST_LINE = 3;
+  const DRAW_HALF = 13;
+  const drawAt = 24;
+  const draw = { line: COAST_LINE, from: drawAt - DRAW_HALF, to: drawAt + DRAW_HALF };
+
   // The yard beside The Sheds wants to be flat ground rather than country,
   // since a siding and a line of stock stand on it.
   //
@@ -316,7 +325,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
 
   // -------------------------------------------------------------- terrain
   const terrain = buildTerrain([route, ...branches], {
-    freeSpans: [bridge],
+    freeSpans: [bridge, draw],
     river: RIVER,
     riverDepth: 11,
     riverWidth: 7,
@@ -341,6 +350,8 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       { x: 20, z: -12, radius: 28, depth: 9 },
       // and the harbour basin, dug in behind the quay
       { x: -8, z: -118, radius: 42, depth: 12 },
+      // the creek under the drawbridge, which runs out into the sea
+      { x: -55, z: -97, radius: 25, depth: 11 },
     ],
     // The city stands on level ground, the way a city does.
     flats: [yard, ranchField, cityGround],
@@ -401,6 +412,22 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE, 0.76);
   branchPlace(buildRanch, 'ranch', BY_WOODS);
   branchPlace(buildCity, 'cityrun', BY_CITY);
+
+  // The drawbridge is a length of railway rather than a point on it, like the
+  // tunnel and the river bridge, so it is given its span as well as its
+  // middle — measured on the loop that takes the coast, since that is the
+  // only way round that crosses the creek at all.
+  {
+    const loop = loops[BY_LIGHTHOUSE];
+    const base = loop.startOf('coast');
+    const place = buildDrawbridge({
+      ...context(base + drawAt, loop),
+      from: base + draw.from,
+      to: base + draw.to,
+    });
+    onLoop.set(place, BY_LIGHTHOUSE);
+    places.push(place);
+  }
 
   // The woods are the one place that is a length of railway rather than a
   // point on it: the canopy has to close over the whole run or it is just

@@ -94,6 +94,79 @@ export function buildHarbour(ctx: PlaceContext): Place {
     boats.push({ group: b, funnel, phase: i * 2.1, bob: b.position.y });
   }
 
+  // ----------------------------------------------------------- the Badger
+  // The car ferry, lying alongside the quay: black hull, white decks, one big
+  // funnel. She is four times the size of anything else on the water here,
+  // which is the point of her — she is the one thing on this map that is a
+  // real ship from a real place rather than an invented one.
+  const badger = new THREE.Group();
+  badger.position.set(-30, WATER_LEVEL, 2);
+  const L = 34;
+  const BEAM = 8.4;
+
+  const black = mat(0x22262b);
+  const white = mat(0xf0ece2);
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(BEAM, 4.6, L), black);
+  hull.position.y = 1.4;
+  badger.add(hull);
+  // A raked bow, so she is not simply a brick.
+  const bow = new THREE.Mesh(new THREE.CylinderGeometry(BEAM / 2, BEAM / 2, 4.6, 16, 1, false, -Math.PI / 2, Math.PI), black);
+  bow.position.set(0, 1.4, L / 2);
+  badger.add(bow);
+  const boot = new THREE.Mesh(new THREE.BoxGeometry(BEAM + 0.2, 0.5, L + 0.2), mat(C.trim));
+  boot.position.y = 3.5;
+  badger.add(boot);
+  // The car deck, open at the stern where the trains and lorries drive on.
+  const carDeck = new THREE.Mesh(new THREE.BoxGeometry(BEAM, 0.4, L), white);
+  carDeck.position.y = 3.9;
+  badger.add(carDeck);
+  for (const side of [-1, 1] as const) {
+    const bulwark = new THREE.Mesh(new THREE.BoxGeometry(0.4, 3.2, L - 6), white);
+    bulwark.position.set((side * BEAM) / 2, 5.6, 1);
+    badger.add(bulwark);
+  }
+  // Two decks of superstructure, set back from the bow.
+  const house = new THREE.Mesh(new THREE.BoxGeometry(BEAM - 1.4, 3.0, 15), white);
+  house.position.set(0, 7.6, -2);
+  const upper = new THREE.Mesh(new THREE.BoxGeometry(BEAM - 2.6, 2.6, 10), white);
+  upper.position.set(0, 10.4, -1);
+  const bridgeHouse = new THREE.Mesh(new THREE.BoxGeometry(BEAM - 2.0, 2.2, 4.2), white);
+  bridgeHouse.position.set(0, 12.8, 2.4);
+  badger.add(house, upper, bridgeHouse);
+  for (const side of [-1, 1] as const) {
+    for (let i = 0; i < 6; i++) {
+      const port = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.7, 1.0), mat(0x2b3a45, 0.4));
+      port.position.set((side * (BEAM - 1.4)) / 2, 7.8, -8 + i * 2.6);
+      badger.add(port);
+    }
+    // Lifeboats under their davits, which is most of what says "ship".
+    for (const z of [-5, 1]) {
+      const lifeboat = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 2.2, 3, 7), mat(0xe8a33d));
+      lifeboat.rotation.x = Math.PI / 2;
+      lifeboat.position.set((side * (BEAM - 1.2)) / 2, 9.6, z);
+      badger.add(lifeboat);
+    }
+  }
+  // The funnel: tall, upright and black-topped.
+  const funnelBody = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.7, 5.2, 16), white);
+  funnelBody.position.set(0, 14.2, -3.5);
+  const funnelCap = new THREE.Mesh(new THREE.CylinderGeometry(1.52, 1.52, 1.4, 16), black);
+  funnelCap.position.set(0, 17.5, -3.5);
+  badger.add(funnelBody, funnelCap);
+  const foremast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 9, 6), white);
+  foremast.position.set(0, 18, 3);
+  badger.add(foremast);
+
+  group.add(badger);
+  shadowed(badger);
+
+  // The gangway and the mooring lines, so she reads as tied up rather than
+  // parked.
+  const gangway = new THREE.Mesh(new THREE.BoxGeometry(8, 0.3, 2.2), mat(0x9e7b58));
+  gangway.position.set(-22.5, 3.4, -4);
+  gangway.rotation.z = -0.08;
+  group.add(gangway);
+
   // a few bollards, and someone fishing off the end
   for (const z of [-20, -6, 8, 20]) {
     const bollard = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.42, 0.9, 8), mat(C.slate));
@@ -112,7 +185,7 @@ export function buildHarbour(ctx: PlaceContext): Place {
   let hornAt = -99;
   let answered = -99;
 
-  moving(...cranes, ...boats.map((b) => b.group), ...boats.map((b) => b.funnel));
+  moving(...cranes, ...boats.map((b) => b.group), ...boats.map((b) => b.funnel), badger);
 
   return {
     group,
@@ -125,7 +198,7 @@ export function buildHarbour(ctx: PlaceContext): Place {
     },
     whistle(train) {
       if (!isNear(ctx.track, train, ctx.at, 60)) return;
-      // The boat takes a moment to answer, the way a big thing does.
+      // The Badger takes a moment to answer, the way a big thing does.
       if (clock - answered > 1.6) {
         answered = clock;
         hornAt = clock + 0.75;
@@ -140,6 +213,10 @@ export function buildHarbour(ctx: PlaceContext): Place {
         b.group.rotation.z = Math.sin(elapsed * 0.7 + b.phase) * 0.035;
         b.group.rotation.x = Math.cos(elapsed * 0.55 + b.phase) * 0.03;
       }
+      // She is far too big to bob, but she breathes.
+      badger.position.y = WATER_LEVEL + Math.sin(elapsed * 0.4) * 0.07;
+      badger.rotation.z = Math.sin(elapsed * 0.33) * 0.008;
+
       // The near boat lifts its funnel a little as it sounds off.
       const since = elapsed - hornAt;
       const blast = since > 0 && since < 1.8 ? Math.sin((since / 1.8) * Math.PI) : 0;

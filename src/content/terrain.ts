@@ -49,8 +49,13 @@ export interface Hill {
 }
 
 export interface TerrainSpec {
-  /** route spans where the rails are not on the ground: bridges and tunnels */
-  freeSpans: { from: number; to: number }[];
+  /**
+   * Spans where the rails are not on the ground — bridges and tunnels. `line`
+   * is which of the tracks it is measured along: 0 is the main line, and the
+   * branches follow in the order they were handed over. Leaving it out means
+   * the main line, which is where all of them used to be.
+   */
+  freeSpans: { line?: number; from: number; to: number }[];
   /** the river, as a centre line from source to sea */
   river: [number, number][];
   /** how deep the river runs, and how wide before it shelves out */
@@ -86,11 +91,13 @@ class TrackProximity {
   private readonly xs: number[] = [];
   private readonly zs: number[] = [];
   private readonly ds: number[] = [];
+  private readonly ls: number[] = [];
 
   /**
-   * The first track is the main line, and `at` is measured along it. Samples
-   * from any other line (a branch) report an `at` far outside every free span,
-   * since only the main line has bridges or tunnels to lift the ground for.
+   * Each sample remembers which line it came from as well as how far along it
+   * is, so a branch can carry a bridge too. It could not before: every sample
+   * off the main line reported a distance far outside every span, which is
+   * why the only water the railway crossed was on the main line.
    */
   constructor(tracks: Track[], step = 1.5) {
     const p = new THREE.Vector3();
@@ -102,7 +109,8 @@ class TrackProximity {
         const index = this.xs.length;
         this.xs.push(p.x);
         this.zs.push(p.z);
-        this.ds.push(line === 0 ? d : -1e6);
+        this.ls.push(line);
+        this.ds.push(d);
         const key = this.key(p.x, p.z);
         const bucket = this.buckets.get(key);
         if (bucket) bucket.push(index);
@@ -115,10 +123,11 @@ class TrackProximity {
     return (Math.floor(x / this.cell) + 2048) * 4096 + (Math.floor(z / this.cell) + 2048);
   }
 
-  /** Distance to the rails, and how far along the route the nearest point is. */
-  nearest(x: number, z: number): { distance: number; at: number } {
+  /** Distance to the rails, which line is nearest, and how far along it. */
+  nearest(x: number, z: number): { distance: number; at: number; line: number } {
     let best = Infinity;
     let bestAt = 0;
+    let bestLine = 0;
     const cx = Math.floor(x / this.cell);
     const cz = Math.floor(z / this.cell);
     for (let ix = cx - 1; ix <= cx + 1; ix++) {
@@ -132,11 +141,12 @@ class TrackProximity {
           if (d2 < best) {
             best = d2;
             bestAt = this.ds[i];
+            bestLine = this.ls[i];
           }
         }
       }
     }
-    return { distance: Math.sqrt(best), at: bestAt };
+    return { distance: Math.sqrt(best), at: bestAt, line: bestLine };
   }
 }
 
@@ -175,10 +185,11 @@ export function buildTerrain(tracks: Track[], spec: TerrainSpec): Terrain {
 
   const near = new TrackProximity(tracks);
 
-  /** Whether the rails at this point along the route are off the ground. */
-  const carried = (at: number): number => {
+  /** Whether the rails at this point along this line are off the ground. */
+  const carried = (at: number, line: number): number => {
     let most = 0;
     for (const span of freeSpans) {
+      if ((span.line ?? 0) !== line) continue;
       // Feathered at the ends so the ground does not step where a bridge
       // meets an embankment.
       const inside = Math.min(
@@ -225,9 +236,9 @@ export function buildTerrain(tracks: Track[], spec: TerrainSpec): Terrain {
   /** Natural ground, pulled level with the rails wherever they run on it. */
   const heightAt = (x: number, z: number): number => {
     const h = natural(x, z);
-    const { distance, at } = near.nearest(x, z);
+    const { distance, at, line } = near.nearest(x, z);
     let grip = Number.isFinite(distance)
-      ? (1 - smoothstep(CORRIDOR, BLEND, distance)) * (1 - carried(at))
+      ? (1 - smoothstep(CORRIDOR, BLEND, distance)) * (1 - carried(at, line))
       : 0;
     for (const flat of flats) {
       const dx = x - flat.x;

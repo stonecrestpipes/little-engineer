@@ -113,6 +113,12 @@ reading:
   answers. It is the brick tunnel done in leaves, and it is the reason to take that branch.
 - **The building site**, at the end of the city's street — one more tower going up, with a
   tower crane that swings all day, a digger working its arm, scaffolding and hoardings.
+- **The drawbridge**, where the lighthouse line crosses the creek — it stands *up*, not down,
+  with a boat putting through underneath, and rings its bell and lowers itself as he comes round the
+  bend. It cannot fail and cannot catch him out: if he arrives early it hurries.
+- **The SS Badger** alongside the quay at The Harbour — the Ludington car ferry, black hull, white
+  decks, one big funnel, four times the size of anything else on the water. She is what answers the
+  whistle now.
 - **The ranch**, at the top of the same branch — a fenced field with a pool in it and
   eight capybaras, two of them standing in the water. Whistle and every head turns toward
   the engine and they squeak back; the two in the pool heave themselves up out of it.

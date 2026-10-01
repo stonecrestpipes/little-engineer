@@ -30,7 +30,7 @@ import { buildLighthouse } from './places/lighthouse';
 
 /** Somewhere the railway divides and he gets to choose. */
 export interface Junction {
-  id: 'farm' | 'coast';
+  id: 'woods' | 'farm' | 'coast' | 'city';
   /** Which bit of the loop number this junction decides. */
   bit: number;
   /** How far round the points are, on a given loop. */
@@ -82,7 +82,11 @@ export interface World {
 const SEGMENTS: Record<string, number[][]> = {
   sheds: [[-92, 34], [-88, 56], [-78, 74]],
   meadow: [[-78, 74], [-56, 88], [-28, 96], [-2, 98]],
-  farm: [[-2, 98], [26, 94], [52, 84]],
+  farm: [[-2, 98], [26, 94], [40, 90]],
+  // A short run between where the woods branch comes back in and where the
+  // windmill branch goes out, so the two sets of arrows are never on screen
+  // at the same moment.
+  farmend: [[40, 90], [52, 84]],
   hillfoot: [[52, 84], [78, 68], [96, 46]],
   bore: [[96, 46], [106, 22], [108, -4]],
   descent: [[108, -4], [104, -32], [90, -56]],
@@ -91,10 +95,13 @@ const SEGMENTS: Record<string, number[][]> = {
   shore: [[-36, -92], [-64, -84], [-84, -64]],
   // Split where the coast line comes back in.
   westbank: [[-84, -64], [-95, -38]],
-  westfield: [[-95, -38], [-96, -4], [-92, 34]],
+  westfield: [[-95, -38], [-96, -4]],
+  // And split again where the city line goes out.
+  westhome: [[-96, -4], [-94, 16], [-92, 34]],
 
-  // The branch. Kept well out on the far side of the hill, where the ground
-  // is nearly level, so laying it does not carve a canyon next to the tunnel.
+  // The windmill branch. Kept well out on the far side of the hill, where the
+  // ground is nearly level, so laying it does not carve a canyon next to the
+  // tunnel.
   eastline: [[52, 84], [78, 74], [104, 76], [130, 70], [152, 54], [166, 30]],
   windmill: [[166, 30], [170, 4], [164, -20]],
   eastback: [[164, -20], [148, -34], [126, -36], [106, -40], [90, -56]],
@@ -110,25 +117,57 @@ const SEGMENTS: Record<string, number[][]> = {
   coast: [[-36, -92], [-62, -96], [-88, -106], [-112, -110]],
   lighthouse: [[-112, -110], [-132, -106], [-142, -92], [-142, -74], [-138, -56]],
   coastback: [[-138, -56], [-128, -58], [-116, -60], [-106, -56], [-99, -48], [-95, -38]],
+
+  // The woods, north of the meadow: a long way round through the forest and
+  // out across the ranch, instead of the short run past The Farm. The longest
+  // branch on the railway and the only one that is entirely inland.
+  woods: [[-2, 98], [2, 122], [14, 142], [34, 152]],
+  ranch: [[34, 152], [60, 154], [84, 146]],
+  woodsback: [[84, 146], [98, 128], [92, 110], [70, 97], [40, 90]],
+
+  // And the city, out west, instead of the last straight run home.
+  city: [[-96, -4], [-122, -10], [-146, 2], [-156, 24]],
+  cityback: [[-156, 24], [-150, 46], [-130, 56], [-110, 50], [-92, 34]],
 };
 
+const FARM_WAY = ['farm'];
+const WOODS_WAY = ['woods', 'ranch', 'woodsback'];
 const TUNNEL_WAY = ['hillfoot', 'bore', 'descent'];
 const WINDMILL_WAY = ['eastline', 'windmill', 'eastback'];
 const HOME_WAY = ['shore', 'westbank'];
 const COAST_WAY = ['coast', 'lighthouse', 'coastback'];
+const HOME_RUN = ['westhome'];
+const CITY_WAY = ['city', 'cityback'];
 
-/** Loop number bits: which branches a loop takes. */
-const BY_WINDMILL = 1;
-const BY_LIGHTHOUSE = 2;
+/**
+ * Loop number bits: which branches a loop takes. Four junctions, so sixteen
+ * whole loops — which costs almost nothing, because a loop is a list of
+ * references to the same segments everything else is built from.
+ */
+const BY_WOODS = 1;
+const BY_WINDMILL = 2;
+const BY_LIGHTHOUSE = 4;
+const BY_CITY = 8;
 
-/** The segments of loop `n`, from The Sheds round to The Sheds. */
+/**
+ * The segments of loop `n`, from The Sheds round to The Sheds.
+ *
+ * Every loop passes every junction, in the same order. That is not a style
+ * choice: `Lines` can only move between loops while they are still running
+ * over the same rails, and the arrows ask a route where its points are — so a
+ * loop that skipped a junction would have nowhere to put the question.
+ */
 const loopOf = (n: number): string[] => [
-  'sheds', 'meadow', 'farm',
+  'sheds', 'meadow',
+  ...(n & BY_WOODS ? WOODS_WAY : FARM_WAY),
+  'farmend',
   ...(n & BY_WINDMILL ? WINDMILL_WAY : TUNNEL_WAY),
   'rivermouth', 'harbour',
   ...(n & BY_LIGHTHOUSE ? COAST_WAY : HOME_WAY),
   'westfield',
+  ...(n & BY_CITY ? CITY_WAY : HOME_RUN),
 ];
+const LOOPS = 16;
 const MAIN_LINE = 0;
 
 /** From the pond in the middle of the loop, out under the bridge, to the sea. */
@@ -150,16 +189,21 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   // The main line is chained first, so where a branch joins on it is the
   // main line's neighbour that shapes the curve through the joint.
   net.chain(loopOf(MAIN_LINE), true);
-  net.chain(WINDMILL_WAY);
-  net.chain(COAST_WAY);
-  net.join({ segment: 'farm', end: 'end' }, { segment: 'eastline', end: 'start' });
+  for (const way of [WOODS_WAY, WINDMILL_WAY, COAST_WAY, CITY_WAY]) net.chain(way);
+  net.join({ segment: 'meadow', end: 'end' }, { segment: 'woods', end: 'start' });
+  net.join({ segment: 'woodsback', end: 'end' }, { segment: 'farmend', end: 'start' });
+  net.join({ segment: 'farmend', end: 'end' }, { segment: 'eastline', end: 'start' });
   net.join({ segment: 'eastback', end: 'end' }, { segment: 'rivermouth', end: 'start' });
   net.join({ segment: 'harbour', end: 'end' }, { segment: 'coast', end: 'start' });
   net.join({ segment: 'coastback', end: 'end' }, { segment: 'westfield', end: 'start' });
-  const loops: Route[] = [0, 1, 2, 3].map((n) => net.route(loopOf(n).map((segment) => ({ segment }))));
+  net.join({ segment: 'westfield', end: 'end' }, { segment: 'city', end: 'start' });
+  net.join({ segment: 'cityback', end: 'end' }, { segment: 'sheds', end: 'start' });
+  const loops: Route[] = Array.from({ length: LOOPS }, (_, n) =>
+    net.route(loopOf(n).map((segment) => ({ segment }))),
+  );
   const route = loops[MAIN_LINE];
   /** Just the branches, for laying rails and shaping the ground. */
-  const branches: Route[] = [WINDMILL_WAY, COAST_WAY].map((way) =>
+  const branches: Route[] = [WOODS_WAY, WINDMILL_WAY, COAST_WAY, CITY_WAY].map((way) =>
     net.route(way.map((segment) => ({ segment })), false),
   );
 
@@ -167,8 +211,10 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   const convert = (at: number, from: number, to: number) => lines.convert(at, from, to);
   const junctions: Junction[] = (
     [
+      { id: 'woods', bit: BY_WOODS, main: 'farm', branch: 'woods' },
       { id: 'farm', bit: BY_WINDMILL, main: 'hillfoot', branch: 'eastline' },
       { id: 'coast', bit: BY_LIGHTHOUSE, main: 'shore', branch: 'coast' },
+      { id: 'city', bit: BY_CITY, main: 'westhome', branch: 'city' },
     ] as const
   ).map(({ id, bit, main, branch }) => ({
     id,
@@ -229,13 +275,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     hills: [
       // the one the tunnel goes through, sat squarely on the line
       { x: 107, z: 16, radius: 66, height: 18 },
-      // and the far ones, so the horizon is not a hard edge
-      { x: -168, z: 58, radius: 96, height: 24 },
-      { x: 40, z: 168, radius: 88, height: 19 },
+      // and the far ones, so the horizon is not a hard edge. These sit beyond
+      // the new branches rather than under them: a hill the railway is laid
+      // through is a cutting the railway has to be dug out of, and the woods
+      // and the city branches both used to run straight into one.
+      { x: -222, z: 112, radius: 104, height: 26 },
+      { x: 26, z: 236, radius: 96, height: 22 },
       { x: -150, z: -150, radius: 84, height: 21 },
       // the point the lighthouse stands on, out beyond the end of the branch
       { x: -168, z: -94, radius: 40, height: 11 },
       { x: 186, z: -96, radius: 78, height: 17 },
+      // low rising ground north of the meadow, for the woods to climb into
+      { x: 10, z: 148, radius: 74, height: 9 },
     ],
     ponds: [
       // the pond the river comes from
@@ -243,7 +294,8 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       // and the harbour basin, dug in behind the quay
       { x: -8, z: -118, radius: 42, depth: 12 },
     ],
-    flats: [yard],
+    // The city stands on level ground, the way a city does.
+    flats: [yard, { x: -142, z: 24, radius: 34, blend: 24 }],
     shore: -100,
     deep: -128,
     seaDepth: 15,
@@ -428,11 +480,13 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     return v;
   };
 
-  // Centred a little east of the loop, so the branch round the far side of
-  // the hill is in the picture as well and not hiding behind the buttons.
+  // Far enough out to hold the whole railway now that there are four branches
+  // on it: the woods away north, the city away west, the windmill east and the
+  // headland south-west. Centred a touch east and north of the main loop so
+  // none of them is hiding behind the driving buttons.
   const wide = {
-    position: new THREE.Vector3(22, 200, 262),
-    target: new THREE.Vector3(22, 0, 28),
+    position: new THREE.Vector3(8, 250, 300),
+    target: new THREE.Vector3(8, 0, 34),
   };
 
   /**

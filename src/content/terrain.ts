@@ -28,8 +28,16 @@ export const WATER_LEVEL = -3.2;
 const CORRIDOR = 7;
 const BLEND = 19;
 
-const MAP = 520;
-const GRID = 200;
+/**
+ * How much country there is, and how finely it is modelled.
+ *
+ * Big enough that the edge of it is beyond the far end of the fog from every
+ * shot the game actually uses — otherwise the wide view shows the world
+ * stopping. The grid is sized to keep cells at about two and a half metres,
+ * which is what the rolling ground needs to stay smooth under the rails.
+ */
+const MAP = 700;
+const GRID = 268;
 
 export interface Hill {
   x: number;

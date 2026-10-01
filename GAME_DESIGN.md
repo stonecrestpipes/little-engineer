@@ -87,8 +87,8 @@ asked — see the build log. What never moved is the *nothing else*.)
 A single continuous loop, laid out so that most of it is visible at once in Wide view — the feel of
 looking down at a wooden train set on the floor.
 
-A lap is **642 metres**, about **a minute and forty** at full steam, and most of it is
-visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
+The main lap is **642 metres**, about **a minute and forty** at full steam. Taking every branch is
+**about 1.1 km**, nearer three minutes. Most of it is visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
 level crossing → The Farm → up the hillside and through the tunnel → down to the river and over the
 bridge → The Harbour → back along the shore to home.
 
@@ -112,14 +112,25 @@ tunnel, a pond in the middle of the loop, a river running from it out to the sea
 at the back. There is one sheet of water across the whole map, and it shows wherever the ground has
 been dug below it — so the shoreline is a consequence of the land rather than a shape anyone drew.
 
-Track is a closed circuit. The engine always follows it. There is no steering, no switching, and no
-way to leave the rails.
+Track is a closed circuit. The engine always follows it. There is no steering and no way to leave
+the rails — but there are now **four places where it divides**, and at each of them two picture
+arrows let him pick. Touch nothing and it goes the usual way.
 
-Underneath, though, it is a **network of ten named segments** rather than one closed curve — `sheds`,
-`meadow`, `farm`, `hillfoot`, `bore`, `descent`, `rivermouth`, `harbour`, `shore`, `westbank` — joined
-end to end and driven as one route. Nothing above the track layer knows this, and there is nothing to
-choose. It is there so that the junction in Phase 5 is one more segment joined onto an end that
-already has one, rather than a rewrite.
+| Where | The usual way | The branch |
+|---|---|---|
+| Across the meadow | past **The Farm** | round through **the woods** and the ranch |
+| After The Farm | through **the tunnel** | round the hill to **The Windmill** |
+| After The Harbour | **home** along the shore | out to **The Lighthouse** on the point |
+| On the way home | **straight home** | out west through **the city** |
+
+Underneath it is a **network of named segments** rather than one closed curve, joined end to end and
+driven as one route. Four junctions means **sixteen whole loops**, each a list of references to the
+same segments — which costs almost nothing, and is what lets the points be set *before* he reaches
+them without anything that drives, follows or couples up knowing junctions exist at all. See
+`src/engine/junction.ts`.
+
+The one rule the layout has to obey: **every loop passes every junction, in the same order.** A loop
+that skipped one would have nowhere to put the question when the arrows asked it.
 
 ---
 

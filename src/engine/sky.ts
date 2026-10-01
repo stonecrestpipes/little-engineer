@@ -139,12 +139,14 @@ export class Sky {
     this.texture = new THREE.CanvasTexture(this.canvas);
     this.texture.colorSpace = THREE.SRGBColorSpace;
     this.dome = new THREE.Mesh(
-      new THREE.SphereGeometry(520, 24, 16),
+      new THREE.SphereGeometry(900, 24, 16),
       new THREE.MeshBasicMaterial({ map: this.texture, side: THREE.BackSide, depthWrite: false, fog: false }),
     );
     this.dome.renderOrder = -1;
     scene.add(this.dome);
-    this.fog = new THREE.Fog(DAY.low, 260, 640);
+    // Far enough out to reach past the railway from the wide shot, and still
+    // close enough that the hills behind The Windmill go blue with distance.
+    this.fog = new THREE.Fog(DAY.low, 320, 780);
     scene.fog = this.fog;
     this.apply(true);
   }

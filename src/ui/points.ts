@@ -16,6 +16,10 @@ export interface Points {
 export function mountPoints(h: { touched(): void; choose(way: number): void }): Points {
   const box = document.getElementById('points') as HTMLDivElement;
   const ways = [...box.querySelectorAll<HTMLButtonElement>('.way')];
+  // Every picture for every junction, shown one pair at a time. Chosen here
+  // rather than in the stylesheet, which would otherwise need another rule
+  // every time the railway grows another choice in it.
+  const pics = [...box.querySelectorAll<SVGGElement>('.pic')];
 
   for (const way of ways) {
     const line = Number(way.dataset.line);
@@ -44,6 +48,7 @@ export function mountPoints(h: { touched(): void; choose(way: number): void }): 
       box.hidden = junction === null;
       if (junction === null) return;
       box.dataset.junction = junction;
+      for (const pic of pics) pic.classList.toggle('on', pic.dataset.for === junction);
       // Each time round starts undecided, and both arrows breathe until he picks.
       box.classList.remove('chosen');
     },

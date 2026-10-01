@@ -268,17 +268,25 @@ async function boot(): Promise<void> {
     const head = lines.wrap(train.distance);
     const on = settings.get().junctions;
     let showing: Junction | null = null;
+    let soonest = Infinity;
     for (const j of world.junctions) {
       const at = j.pointsOn(lines.line);
       const before = head < at;
       // Just went over the points: note which way, for the grown-ups' scrapbook.
       if (wasBefore.get(j.id) && !before) journal.turned(j.id, lines.line & j.bit ? 1 : 0);
       wasBefore.set(j.id, before);
-      const near = on && before && at - head <= APPROACH;
+      const gap = at - head;
+      const near = on && before && gap <= APPROACH;
       // Every time round starts set for the main line, so a branch is always
       // somewhere he chose rather than somewhere he was left.
       if ((near && current !== j) || (!on && before)) lines.set(via(j, false), head);
-      if (near) showing = j;
+      // The one he is about to reach, not merely the last one in the list.
+      // With four junctions two of them can be inside the approach at once,
+      // and showing the far one would be asking him the wrong question.
+      if (near && gap < soonest) {
+        soonest = gap;
+        showing = j;
+      }
     }
     if (showing !== current) {
       current = showing;

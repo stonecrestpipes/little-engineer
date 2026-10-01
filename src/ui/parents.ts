@@ -66,8 +66,10 @@ function scrapbook(into: HTMLElement): void {
     engines,
     el('p', { className: 'p-note' },
       anyTurns
-        ? `After The Farm: ${turns('farm', 'the tunnel', 'the windmill')}. ` +
-            `After The Harbour: ${turns('coast', 'home', 'the lighthouse')}.`
+        ? `Across the meadow: ${turns('woods', 'The Farm', 'the woods')}. ` +
+            `After The Farm: ${turns('farm', 'the tunnel', 'the windmill')}. ` +
+            `After The Harbour: ${turns('coast', 'home', 'the lighthouse')}. ` +
+            `On the way home: ${turns('city', 'straight home', 'the city')}.`
         : 'He has not been past any points yet.',
       el('br'),
       // The two open questions about the buttons: does he use R at all, and
@@ -244,7 +246,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Help stopping', 'How early pulling down still arrives', stop.node),
     row('Volume', '', volume),
     row('Evenings', 'The sky slowly turns golden, then dusk, and back', dayNight.node),
-    row('Branch line', 'Arrows to choose the windmill or the lighthouse', junction.node),
+    row('Branch lines', 'Arrows at the four places the railway divides', junction.node),
     row('Blue engine’s face', 'Original is drawn for this game and safe to share', face.node),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
     row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),

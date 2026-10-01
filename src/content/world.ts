@@ -27,6 +27,8 @@ import { buildBridge } from './places/bridge';
 import { buildHarbour } from './places/harbour';
 import { buildWindmill } from './places/windmill';
 import { buildLighthouse } from './places/lighthouse';
+import { buildWoods } from './places/woods';
+import { buildRanch } from './places/ranch';
 
 /** Somewhere the railway divides and he gets to choose. */
 export interface Junction {
@@ -258,6 +260,27 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   // x. Getting that backwards put the flat patch 27 metres the wrong side of
   // the line, where it flattened open country and left the sidings on the
   // ground the terrain happened to give them.
+  /** The middle of a named segment on a branch loop, in metres along it. */
+  const middleOfOn = (line: number, id: string) =>
+    loops[line].startOf(id) + net.get(id).length / 2;
+
+  /** A patch of level ground beside a line, `out` metres off to its left. */
+  const patchBeside = (line: number, at: number, out: number, radius: number, blend: number) => {
+    const loop = loops[line];
+    const p = loop.positionAt(at);
+    const t = loop.tangentAt(at);
+    // cross(tangent, up) points at the place frame's negative x — the engine's
+    // left — which is the side everything out here is built on.
+    const side = new THREE.Vector3().crossVectors(t, UP).normalize();
+    return { x: p.x + side.x * out, z: p.z + side.z * out, radius, blend };
+  };
+
+  // The ranch wants level ground. The field, the pool, the bank round it and
+  // the fence are every one of them a flat thing, and a flat thing laid on a
+  // hillside is a buried thing.
+  const ranchAt = middleOfOn(BY_WOODS, 'ranch');
+  const ranchField = patchBeside(BY_WOODS, ranchAt, 22, 30, 18);
+
   const shedsAt = middleOf('sheds');
   const yard = (() => {
     const p = route.positionAt(shedsAt);
@@ -295,7 +318,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
       { x: -8, z: -118, radius: 42, depth: 12 },
     ],
     // The city stands on level ground, the way a city does.
-    flats: [yard, { x: -142, z: 24, radius: 34, blend: 24 }],
+    flats: [yard, ranchField, { x: -142, z: 24, radius: 34, blend: 24 }],
     shore: -100,
     deep: -128,
     seaDepth: 15,
@@ -351,6 +374,19 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   };
   branchPlace(buildWindmill, 'windmill', BY_WINDMILL);
   branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE, 0.76);
+  branchPlace(buildRanch, 'ranch', BY_WOODS);
+
+  // The woods are the one place that is a length of railway rather than a
+  // point on it: the canopy has to close over the whole run or it is just
+  // trees. It gets the span as well as the middle, the way the tunnel does.
+  {
+    const loop = loops[BY_WOODS];
+    const from = loop.startOf('woods');
+    const to = from + net.get('woods').length;
+    const place = buildWoods({ ...context((from + to) / 2, loop), from, to });
+    onLoop.set(place, BY_WOODS);
+    places.push(place);
+  }
   for (const place of places) {
     mergeStatic(place.group);
     scene.add(place.group);
@@ -416,6 +452,11 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   // which is most of what makes the hillside read as higher.
   const wood: Planting[] = [];
   const hillside: Planting[] = [];
+  /** Where the scattered countryside stops, because a place stands there. */
+  const keepClear = [
+    { x: ranchField.x, z: ranchField.z, radius: ranchField.radius + 6 },
+    { x: -142, z: 24, radius: 44 },
+  ];
   const taken: [number, number][] = [];
   for (let i = 0; i < 420; i++) {
     const a = (i / 300) * Math.PI * 2 + Math.random() * 0.3;
@@ -429,6 +470,9 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     if (terrain.distanceToTrack(x, z) < 12) continue;
     if (distanceToPath(RIVER, x, z) < 13) continue;
     if ((x - yard.x) ** 2 + (z - yard.z) ** 2 < (yard.radius + 8) ** 2) continue;
+    // Nor in the ranch's field, where the capybaras are, nor on the city's
+    // level ground. Both of those plant themselves.
+    if (keepClear.some((k) => (k.x - x) ** 2 + (k.z - z) ** 2 < k.radius ** 2)) continue;
     if (taken.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 100)) continue;
     taken.push([x, z]);
     const turn = Math.random() * Math.PI;

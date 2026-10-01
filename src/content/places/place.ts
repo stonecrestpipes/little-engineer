@@ -81,6 +81,42 @@ export function localGround(
 }
 
 /**
+ * The rails near a place, in that place's own frame, as a list of points.
+ *
+ * What it is for: a place that lays something out in a ring or a run — a
+ * fence round a field, a road, a row of anything — needs to know where the
+ * railway goes through it, so it can leave a gap instead of building across
+ * the track. The route knows where it is; the place only knows local x and z.
+ */
+export function railsNear(
+  frame: THREE.Group,
+  track: Track,
+  at: number,
+  span = 60,
+  step = 2,
+): THREE.Vector2[] {
+  frame.updateMatrixWorld();
+  const out: THREE.Vector2[] = [];
+  const p = new THREE.Vector3();
+  for (let d = -span; d <= span; d += step) {
+    track.positionAt(at + d, p);
+    frame.worldToLocal(p);
+    out.push(new THREE.Vector2(p.x, p.z));
+  }
+  return out;
+}
+
+/** How far a point in a place's frame is from the nearest of those rails. */
+export function clearOfRails(rails: THREE.Vector2[], x: number, z: number): number {
+  let best = Infinity;
+  for (const r of rails) {
+    const d = (r.x - x) ** 2 + (r.y - z) ** 2;
+    if (d < best) best = d;
+  }
+  return Math.sqrt(best);
+}
+
+/**
  * Signed distance from the engine to here. Positive means this place is still
  * ahead of him; negative means he has gone through it and it is behind.
  */

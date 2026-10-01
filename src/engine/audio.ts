@@ -423,6 +423,82 @@ export class Audio {
     wobble.stop(t + 0.7);
   }
 
+  /**
+   * An owl, somewhere back in the trees. Two soft hoots, the second lower, on
+   * a near-sine with just enough breath in it to not be a flute.
+   */
+  owl(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t0 = ctx.currentTime + 0.25;
+    for (const [delay, hz, len] of [[0, 392, 0.46], [0.62, 349, 0.58]] as number[][]) {
+      const at = t0 + delay;
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(hz * 1.04, at);
+      o.frequency.exponentialRampToValueAtTime(hz, at + 0.1);
+      o.frequency.exponentialRampToValueAtTime(hz * 0.94, at + len);
+
+      // A touch of breath, which is the difference between an owl and a note.
+      const breath = ctx.createBufferSource();
+      breath.buffer = this.noise;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = hz * 2;
+      bp.Q.value = 3;
+      const bg = ctx.createGain();
+      bg.gain.setValueAtTime(0.0001, at);
+      bg.gain.exponentialRampToValueAtTime(0.016, at + 0.06);
+      bg.gain.exponentialRampToValueAtTime(0.0001, at + len);
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.11, at + 0.09);
+      g.gain.setValueAtTime(0.11, at + len * 0.55);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + len);
+
+      o.connect(g).connect(this.master);
+      breath.connect(bp).connect(bg).connect(this.master);
+      o.start(at);
+      breath.start(at, Math.random() * 0.5);
+      o.stop(at + len + 0.05);
+      breath.stop(at + len + 0.05);
+    }
+  }
+
+  /**
+   * A capybara. High, short and chirpy — a squeak rather than a call, and
+   * three or four of them overlapping, because capybaras are never alone.
+   */
+  squeak(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const n = 3 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < n; i++) {
+      const at = t0 + i * 0.16 + Math.random() * 0.1;
+      const base = 820 + Math.random() * 420;
+      const o = ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(base * 0.86, at);
+      o.frequency.exponentialRampToValueAtTime(base, at + 0.05);
+      o.frequency.exponentialRampToValueAtTime(base * 0.74, at + 0.2);
+
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 2600;
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.075, at + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.22);
+
+      o.connect(lp).connect(g).connect(this.master);
+      o.start(at);
+      o.stop(at + 0.24);
+    }
+  }
+
   /** The crossing bell: a struck ding, repeated while the gates are down. */
   bell(times = 8, gap = 0.52): void {
     const ctx = this.ctx;

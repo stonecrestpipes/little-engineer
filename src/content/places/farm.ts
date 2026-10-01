@@ -37,17 +37,22 @@ export function buildFarm(ctx: PlaceContext): Place {
   barn.add(walls, barnRoof, barnDoor);
   group.add(barn);
 
-  // Hay, stacked and loose, set back from the rails: the trackside camera
-  // stands about ten metres out and a bale any nearer fills the shot.
-  for (const [x, z, r] of [[-15, -9, 0], [-15, -7.1, 0], [-15, -8.05, 1]] as number[][]) {
+  // Hay, the field and the sheep all stand on the *platform* side, well out
+  // beyond the station. North of the line is now a twenty-five-metre strip
+  // between The Farm and the woods branch, and a hay field laid across it
+  // came out on the far side as a yellow clearing in the middle of a forest.
+  //
+  // Set back from the rails either way: the trackside camera stands about ten
+  // metres out and a bale any nearer fills the shot.
+  for (const [x, z, r] of [[16, -9, 0], [16, -7.1, 0], [16, -8.05, 1]] as number[][]) {
     const bale = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.7, 12), mat(C.hay));
     bale.rotation.z = Math.PI / 2;
     bale.position.set(x, 0.9 + r * 1.75, z);
     group.add(bale);
   }
-  const field = new THREE.Mesh(new THREE.CircleGeometry(17, 24), mat(C.hay, 0.95));
+  const field = new THREE.Mesh(new THREE.CircleGeometry(15, 24), mat(C.hay, 0.95));
   field.rotation.x = -Math.PI / 2;
-  field.position.set(-24, 0.06, -18);
+  field.position.set(26, 0.06, -6);
   group.add(field);
 
   // ------------------------------------------------------------- the sheep
@@ -77,8 +82,8 @@ export function buildFarm(ctx: PlaceContext): Place {
       leg.position.set(lx, 0.31, lz);
       s.add(leg);
     }
-    const x = -30 + (i % 4) * 5.4 + Math.random() * 2;
-    const z = -26 + Math.floor(i / 4) * 6 + Math.random() * 3;
+    const x = 15 + (i % 4) * 5.0 + Math.random() * 2;
+    const z = -24 + Math.floor(i / 4) * 6 + Math.random() * 3;
     s.position.set(x, ground(x, z), z);
     s.rotation.y = Math.random() * Math.PI * 2;
     group.add(s);
@@ -87,13 +92,13 @@ export function buildFarm(ctx: PlaceContext): Place {
 
   // the farmer, leaning on the fence
   const farmer = person(0x6b4a3e);
-  const fx = -13;
-  const fz = -13;
+  const fx = 12;
+  const fz = -11;
   farmer.position.set(fx, ground(fx, fz), fz);
-  farmer.rotation.y = 1.2;
+  farmer.rotation.y = -1.2;
   group.add(farmer);
 
-  for (const [x, z, s] of [[-38, 10, 1.15], [20, -24, 0.95], [26, 16, 1.05]]) {
+  for (const [x, z, s] of [[34, 12, 1.15], [22, -28, 0.95], [30, 20, 1.05]]) {
     group.add(tree(x, ground(x, z), z, s));
   }
 

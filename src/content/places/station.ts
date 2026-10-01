@@ -49,6 +49,11 @@ export function setEvening(dusk: number): void {
   evening = dusk;
 }
 
+/** How dark it is, for anything else on the map that lights a window. */
+export function dusk(): number {
+  return evening;
+}
+
 export function buildStation(look: StationLook): Station {
   const { wall, roof, board, length = 34, waiting = 4, side = 1 } = look;
   const group = new THREE.Group();

@@ -106,6 +106,13 @@ reading:
 - A **tunnel** — whistle inside produces an echo
 - A **level crossing** — gates lower, a car waits, the driver waves
 - A **bridge** — the river running underneath, and a boat working up and down it
+- **The woods**, on the branch north of the meadow — seventy metres with the canopy
+  closed over the line, A-frame cabins among the trees with their windows lit, and
+  deer that put their heads up at a whistle and bound away through the wood. An owl
+  answers. It is the brick tunnel done in leaves, and it is the reason to take that branch.
+- **The ranch**, at the top of the same branch — a fenced field with a pool in it and
+  eight capybaras, two of them standing in the water. Whistle and every head turns toward
+  the engine and they squeak back; the two in the pool heave themselves up out of it.
 
 **The country itself** is a heightmap rather than a flat plane: rolling ground, a hill for the
 tunnel, a pond in the middle of the loop, a river running from it out to the sea, and a coastline

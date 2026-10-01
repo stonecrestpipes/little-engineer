@@ -288,6 +288,35 @@ export function broadleaves(spots: Planting[]): THREE.Group {
   ]);
 }
 
+/**
+ * The trees that make the tunnel of trees.
+ *
+ * Built reaching out over their own local +x, so a tree turned to face the
+ * railway holds its crown out above it. Planted close in on both sides, the
+ * crowns from either side meet over the four-foot and the train runs through
+ * a green tunnel — which is the whole trick, and it costs three instanced
+ * meshes.
+ *
+ * The height is the part that matters. The crowns have to close about eight
+ * metres up: lower than that and they are not a roof the train goes under,
+ * they are a hedge the camera is inside, with nothing visible but leaves.
+ */
+export function canopyTrees(spots: Planting[]): THREE.Group {
+  return instanced(spots, [
+    { geometry: new THREE.CylinderGeometry(0.44, 0.7, 10, 8), material: mat(C.trunk), at: [0, 5, 0] },
+    { geometry: new THREE.SphereGeometry(3.1, 12, 9), material: mat(C.leaf), at: [1.6, 9.2, 0] },
+    { geometry: new THREE.SphereGeometry(2.6, 11, 8), material: mat(C.leafLight), at: [4, 11.2, -0.5] },
+  ]);
+}
+
+/**
+ * The yaw that turns a plant's local +x toward a point — which is how a
+ * canopy tree knows which way to lean over the rails.
+ */
+export function facing(fromX: number, fromZ: number, toX: number, toZ: number): number {
+  return Math.atan2(-(toZ - fromZ), toX - fromX);
+}
+
 /** And a wood of the pointed sort, for the high ground. */
 export function conifers(spots: Planting[]): THREE.Group {
   const parts: Part[] = [

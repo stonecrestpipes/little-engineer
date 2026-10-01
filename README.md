@@ -274,8 +274,10 @@ src/
   engine/     reusable, knows nothing about Thomas or any particular railway
     track.ts      segments, how they join, and the route driven through them
     train.ts      go, stop, reverse, speed curves, the platform glide path
-    cameras.ts    three fixed views, the drag that swings them, the yard shot
-    junction.ts   two whole loops seen as one track, and the points between them
+    cameras.ts    four fixed views, the drag that swings them, the yard shot
+    junction.ts   sixteen whole loops seen as one track, and the points between them
+    consist.ts    the engine and its cars, placed from one distance along the rails
+    shunting.ts   stock moving under its own steam, off the train
     audio.ts      every sound, synthesised — nothing is loaded
     sky.ts        day, a golden evening and dusk, and back
     quality.ts    steps shadows and resolution down if frames are slow
@@ -283,6 +285,7 @@ src/
   content/    data: this engine, this railway
     engines/thomas.ts   colours, dimensions, driving feel, whistle pitch
     buildEngine.ts      the mesh, built from boxes and cylinders
+    buildStreamliner.ts the Orion Express, which is not that shape at all
     world.ts            the segments, the terrain, and what stands where
     terrain.ts          the heightmap ground, and the water under it
     scenery.ts          rails, ballast, trees, fences, people
@@ -294,16 +297,20 @@ src/
     engines/            one file per engine, plus the spec they share
     places/             one file each, geometry and behaviour together
       place.ts            what a place is, and the frame it is built in
-      station.ts          the part all three stations share
-      sheds.ts  crossing.ts  farm.ts  tunnel.ts  bridge.ts  harbour.ts
+      station.ts          the part every platform shares
+      sheds.ts            home: the roundhouse, the turntable and the yard
+      crossing.ts  farm.ts  tunnel.ts  bridge.ts  harbour.ts
       windmill.ts         out on the branch round the hill
       lighthouse.ts       out on the coast line
+      drawbridge.ts       over the creek on the way to it
+      woods.ts  ranch.ts  the long way round, north of the meadow
+      city.ts             the far end of the longest branch
   settings.ts the grown-ups' settings, and how they adjust each engine
   journal.ts  the scrapbook: what he did, for the grown-ups only
   ui/         the buttons, the whistle, the camera
     controls.ts   green, red, R, the whistle, the voices and the camera
     parents.ts    the hidden grown-ups' panel
-    points.ts     the two arrows at the junction
+    points.ts     the two arrows at a junction, and which pictures they wear
     wakelock.ts   keeps the screen on while he is playing
     greeting.ts   speaking, and coping when the device will not
 ```

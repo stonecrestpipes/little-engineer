@@ -64,18 +64,18 @@ asked — see the build log. What never moved is the *nothing else*.)
 | **Driving** | Green goes, and green again is full steam. Red stops, and near a platform it stops on the mark. R backs up while it is held |
 | **Objectives** | **None.** No errands, no collecting, no prizes, nothing that pops up over the view |
 | **Greeting** | Spoken by name when the app opens, and nothing else is ever spoken |
-| **Camera** | One big button cycles three fixed views: **Wide**, **Follow**, **Trackside** |
-| **World** | A loop with two branch lines, six stations, visible as a play-mat layout. No end, no fail |
+| **Camera** | One big button cycles four fixed views: **Wide**, **Above**, **Follow**, **Trackside**. Green from Wide comes down to the train |
+| **World** | A loop with four branch lines and eight stations, visible as a play-mat layout. No end, no fail |
 | **View style** | Storybook 3/4 — angled overhead, toy railway on a table |
 | **Activities** | Station comes alive · the world answers the whistle · choose a way at the points |
-| **Track interaction** | Automatic, except two junctions he may choose at. Touching nothing always goes the usual way |
+| **Track interaction** | Automatic, except four junctions he may choose at. Touching nothing always goes the usual way |
 | **Difficulty** | Generous stopping zone with gentle auto-assist. He cannot miss |
 | **Failure states** | **None whatsoever.** Overshooting simply means going round again |
 | **Rewards** | None. What would have been a sticker book is a scrapbook only the grown-ups see |
 | **Audio** | Sounds and animation only. No speech, in any phase |
 | **Sessions** | Endless free play. Start instantly, stop anytime, nothing is lost |
 | **Parent controls** | Hold the top-right corner for three seconds |
-| **Engines** | Four. He picks one by touching it in the yard |
+| **Engines** | Five, each a different shape with its own number. He picks one in the roundhouse, and watches it come out |
 | **Cars** | Up to three, chosen the same way. Nothing to do with them |
 | **Artwork** | Original engines and scenery, designed for this project. The first engine's familiar face is the one exception, with an original ready to replace it |
 | **Delivery** | Installable offline PWA on a free static host |
@@ -157,7 +157,7 @@ controls sit in the **bottom corners** where thumbs already are — never along 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  [camera]                                   v0.2.0  │
+│  [camera]                                   v0.3.0  │
 │                                           ╭───╮     │
 │                  the railway              │ ▲ │     │
 │   ( )  ( )                                ╰───╯     │
@@ -232,7 +232,7 @@ last — so the sequence becomes predictable:
 
 **Pressing green from Wide brings the camera down to the train**, into *Above*. Setting off from a
 shot where the train is a speck means the one thing he just did is invisible, which makes the button
-feel broken. The other three views are already at train level and are left alone.
+feel broken. *Follow* and *Trackside* are already at train level and are left alone.
 
 No free camera and no pinch-zoom. A drag swings whichever view he is in, within limits that cannot
 put it underground or aimed at the sky, and a high shot is additionally floored at the ground
@@ -428,7 +428,8 @@ and the branch carries on along the sea wall to **The Lighthouse** on the headla
 the west bank. Its arrows show a house and a lighthouse. Taking both branches makes a lap of 818 m.
 
 ### Phase 6 — More engines, and something to pull *(built)*
-Four engines reusing the same controller, differing in colour, face, chimney, whistle and how they
+*Five* engines in the end, reusing the same controller — and differing in **shape** as well as in
+colour, face, chimney, whistle and how they
 drive. Up to three cars behind whichever one he picks.
 
 Choosing happens in **the yard at The Sheds**, and by touching the thing itself: the other engines
@@ -570,6 +571,40 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### Twenty things off a list, and a railway twice the size
+
+Built straight from a wish list rather than from watching him, which makes it a different kind of
+build: almost none of it is validated, and the README says so.
+
+**Four junctions instead of two**, so sixteen whole loops. The main lap is still 642 m; taking every
+branch is 1,284 m. The two new branches each carry their own country — **the woods** (a tunnel of
+trees with the canopy closed overhead, A-frames, deer, an owl) and **the ranch** on one; **the city**
+(towers, a street, the rescue station, a building site) on the other.
+
+**A roundhouse** replacing the siding full of spares, with a twelve-second engine swap on two throat
+roads. **A fourth view**, *Above*, and green from Wide now comes down to it. **Five engines with
+five silhouettes and numbers on their sides**, including the **Orion Express**. **The SS Badger** and
+**a drawbridge** that stands up and lowers itself as he comes round the bend. **A yard pilot** that
+works the shunting yard.
+
+Four bugs fell out of it, all of them the kind that hide rather than announce themselves:
+
+- A place on a branch is handed **NaN** for the engine's distance while the engine is elsewhere —
+  that is the mechanism that makes a branch not hear him, and every comparison with it is safely
+  false. The ranch did arithmetic with it and handed it to the curve, which threw from six calls
+  deep inside three.js and took the whole frame loop with it. Routes now refuse a distance that is
+  not a number and say why; there are tests for both halves.
+- **Free spans only worked on the main line.** Every terrain sample off it reported a distance
+  outside every span, so no branch could carry a bridge or a tunnel. Samples remember their line now.
+- **A vehicle's origin is its middle**, and the middle of an engine with a tender behind it is not
+  the middle of the engine. The red one rode a metre ahead of where its cars thought it was.
+- **Everything `Shunting` moves is a child of the scene**, and its paths are in world coordinates.
+  The yard pilot belongs to the yard's own frame; a world path put it through that transform twice
+  and left its geometry seventy metres out in a field — invisible, rather than obviously wrong.
+
+And two things deliberately *not* built, with the reasoning written down rather than rediscovered:
+the pilot carrying cars across the yard (above), and the idle coast (open question 5).
 
 ### GO and STOP come back, and a way to look round the yard
 
@@ -857,26 +892,32 @@ What remains for Phase 2 is whatever the play test says to change.
 
 1. **The engine's name.** Worth asking him — a four-year-old naming his own engine is free ownership
    of the game. The nameplate on the tank is blank until then, and it is the only text in the entire
-   game. There are four engines now, so there are four names to be asked for, and the one he cares
+   game. There are five engines now — though the Orion Express came with its own — so there are four
+   names to be asked for, and the one he cares
    about is whichever he actually drives.
 2. **Whether one loop is enough to be "exploring".** ~~Right now the place is a single field with
    one station in it.~~ Phase 3 answered this as far as it can be answered without him: there are
-   now six places to drive through and a lap takes a minute and forty. What is still open is whether
-   *a loop* is the right shape at all, or whether exploring means choosing where to go. Phase 5 put
-   one choice in, after The Farm. Watch whether he notices the arrows, whether he picks the windmill
-   on purpose or only by accident, and whether he goes back to it.
+   now ten places to drive through and the main lap takes a minute and forty. What is still open is
+   whether *a loop* is the right shape at all, or whether exploring means choosing where to go.
+   There are **four** choices a lap now — the city, the woods, the windmill and the lighthouse — and
+   taking all of them makes a lap 1,284 m. Watch whether he notices the arrows, whether he picks a
+   branch on purpose or only by accident, and whether he goes back to one. The scrapbook counts
+   every turning at all four.
 3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
-   crawlers blocked, which was chosen to get it installed quickly. An original face for the blue
-   engine and original icons now exist (a *Familiar* / *Original* switch in the grown-ups' panel,
-   and `artwork/icons/`). Once he takes to the new face, deleting the photograph retires the
-   question entirely — see *Hosting* in the README.
-4. **How fast anything should go.** Each engine carries its own numbers now: 6.4 m/s on the second
-   press of green for the slowest, 8.0 for the quickest, and 2.4 to 3.2 on the first press. A lap
-   is a minute and forty. All guesses until he drives them, and the spread between the engines is a
-   guess on top of a guess — it is meant to be felt rather than noticed, and may be too small to
-   feel at all.
-5. **Whether a latching green needs an idle coast.** *(Deferred on purpose — noted 2026-09-29, not
-   built.)* Green and red latch, so unlike the lever they can be walked away from and the engine
+   crawlers blocked, which was chosen to get it installed quickly. *Raised again on 2026-10-01 and
+   deliberately left public* — but note what has changed since: the engines now carry numbers and
+   shapes chosen to be recognised, which is a good reason to retire the question rather than a
+   reason to forget it. An original face for the blue engine and original icons exist (a *Familiar*
+   / *Original* switch in the grown-ups' panel, and `artwork/icons/`). Once he takes to the new
+   face, deleting the photograph retires it entirely — see *Hosting* in the README.
+4. **How fast anything should go.** Each engine carries its own numbers: 6.4 m/s on the second
+   press of green for the slowest, **9.0 for the Orion Express**, and 2.4 to 3.2 on the first press.
+   The main lap is a minute and forty; taking every branch is nearer three minutes. All guesses
+   until he drives them, and the spread between the engines is a guess on top of a guess — it is
+   meant to be felt rather than noticed, and may still be too small to feel at all, though the
+   Orion widened it considerably.
+5. **Whether a latching green needs an idle coast.** *(Deferred on purpose — noted 2026-09-29,
+   still not built, and still waiting on the same thing.)* Green and red latch, so unlike the lever they can be walked away from and the engine
    goes round and round on its own. The fix, if it turns out to be needed: after about a minute with
    nothing touched at all, come off the power and let it roll to a stand on `coast` — never brake,
    never stop it dead, and never while he is actually driving. That keeps his buttons exactly as
@@ -885,6 +926,11 @@ What remains for Phase 2 is whatever the play test says to change.
    **Do not build it until he has been watched with the buttons** — a train that stops itself while
    he is looking out of the window is a worse problem than one that keeps going, and which of those
    is true is exactly what the next play tells us.
+6. **Whether the yard pilot should actually carry the cars.** *(Deferred on purpose —
+   2026-10-01, with the reasoning under *The roundhouse* above.)* Tapping a car couples it
+   instantly, which is quick, and the pilot only shuffles about and acknowledges him. Doing it
+   properly costs thirteen to eighteen seconds a car and wants the yard relaid as a fan of spurs.
+   Build it only if the pilot turns out to be the thing he watches.
 
 ---
 

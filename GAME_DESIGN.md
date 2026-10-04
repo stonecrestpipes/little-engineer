@@ -306,17 +306,17 @@ once, and the turntable swings round to whichever is widest. Touching an engine 
 takes it. Touching one behind a shut door opens the door — which is the whole of "open the door,
 then pick the engine" without a second control to learn.
 
-**The swap takes about twelve seconds and nothing else happens while it does.** His old engine pulls
+**The swap takes about fifteen seconds and nothing else happens while it does.** His old engine pulls
 forward off its train and sets back down the *arrival* road into its own place; at the same moment
 the new one comes out of its road, up the *departure* road past the platform, and sets back onto the
 front of the train, finishing with a clank. Two throat roads rather than one is the whole reason it
-is twelve seconds instead of twenty: on a single road the second engine cannot start until the first
+is fifteen seconds instead of twenty-five: on a single road the second engine cannot start until the first
 has finished with it.
 
 It is the longest single thing in the game, and it is meant to be — a thing to watch rather than a
 menu, in the same spirit as the station arrival. **Pressing green abandons it instantly**, with
 every engine put where it was going, because wanting to drive always wins. That rule is why the
-twelve seconds are affordable at all.
+fifteen seconds are affordable at all.
 
 **The yard pilot** is the other thing in there: a little green saddle tank on a road of its own
 beside the spare cars. He cannot drive it and it is not in the roundhouse — it shuffles up and down

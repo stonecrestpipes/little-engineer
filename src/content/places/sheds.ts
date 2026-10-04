@@ -24,7 +24,7 @@ import { Shunting } from '../../engine/shunting';
  * the arrival road into its own place in the roundhouse. At the same moment
  * the new one comes out of its road, up the departure road past the platform,
  * and sets back onto the front of the train. Two roads rather than one is the
- * whole reason it takes twelve seconds instead of twenty: on one road the
+ * whole reason it takes fifteen seconds instead of twenty-five: on one road the
  * second engine cannot start until the first has finished with it.
  *
  * It is the longest single thing in the game and it is meant to be — a thing
@@ -67,10 +67,17 @@ const standsAt = (length: number): number => DOOR_R + 1.8 + length / 2;
  * The two throat roads, each as a bearing off the turntable and a list of
  * radii along it, then the points that take it out to the running line.
  *
- * The tail points used to run *backwards*: the last radius on the arrival road
- * reached sixteen metres up the yard and the next point was at fifteen, so the
- * road doubled back on itself and the curve through it tied a knot. Every z
- * here increases, all the way out.
+ * `tail` is a list of [how far to the side of the running line, how far along
+ * it] — *offsets*, not positions. The line curves as it goes through the yard,
+ * so a tail written as a position has to assume where the rails are, and the
+ * assumption is wrong by a metre by the time the departure road gets out to
+ * where it joins. A metre is most of the width of a rail: the road arrived
+ * alongside the line rather than merging into it.
+ *
+ * The tail points used to run *backwards*, too: the last radius on the arrival
+ * road reached sixteen metres up the yard and the next point was at fifteen,
+ * so the road doubled back on itself and the curve through it tied a knot.
+ * Every distance along here increases, all the way out.
  */
 const ARRIVAL = { bearing: 55, radii: [10, 15, 20], tail: [[-1, 18.5], [0, 24]], join: 24 };
 const DEPARTURE = { bearing: 38, radii: [11, 18, 26], tail: [[-1.2, 29], [0, 34]], join: 34 };
@@ -151,29 +158,36 @@ function roadAlong(points: THREE.Vector2[], closed = false): THREE.Group {
 }
 
 /**
- * A yard road: a straight for stock to stand on, a stop block at the platform
- * end of it, and a lead at the other end curving out onto the running line.
+ * A yard road: a run of track for stock to stand on, a stop block at the
+ * platform end of it, and a merge at the other where it joins the running
+ * line.
  *
- * **The lead is the part that was missing.** Both of these used to be a bare
- * straight with a block at one end and nothing whatever at the other — two
- * lengths of rail lying in the grass, joined to no railway, with the spare
- * cars standing on them. Rails have to come from somewhere.
+ * It takes the whole path rather than an x and two distances, because a yard
+ * road is not a straight line in this frame — see `beside` in buildSheds. The
+ * running line curves as it comes into the yard, and a road drawn at a fixed
+ * distance to one side of the *frame* rather than of the *line* closes on it
+ * as it goes: the pilot's road started six metres clear and was overlapping
+ * the main line's ballast by the far end of it.
  */
-function yardRoad(x: number, blockAt: number, straightTo: number, lead: THREE.Vector2[]): THREE.Group {
-  const g = roadAlong([new THREE.Vector2(x, blockAt), new THREE.Vector2(x, straightTo), ...lead]);
-  // Sleepers along the straight, where the stock stands and they show.
-  const count = Math.max(2, Math.round(Math.abs(blockAt - straightTo) / 1.5));
-  const ties = new THREE.InstancedMesh(new THREE.BoxGeometry(2.7, 0.16, 0.32), mat(C.sleeper), count);
+function yardRoad(path: THREE.Vector2[], ties: number): THREE.Group {
+  const g = roadAlong(path);
+  // Sleepers over the part the stock stands on, where they show.
+  const count = Math.max(2, ties);
+  const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(2.7, 0.16, 0.32), mat(C.sleeper), count);
   const dummy = new THREE.Object3D();
   for (let i = 0; i < count; i++) {
-    dummy.position.set(x, 0.12, blockAt + ((straightTo - blockAt) * i) / (count - 1));
+    const at = path[Math.min(path.length - 1, Math.round((i * (path.length - 1)) / (count - 1) * 0.55))];
+    const next = path[Math.min(path.length - 1, Math.round((i * (path.length - 1)) / (count - 1) * 0.55) + 1)];
+    dummy.position.set(at.x, 0.12, at.y);
+    dummy.rotation.y = Math.atan2(next.x - at.x, next.y - at.y);
     dummy.updateMatrix();
-    ties.setMatrixAt(i, dummy.matrix);
+    mesh.setMatrixAt(i, dummy.matrix);
   }
-  ties.instanceMatrix.needsUpdate = true;
-  g.add(ties);
+  mesh.instanceMatrix.needsUpdate = true;
+  g.add(mesh);
   const block = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.5), mat(C.trim));
-  block.position.set(x, 0.48, blockAt);
+  block.position.set(path[0].x, 0.48, path[0].y);
+  block.rotation.y = Math.atan2(path[1].x - path[0].x, path[1].y - path[0].y);
   g.add(block);
   return shadowed(g);
 }
@@ -189,6 +203,15 @@ export function buildSheds(ctx: PlaceContext): Place {
   apron.rotation.x = -Math.PI / 2;
   apron.position.set(PIT.x, 0.02, PIT.y);
   group.add(apron);
+
+  // ------------------------------------------------- where the rails really are
+  // The running line as the yard sees it. Everything in here that has to meet
+  // the main line asks this rather than assuming the line runs straight
+  // through the middle of the yard — it does not, it is on a curve, and two
+  // separate things had already been built on the assumption that it was.
+  const rails = railsNear(group, ctx.track, ctx.at, 150, 4);
+  const railAt = (z: number): THREE.Vector2 =>
+    rails.reduce((best, p) => (Math.abs(p.y - z) < Math.abs(best.y - z) ? p : best), rails[0]);
 
   // -------------------------------------------------------- the yard roads
   //
@@ -207,7 +230,7 @@ export function buildSheds(ctx: PlaceContext): Place {
   const throat = (spec: typeof ARRIVAL, from: number): THREE.Vector2[] => [
     off(spec.bearing, from),
     ...spec.radii.filter((r) => r > from).map((r) => off(spec.bearing, r)),
-    ...spec.tail.map(([x, z]) => new THREE.Vector2(x, z)),
+    ...spec.tail.map(([across, along]) => new THREE.Vector2(railAt(along).x + across, along)),
   ];
   group.add(roadAlong(throat(ARRIVAL, PIT_R)), roadAlong(throat(DEPARTURE, PIT_R)));
 
@@ -385,38 +408,55 @@ export function buildSheds(ctx: PlaceContext): Place {
 
   // ------------------------------------------------------ the shunting yard
   //
-  // The running line as the yard sees it, so a road can be led onto it. The
-  // line curves through here, so where it actually is at a given distance back
-  // is asked rather than assumed — assuming it was straight is what would put
-  // a turnout a few metres to one side of the rails it is supposed to join.
-  const rails = railsNear(group, ctx.track, ctx.at, 140, 4);
-  const railAt = (z: number): THREE.Vector2 =>
-    rails.reduce((best, p) => (Math.abs(p.y - z) < Math.abs(best.y - z) ? p : best), rails[0]);
-  /**
-   * A lead from a road at `x` out onto the running line, easing across
-   * between two distances back along it. Smoothstepped rather than straight,
-   * so it leaves the siding and meets the line parallel to each and bends in
-   * the middle — which is the shape of a turnout.
-   */
-  const leadOnto = (x: number, from: number, to: number): THREE.Vector2[] => {
-    const out: THREE.Vector2[] = [];
-    for (let z = from - 5; z >= to; z -= 5) {
-      const rail = railAt(z);
-      out.push(new THREE.Vector2(x + (rail.x - x) * smoothstep(from, to, z), z));
-    }
-    return out;
+  // Both yard roads lie a fixed distance to the side of the *running line*,
+  // not of the yard's own frame. That is not a detail: the line swings six and
+  // a half metres across this frame between the platform and the far end of
+  // the sidings, so a road drawn at a constant x closes on it as it goes. The
+  // pilot's road did exactly that — six metres clear at the block and
+  // overlapping the main line's ballast by the end of it.
+  /** The local heading of the running line, `along` metres back. */
+  const railHeading = (along: number): number => {
+    const a = railAt(along - 3);
+    const b = railAt(along + 3);
+    return Math.atan2(b.x - a.x, b.y - a.y);
   };
+  /**
+   * A point `out` metres to the side of the running line, `along` metres back
+   * along it. Positive `out` is the right-hand side of the train, so the yard,
+   * which is all on the left, is negative.
+   */
+  const beside = (out: number, along: number): THREE.Vector2 => {
+    const rail = railAt(along);
+    const h = railHeading(along);
+    return new THREE.Vector2(rail.x + out * Math.cos(h), rail.y - out * Math.sin(h));
+  };
+  /**
+   * A whole yard road: alongside the line from `blockAt` to `straightTo`, then
+   * easing in to meet it by `mergeBy`. Smoothstepped, so it leaves the siding
+   * parallel and meets the line parallel and does its bending in between,
+   * which is the shape of a turnout.
+   */
+  const yardRoadPath = (out: number, blockAt: number, straightTo: number, mergeBy: number) => {
+    const path: THREE.Vector2[] = [];
+    for (let z = blockAt; z >= mergeBy; z -= 4) {
+      path.push(beside(out * (1 - smoothstep(straightTo, mergeBy, z)), z));
+    }
+    return path;
+  };
+
+  /** How far off the running line the spare cars and the pilot stand. */
+  const CAR_ROAD = -13;
+  const PILOT_ROAD_SIDE = -6.4;
 
   // Where the spare cars stand: behind the platform, clear of both throats
   // and of the nearest roundhouse road, and far enough over that the whole
-  // line of them is in the yard shot rather than out at the edge of it. The
-  // block is at the platform end and the lead runs back down the line.
-  group.add(yardRoad(-13, -1, -49, leadOnto(-13, -49, -92)));
+  // line of them is in the yard shot rather than out at the edge of it.
+  group.add(yardRoad(yardRoadPath(CAR_ROAD, -1, -49, -92), 32));
   // And the pilot's own road, so the little engine has somewhere to work that
   // is not on top of the rake it is working. It sits between the spare cars
-  // and the running line, and comes off it nearer in, so the two turnouts are
-  // a yard throat rather than one on top of the other.
-  group.add(yardRoad(-6, -18, -42, leadOnto(-6, -42, -76)));
+  // and the running line, and comes off nearer in, so the two turnouts are a
+  // yard throat rather than one on top of the other.
+  group.add(yardRoad(yardRoadPath(PILOT_ROAD_SIDE, -18, -42, -76), 16));
 
   // --------------------------------------------------------- the yard pilot
   // A little four-wheeled saddle tank that lives in the yard and never leaves
@@ -475,7 +515,18 @@ export function buildSheds(ctx: PlaceContext): Place {
 
   // -------------------------------------------------------- the water tower
   const tower = new THREE.Group();
-  tower.position.set(11.5, 0, -20);
+  // Far enough back that it is clear of the platform, and exactly a spout's
+  // reach to the side of the running line — which it was not. It stood eleven
+  // and a half metres out in the frame with a six-metre spout, so the nozzle
+  // swung down five and a half metres clear of anything it could possibly
+  // water, every time, for the whole life of the yard.
+  const TOWER_BACK = -30;
+  const TOWER_REACH = 6.2;
+  {
+    const at = beside(TOWER_REACH, TOWER_BACK);
+    tower.position.set(at.x, 0, at.y);
+    tower.rotation.y = railHeading(TOWER_BACK);
+  }
   const tank = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 3.2, 14), mat(C.metal));
   tank.position.y = 6.4;
   const lid = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.3, 14), mat(C.slate));
@@ -556,7 +607,7 @@ export function buildSheds(ctx: PlaceContext): Place {
     ctx.roster.spareCars().forEach((mesh, i) => {
       if (shunting.holds(mesh.group)) return;
       const slot = CAR_SLOTS[i % CAR_SLOTS.length];
-      parkAt(mesh.group, new THREE.Vector2(-13, slot), 0);
+      parkAt(mesh.group, beside(CAR_ROAD, slot), railHeading(slot));
       parked.push({ object: mesh.group, car: mesh.spec.id, slot, y: mesh.group.position.y });
     });
   }
@@ -611,13 +662,18 @@ export function buildSheds(ctx: PlaceContext): Place {
   // the yard's transform twice and left the engine seventy metres out in a
   // field. A straight run along one siding does not need a curve anyway.
   const PILOT_ROAD: [number, number] = [-39, -21];
-  const PILOT_X = -6;
   /** Where it is on its road, where it is going, and how long it is standing. */
   let pilotZ = PILOT_ROAD[0];
   let pilotWant = PILOT_ROAD[1];
   let pilotSpeed = 3.2;
   let pilotStand = 2;
-  pilot.position.set(PILOT_X, 0, pilotZ);
+  const placePilot = (z: number, back: boolean): void => {
+    const at = beside(PILOT_ROAD_SIDE, z);
+    pilot.position.set(at.x, pilot.position.y, at.y);
+    // It turns round rather than sliding backwards, the way a pilot does.
+    pilot.rotation.y = railHeading(z) + (back ? Math.PI : 0);
+  };
+  placePilot(pilotZ, false);
 
   /** It ran down to where that car was standing, and said so. */
   const pilotFetched = (slot: number): void => {
@@ -645,9 +701,7 @@ export function buildSheds(ctx: PlaceContext): Place {
     }
     const step = Math.sign(gap) * Math.min(Math.abs(gap), pilotSpeed * dt);
     pilotZ += step;
-    pilot.position.z = pilotZ;
-    // It turns round rather than sliding backwards, the way a pilot does.
-    pilot.rotation.y = step > 0 ? 0 : Math.PI;
+    placePilot(pilotZ, step < 0);
   }
 
   /**
@@ -827,7 +881,7 @@ export function buildSheds(ctx: PlaceContext): Place {
 
       // The water tower swings its spout down over whatever is standing under
       // it, and lifts it again when nothing is.
-      const under = !train.moving && Math.abs(ctx.track.delta(train.distance, ctx.at - 20)) < 7;
+      const under = !train.moving && Math.abs(ctx.track.delta(train.distance, ctx.at + TOWER_BACK)) < 7;
       spoutArm.rotation.z += ((under ? -0.55 : 0) - spoutArm.rotation.z) * dt * 1.8;
 
       // While he is standing here, everything he could touch breathes gently.

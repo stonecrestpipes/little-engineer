@@ -60,6 +60,17 @@ He played the railway above and came back with seven things. All seven are in.
   back from the rails, the trackside camera picks a side that is clear instead
   of filming a trunk, and the woods canopy has been lifted so the chase shots
   travel through clear air underneath it — the crowns still close overhead.
+- **Four things in the yard that were joined to nothing, or to the wrong
+  place.** Both sidings ran to a stop block at one end and simply stopped at
+  the other — rails lying in the grass with the spare stock standing on them.
+  Both roundhouse throat roads aimed at where the running line *would* be if it
+  ran straight through the yard, and missed it by up to a metre. The pilot's
+  road, at a fixed distance from the yard's frame rather than from the line,
+  closed on the main line as it went and overlapped its ballast. And the water
+  tower's spout swung down five and a half metres clear of anything it could
+  water. All of them were the same mistake: **the running line curves through
+  the yard, and everything built there now asks where the rails actually are
+  instead of assuming.**
 - **An update check in the grown-ups' panel** (*Updates → Check now*), because
   the tablet runs a cached copy and "has it picked up the new build yet?" was
   otherwise only answerable by reading the build stamp and guessing.
@@ -80,7 +91,7 @@ He played the railway above and came back with seven things. All seven are in.
   still in the yard and the doors come open one after another; touch an engine
   and you watch the swap: his old one pulls forward off its train and sets back
   into its own road while the new one comes out, runs up past the platform and
-  sets back onto the front of the train with a clank. **About twelve seconds,
+  sets back onto the front of the train with a clank. **About fifteen seconds,
   and pressing green abandons it instantly.**
 - **A fourth view.** Between "the whole county" and "the back of the engine"
   there was nothing. *Above* is a bird's-eye that follows the train, pulled back
@@ -135,7 +146,7 @@ He played the railway above and came back with seven things. All seven are in.
 2. Hand it to him. Say nothing, as before.
 3. **Watch the roundhouse.** It is the biggest new thing and the biggest
    gamble. Does he work out that touching an engine behind an open door takes
-   it? Does he sit through the twelve seconds, or does he press green half way?
+   it? Does he sit through the fifteen seconds, or does he press green half way?
    *Either answer is useful* — if he presses green, the swap is too long and
    should be shortened, not defended.
 4. **Watch which branch he takes**, now there are four choices a lap. The

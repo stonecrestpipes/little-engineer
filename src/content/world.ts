@@ -474,9 +474,11 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     const p = route.positionAt(shedsAt);
     const t = route.tangentAt(shedsAt);
     const side = new THREE.Vector3().crossVectors(t, UP).normalize();
-    // Wide enough for the whole roundhouse fan and both throat roads, which
-    // reach a good thirty metres off the running line.
-    return { x: p.x + side.x * 17, z: p.z + side.z * 17, radius: 36 };
+    // Wide enough for the whole roundhouse fan, both throat roads and both
+    // yard roads with the leads that take them back onto the running line —
+    // which between them reach thirty metres off the line and ninety back
+    // along it.
+    return { x: p.x + side.x * 14, z: p.z + side.z * 14, radius: 54, blend: 20 };
   })();
 
   // -------------------------------------------------------------- terrain

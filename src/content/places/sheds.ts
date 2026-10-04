@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { C, flat, mat, shadowed, tree } from '../scenery';
+import { C, flat, mat, shadowed, smoothstep, tree } from '../scenery';
 import { MAX_CARS } from '../roster';
 import { ENGINES } from '../engines';
 import { buildStation } from './station';
-import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
+import { frameAt, isNear, localGround, railsNear, type Place, type PlaceContext } from './place';
 import { moving } from '../../engine/merge';
 import { Shunting } from '../../engine/shunting';
 
@@ -150,21 +150,30 @@ function roadAlong(points: THREE.Vector2[], closed = false): THREE.Group {
   return g;
 }
 
-/** A short straight siding, for the cars to stand on. */
-function siding(x: number, from: number, to: number): THREE.Group {
-  const g = roadAlong([new THREE.Vector2(x, from), new THREE.Vector2(x, to)]);
-  const count = Math.max(2, Math.round((to - from) / 1.5));
+/**
+ * A yard road: a straight for stock to stand on, a stop block at the platform
+ * end of it, and a lead at the other end curving out onto the running line.
+ *
+ * **The lead is the part that was missing.** Both of these used to be a bare
+ * straight with a block at one end and nothing whatever at the other — two
+ * lengths of rail lying in the grass, joined to no railway, with the spare
+ * cars standing on them. Rails have to come from somewhere.
+ */
+function yardRoad(x: number, blockAt: number, straightTo: number, lead: THREE.Vector2[]): THREE.Group {
+  const g = roadAlong([new THREE.Vector2(x, blockAt), new THREE.Vector2(x, straightTo), ...lead]);
+  // Sleepers along the straight, where the stock stands and they show.
+  const count = Math.max(2, Math.round(Math.abs(blockAt - straightTo) / 1.5));
   const ties = new THREE.InstancedMesh(new THREE.BoxGeometry(2.7, 0.16, 0.32), mat(C.sleeper), count);
   const dummy = new THREE.Object3D();
   for (let i = 0; i < count; i++) {
-    dummy.position.set(x, 0.12, from + (i * (to - from)) / (count - 1));
+    dummy.position.set(x, 0.12, blockAt + ((straightTo - blockAt) * i) / (count - 1));
     dummy.updateMatrix();
     ties.setMatrixAt(i, dummy.matrix);
   }
   ties.instanceMatrix.needsUpdate = true;
   g.add(ties);
   const block = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.5), mat(C.trim));
-  block.position.set(x, 0.48, from);
+  block.position.set(x, 0.48, blockAt);
   g.add(block);
   return shadowed(g);
 }
@@ -375,15 +384,39 @@ export function buildSheds(ctx: PlaceContext): Place {
   group.add(deck);
 
   // ------------------------------------------------------ the shunting yard
+  //
+  // The running line as the yard sees it, so a road can be led onto it. The
+  // line curves through here, so where it actually is at a given distance back
+  // is asked rather than assumed — assuming it was straight is what would put
+  // a turnout a few metres to one side of the rails it is supposed to join.
+  const rails = railsNear(group, ctx.track, ctx.at, 140, 4);
+  const railAt = (z: number): THREE.Vector2 =>
+    rails.reduce((best, p) => (Math.abs(p.y - z) < Math.abs(best.y - z) ? p : best), rails[0]);
+  /**
+   * A lead from a road at `x` out onto the running line, easing across
+   * between two distances back along it. Smoothstepped rather than straight,
+   * so it leaves the siding and meets the line parallel to each and bends in
+   * the middle — which is the shape of a turnout.
+   */
+  const leadOnto = (x: number, from: number, to: number): THREE.Vector2[] => {
+    const out: THREE.Vector2[] = [];
+    for (let z = from - 5; z >= to; z -= 5) {
+      const rail = railAt(z);
+      out.push(new THREE.Vector2(x + (rail.x - x) * smoothstep(from, to, z), z));
+    }
+    return out;
+  };
+
   // Where the spare cars stand: behind the platform, clear of both throats
   // and of the nearest roundhouse road, and far enough over that the whole
-  // line of them is in the yard shot rather than out at the edge of it.
-  group.add(siding(-13, -49, -1));
+  // line of them is in the yard shot rather than out at the edge of it. The
+  // block is at the platform end and the lead runs back down the line.
+  group.add(yardRoad(-13, -1, -49, leadOnto(-13, -49, -92)));
   // And the pilot's own road, so the little engine has somewhere to work that
   // is not on top of the rake it is working. It sits between the spare cars
-  // and the running line: the far side belongs to the roundhouse now that its
-  // roads are deep enough for a tender engine.
-  group.add(siding(-6, -42, -18));
+  // and the running line, and comes off it nearer in, so the two turnouts are
+  // a yard throat rather than one on top of the other.
+  group.add(yardRoad(-6, -18, -42, leadOnto(-6, -42, -76)));
 
   // --------------------------------------------------------- the yard pilot
   // A little four-wheeled saddle tank that lives in the yard and never leaves

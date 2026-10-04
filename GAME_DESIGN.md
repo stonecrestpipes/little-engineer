@@ -97,6 +97,21 @@ junctions further apart, and nothing else will do it. That, and not a wish for a
 the main lap is 1,100 m rather than the 642 it started at. See the comment above `SEGMENTS` in
 `src/content/world.ts`.
 
+**The numbers that matter, measured across all sixteen loops:** the sharpest curve anywhere is
+**33 m radius** (it was 1.2 m when his son first said a corner did not look right, and 14.8 m after
+the first re-lay); **no two sets of points are closer than 190 m** (56 m originally — the second
+question used to be on screen before he had answered the first); the home platform is **67 m** from
+the first junction, against 22. A startup check in development builds warns on anything under 28 m,
+because the way this goes wrong is silent: the rails still join up and the train still follows them.
+
+**One rule holds everywhere else track is drawn, too:** *the running line curves, so ask where the
+rails actually are.* The yard is laid out in its own frame with +z along the track, and the line
+swings six and a half metres across that frame between the platform and the far end of the sidings.
+Four separate things had been built assuming it ran straight — both roundhouse throat roads, the
+pilot's road, and the water tower's spout — and every one of them missed what it was aimed at. The
+sidings are now held at a fixed distance from the *line* rather than from the frame, so their
+clearances are exact rather than hopeful.
+
 The main lap is **1,100 metres**, about **two and a half minutes** at full steam. Taking every
 branch is **2,432 metres** — more than twice round the long way, and the better part of six minutes. Most of it is visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
 level crossing → The Farm → up the hillside and through the tunnel → down to the river and over the

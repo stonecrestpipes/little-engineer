@@ -19,12 +19,17 @@ export interface Controls {
 }
 
 /**
- * How hard the engine pulls on the first press of green and on the second.
- * The first is a gentle amble he can watch; the second is the engine's own top
- * speed. Two is the whole ladder: a third press does nothing, so there is
- * never a wrong number of presses.
+ * How hard the engine pulls on each press of green.
+ *
+ * An amble he can watch, a middle gear, then the engine's own top speed. The
+ * middle one is the one that matters: full steam is quick enough that a bend
+ * arrives before he has decided anything about it, and before there was a gear
+ * between them the only way to have time to think was to potter.
+ *
+ * Three is the whole ladder, and a fourth press does nothing — so there is
+ * never a wrong number of presses, only a slower or a faster train.
  */
-const NOTCHES = [0.22, 1];
+const NOTCHES = [0.22, 0.55, 1];
 
 /**
  * Green, red, R, the two that talk, the whistle and the camera.
@@ -36,6 +41,9 @@ const NOTCHES = [0.22, 1];
  * Green and red latch: whatever he pressed last is what the engine is doing,
  * and it stays that way until he presses the other one. That is the trade the
  * buttons make against the lever, which could never be left set.
+ *
+ * Green also counts up: each press is the next speed, and the chevrons on it
+ * light to say which one he is on.
  */
 export function mountControls(h: ControlHandlers): Controls {
   const ui = document.getElementById('ui') as HTMLDivElement;

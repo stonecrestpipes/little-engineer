@@ -289,6 +289,15 @@ export function broadleaves(spots: Planting[]): THREE.Group {
 }
 
 /**
+ * The lowest leaf of a canopy tree, at the smallest scale one is planted at.
+ *
+ * The camera rig reads this: under the canopy it keeps itself below the
+ * leaves, so the chase shots travel through the clear air underneath instead
+ * of through the foliage. See CANOPY_CLEAR in src/engine/cameras.ts.
+ */
+export const CANOPY_UNDERSIDE = 8;
+
+/**
  * The trees that make the tunnel of trees.
  *
  * Built reaching out over their own local +x, so a tree turned to face the
@@ -297,15 +306,20 @@ export function broadleaves(spots: Planting[]): THREE.Group {
  * a green tunnel — which is the whole trick, and it costs three instanced
  * meshes.
  *
- * The height is the part that matters. The crowns have to close about eight
- * metres up: lower than that and they are not a roof the train goes under,
- * they are a hedge the camera is inside, with nothing visible but leaves.
+ * The height is the part that matters, and it is a narrower target than it
+ * looks. Too low and they are not a roof the train goes under, they are a
+ * hedge the camera is inside with nothing visible but leaves — which is what
+ * these were: the crowns began under six metres and the view from behind the
+ * engine sits at six and a half. Too high and the canopy stops closing over
+ * the line at all. So: trunks of thirteen metres, and the first leaf eight
+ * metres up, which leaves head-room for every shot in the game and still
+ * shuts the sky out overhead.
  */
 export function canopyTrees(spots: Planting[]): THREE.Group {
   return instanced(spots, [
-    { geometry: new THREE.CylinderGeometry(0.44, 0.7, 10, 8), material: mat(C.trunk), at: [0, 5, 0] },
-    { geometry: new THREE.SphereGeometry(3.1, 12, 9), material: mat(C.leaf), at: [1.6, 9.2, 0] },
-    { geometry: new THREE.SphereGeometry(2.6, 11, 8), material: mat(C.leafLight), at: [4, 11.2, -0.5] },
+    { geometry: new THREE.CylinderGeometry(0.46, 0.74, 13, 8), material: mat(C.trunk), at: [0, 6.5, 0] },
+    { geometry: new THREE.SphereGeometry(3.3, 12, 9), material: mat(C.leaf), at: [1.8, 12.2, 0] },
+    { geometry: new THREE.SphereGeometry(2.8, 11, 8), material: mat(C.leafLight), at: [4.4, 14.2, -0.5] },
   ]);
 }
 

@@ -146,13 +146,18 @@
       </button>
     </div>
 
-    <!-- Green to go, green again for full steam, red to stop. R backs up for
+    <!-- Green to go, and each further press of green is the next speed up:
+         an amble, a middle gear, then full steam. Red stops. R backs up for
          as long as it is held, and lets go the moment he does. -->
     <div id="drive">
       <button id="btn-go" type="button" data-notch="0" aria-label="Go">
-        <svg viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path class="chev chev-more" d="M5 12 12 5l7 7"/>
-          <path class="chev" d="M5 25l7-7 7 7"/>
+        <!-- One chevron per speed, bottom first. The ones he has not pressed
+             up to yet are dim, which is the only hint that green has three
+             speeds in it. -->
+        <svg viewBox="0 0 24 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path class="chev chev-up chev-3" d="M5 11 12 4l7 7"/>
+          <path class="chev chev-up chev-2" d="M5 20l7-7 7 7"/>
+          <path class="chev" d="M5 29l7-7 7 7"/>
         </svg>
       </button>
 

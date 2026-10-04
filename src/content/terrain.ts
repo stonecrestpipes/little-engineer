@@ -33,11 +33,14 @@ const BLEND = 19;
  *
  * Big enough that the edge of it is beyond the far end of the fog from every
  * shot the game actually uses — otherwise the wide view shows the world
- * stopping. The grid is sized to keep cells at about two and a half metres,
- * which is what the rolling ground needs to stay smooth under the rails.
+ * stopping, which it did the moment the railway grew to four hundred metres
+ * across and the wide shot stepped back to hold it. The grid is sized to keep
+ * cells near three metres, which is what the rolling ground needs to stay
+ * smooth under the rails; the rails themselves are flattened into it, so the
+ * cell size shows in the hills rather than in the track.
  */
-const MAP = 700;
-const GRID = 268;
+const MAP = 1020;
+const GRID = 324;
 
 export interface Hill {
   x: number;

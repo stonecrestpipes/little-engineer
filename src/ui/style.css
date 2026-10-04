@@ -165,7 +165,7 @@ html, body {
   color: #eafce5;
   box-shadow: 0 8px 0 #1b5e20, 0 14px 24px rgba(43, 58, 69, 0.26);
 }
-#ui #btn-go svg { width: 44%; }
+#ui #btn-go svg { width: 42%; }
 
 #ui #btn-stop {
   bottom: var(--inset);
@@ -179,11 +179,19 @@ html, body {
 #ui #btn-go:not(.on),
 #ui #btn-stop:not(.on) { filter: saturate(0.78) brightness(0.97); }
 
-/* The second chevron is dim until there is a second press to be had, which is
-   the only hint that green has two speeds in it. */
-#btn-go .chev-more { opacity: 0.5; }
-#btn-go[data-notch='1'] .chev-more { opacity: 0.26; }
-#btn-go[data-notch='2'] .chev-more { opacity: 1; }
+/*
+ * The chevrons above the one he is on are dim, which is the only hint that
+ * green has three speeds in it.
+ *
+ * At rest they sit half lit — there is more here. Once he is driving, the ones
+ * he has not reached go properly dim, so the lit ones read as a reading of how
+ * fast he is going rather than as decoration.
+ */
+#btn-go .chev-up { opacity: 0.5; transition: opacity 140ms ease-out; }
+#btn-go[data-notch='1'] .chev-up { opacity: 0.26; }
+#btn-go[data-notch='2'] .chev-2 { opacity: 1; }
+#btn-go[data-notch='2'] .chev-3 { opacity: 0.26; }
+#btn-go[data-notch='3'] .chev-up { opacity: 1; }
 
 #ui #btn-back {
   right: calc(var(--inset) + var(--drive) + 18px);

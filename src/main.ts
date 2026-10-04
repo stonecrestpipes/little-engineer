@@ -62,7 +62,9 @@ async function boot(): Promise<void> {
 
   const scene = new THREE.Scene();
 
-  const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 1200);
+  // The far plane has to clear the sky dome from the wide shot, which is six
+  // hundred metres back from a railway five hundred metres deep.
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 1800);
 
   // --- light -------------------------------------------------------------
   const hemi = new THREE.HemisphereLight(0xdcf2ff, 0x6f9455, 1.05);
@@ -71,13 +73,15 @@ async function boot(): Promise<void> {
   // Fixed over the whole railway rather than following the engine. Following
   // it swings the shadow direction as he drives and drags the edge of the
   // shadow map across the fields, which reads as grey patches on the grass.
-  sun.position.set(-190, 260, 158);
+  sun.position.set(-240, 320, 210);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.near = 60;
-  sun.shadow.camera.far = 700;
+  sun.shadow.camera.far = 900;
   // Wide enough to take in the whole layout, so shadows never stop at a line.
-  const S = 215;
+  // The railway reaches from the headland out to the ranch, which is a good
+  // deal further than it used to.
+  const S = 300;
   sun.shadow.camera.left = -S;
   sun.shadow.camera.right = S;
   sun.shadow.camera.top = S;
@@ -106,6 +110,7 @@ async function boot(): Promise<void> {
     tracksideAnchors: world.tracksideAnchors,
     yard: world.yardView,
     groundAt: world.groundAt,
+    canopyAt: world.canopyAt,
   });
 
   /**
@@ -255,7 +260,30 @@ async function boot(): Promise<void> {
   // Harbour. Setting the points is only allowed while he is still short of
   // them, which is also the only time the arrows are on screen.
   const lines = world.track;
-  const APPROACH = 70;
+  /**
+   * How long before the points the arrows come up, in seconds of running
+   * rather than metres of railway.
+   *
+   * Seventy metres was the same seventy metres whether he was pottering or
+   * flat out, which meant the question arrived in ten seconds on the first
+   * notch and in seven at full steam — and seven seconds is not long enough to
+   * see an arrow, work out which picture is which, and get a thumb to it.
+   * Timing it instead gives him the same think at every speed.
+   */
+  const THINKING_TIME = 9;
+  /** However slowly he is going, and however fast: a floor and a ceiling. */
+  const NEAREST = 50;
+  const FURTHEST = 115;
+  /**
+   * And a breath after one set of points before the next set is asked about.
+   *
+   * Two junctions can be a hundred and thirty metres apart and the approach
+   * can be a hundred and fifteen, so without this the next question would be
+   * on screen before he had finished watching the last answer happen. He gets
+   * to see where he chose to go before being asked again.
+   */
+  const BREATH = 2.2;
+  let lastChoice = -99;
   /** The junction whose arrows are showing, if any. */
   let current: Junction | null = null;
   /** The loop that differs from this one only in which way `j` goes. */
@@ -270,9 +298,13 @@ async function boot(): Promise<void> {
     },
   });
   const wasBefore = new Map<string, boolean>();
-  const watchPoints = () => {
+  const watchPoints = (clock: number) => {
     const head = lines.wrap(train.distance);
     const on = settings.get().junctions;
+    // Far enough ahead to be a question rather than a surprise, at whatever
+    // speed he is actually doing.
+    const approach = THREE.MathUtils.clamp(train.speed * THINKING_TIME, NEAREST, FURTHEST);
+    const settling = clock - lastChoice < BREATH;
     // Not while he is standing still. The city's points are twenty metres off
     // the end of The Sheds, so the arrows used to come up over the middle of
     // the yard — over the turntable, the roundhouse doors and the spare cars,
@@ -285,11 +317,15 @@ async function boot(): Promise<void> {
     for (const j of world.junctions) {
       const at = j.pointsOn(lines.line);
       const before = head < at;
-      // Just went over the points: note which way, for the grown-ups' scrapbook.
-      if (wasBefore.get(j.id) && !before) journal.turned(j.id, lines.line & j.bit ? 1 : 0);
+      // Just went over the points: note which way, for the grown-ups' scrapbook,
+      // and start the breath before the next question.
+      if (wasBefore.get(j.id) && !before) {
+        journal.turned(j.id, lines.line & j.bit ? 1 : 0);
+        lastChoice = clock;
+      }
       wasBefore.set(j.id, before);
       const gap = at - head;
-      const near = on && before && gap <= APPROACH && !standing;
+      const near = on && before && gap <= approach && !standing && !settling;
       // Every time round starts set for the main line, so a branch is always
       // somewhere he chose rather than somewhere he was left.
       if ((near && current !== j) || (!on && before)) lines.set(via(j, false), head);
@@ -322,24 +358,65 @@ async function boot(): Promise<void> {
   // get a proper look at a yard the driving buttons are sat on top of, and it
   // is deliberately the same finger doing the same thing a little further: a
   // press that stays put picks, a press that travels looks.
+  //
+  // And two fingers pinch, in every view there is: nearer and further off.
+  // Which finger is which never matters and neither does where on the screen
+  // they are — only how far apart they are and which way that is changing — so
+  // there is no wrong way to do it.
   const picker = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   /** Travel further than this and it was a look, not a pick. Thumbs drift. */
   const DRAG = 16;
+  /** Every finger on the canvas now, so the second one can start a pinch. */
+  const fingers = new Map<number, { x: number; y: number }>();
   let look: { id: number; fromX: number; fromY: number; x: number; y: number; far: number } | null = null;
+  /** How far apart they were when the pinch last moved, in pixels. */
+  let apart = 0;
+  /** Closer than this and the ratio between them is noise. */
+  const PINCH_FLOOR = 24;
+
+  /** How far apart the first two fingers are. */
+  const spread = (): number => {
+    const [a, b] = [...fingers.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
 
   canvas.addEventListener('pointerdown', (e) => {
     used();
-    look = { id: e.pointerId, fromX: e.clientX, fromY: e.clientY, x: e.clientX, y: e.clientY, far: 0 };
-    rig.dragging = true;
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     try {
       canvas.setPointerCapture(e.pointerId);
     } catch {
       /* no capture available; the drag still works over the canvas itself */
     }
+    rig.dragging = true;
+    if (fingers.size >= 2) {
+      // A second finger means this was never a tap and is no longer a drag:
+      // one finger of a pinch travels a long way, and letting it swing the
+      // view at the same time makes the whole gesture feel like a fight.
+      look = null;
+      apart = fingers.size === 2 ? spread() : 0;
+      return;
+    }
+    look = { id: e.pointerId, fromX: e.clientX, fromY: e.clientY, x: e.clientX, y: e.clientY, far: 0 };
   });
 
   canvas.addEventListener('pointermove', (e) => {
+    const finger = fingers.get(e.pointerId);
+    if (finger === undefined) return;
+    finger.x = e.clientX;
+    finger.y = e.clientY;
+
+    if (fingers.size >= 2) {
+      // Three fingers is a four-year-old leaning on the screen. Hold still
+      // rather than guessing which two of them he meant.
+      if (fingers.size > 2) return;
+      const now = spread();
+      if (apart > PINCH_FLOOR && now > PINCH_FLOOR) rig.pinch(now / apart);
+      apart = now;
+      return;
+    }
+
     if (look === null || look.id !== e.pointerId) return;
     const dx = e.clientX - look.x;
     const dy = e.clientY - look.y;
@@ -350,10 +427,20 @@ async function boot(): Promise<void> {
   });
 
   const endLook = (e: PointerEvent, mayPick: boolean): void => {
+    const was = fingers.size;
+    fingers.delete(e.pointerId);
+    rig.dragging = fingers.size > 0;
+
+    if (was >= 2) {
+      // Coming off a pinch. Whatever is still down is not a tap and not a
+      // drag: the next gesture starts from a clean press.
+      look = null;
+      apart = fingers.size === 2 ? spread() : 0;
+      return;
+    }
     if (look === null || look.id !== e.pointerId) return;
     const tapped = look.far <= DRAG;
     look = null;
-    rig.dragging = false;
     if (!mayPick || !tapped) return;
     ndc.set((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
     picker.setFromCamera(ndc, camera);
@@ -411,7 +498,7 @@ async function boot(): Promise<void> {
 
     train.update(dt);
     journal.drove(roster.engine.spec.id, train.speed * dt);
-    watchPoints();
+    watchPoints(t);
     trainState.distance = train.distance;
     trainState.speed = train.speed;
     trainState.moving = train.moving;

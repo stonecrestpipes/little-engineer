@@ -11,6 +11,7 @@ import {
   UP,
   broadleaves,
   conifers,
+  CANOPY_UNDERSIDE,
   fenceAlong,
   mat,
   rail,
@@ -50,6 +51,8 @@ export interface World {
   /** Ground height anywhere on the map, and how far a point is from the rails. */
   groundAt(x: number, z: number): number;
   distanceToTrack(x: number, z: number): number;
+  /** The underside of the leaf cover at a point, or 0 where there is none. */
+  canopyAt(x: number, z: number): number;
   wide: { position: THREE.Vector3; target: THREE.Vector3 };
   /** Looking into the yard at The Sheds, where he picks his train. */
   yardView: { position: THREE.Vector3; target: THREE.Vector3 };
@@ -68,86 +71,120 @@ export interface World {
 /**
  * The railway, and the places on it.
  *
- * The loop runs: The Sheds → across the meadow and over the level crossing →
- * The Farm → up the hillside and through the tunnel → down to the river and
- * over the bridge → The Harbour → back along the shore to The Sheds. About
- * 600 metres, a minute and a half at full lever.
+ * The main line runs: The Sheds → across the meadow and over the level
+ * crossing → The Farm → down the hillside and through the tunnel → over the
+ * river and along to The Harbour → back round the shore to The Sheds. Seven
+ * hundred and fifty metres, under two minutes at full steam.
  *
  * Every piece of it is a named segment of the network rather than part of one
- * closed curve, which is what made the branch line a content change.
+ * closed curve, which is what makes a branch line a content change. The main
+ * line's own segments are all cut from one continuous curve, though, so no two
+ * of them can disagree about where they meet.
  *
- * There are two branches. After The Farm, the main line bears left into the
- * tunnel and the branch carries straight on round the far side of the hill
- * to The Windmill, coming back in above the bridge. After The Harbour, the
- * main line bears left for home and the branch carries on along the sea wall
- * to The Lighthouse on the headland, coming back in up the west bank.
+ * There are four branches, and each one swings out to the *outside* of the
+ * bend the main line is taking at that point, which is what brings it back
+ * facing the way the line is going. After The Sheds the branch carries
+ * straight on to The City while the main line turns across the meadow. After
+ * the meadow it goes up through the woods and round past the capybaras at the
+ * ranch. After The Farm it runs round the far side of the hill to The
+ * Windmill instead of through the tunnel. And after The Harbour it carries on
+ * along the sea wall to The Lighthouse on the headland.
  *
- * Every combination is a whole loop from The Sheds, so there are four, and
- * the loop number's bits say which branches it takes — see
+ * Every combination is a whole loop from The Sheds, so there are sixteen of
+ * them, from seven hundred and fifty metres to a little over two kilometres,
+ * and the loop number's bits say which branches it takes — see
  * src/engine/junction.ts for why that matters.
+ *
+ * **Every junction is at least a hundred and twenty-five metres from the next
+ * one**, and the home platform is sixty-six metres from the first of them.
+ * That is not decoration: the arrows asking him which way to go come up nine
+ * seconds before the points, and two junctions closer together than that
+ * would put the next question on screen before he had seen the last answer
+ * happen.
  */
 
+/**
+ * Where the railway goes, as a point every twenty-odd metres.
+ *
+ * **Two rules, and between them they are the whole reason the turns read as
+ * turns.** Both were learned the hard way, by laying this railway once without
+ * them.
+ *
+ * 1. *Twenty metres between points, and no more than about thirty degrees of
+ *    turn at any one of them.* A Catmull-Rom through points spaced ten metres
+ *    apart in one place and forty in another kinks where the spacing changes,
+ *    whatever the points say — and thirty degrees over twenty metres is a
+ *    fifty-metre curve, which is about as sharp as this railway gets.
+ *
+ * 2. *A branch leaves and rejoins along the main line's own heading, and it
+ *    swings out to the outside of whatever bend the main line is taking.*
+ *    The first is what makes a set of points look like points rather than a
+ *    corner: every branch's first and last point is a few metres off the main
+ *    line, straight on, before it curves away. The second is less obvious and
+ *    matters more. The main loop is driven clockwise, so a branch that swings
+ *    out to the left turns the same way round as the line it left and comes
+ *    back facing the way the line is going. A branch that loops the other way
+ *    comes back facing *backwards*, and there is nothing a curve can do about
+ *    that: the woods branch used to, and where it rejoined the main line the
+ *    rails doubled back on themselves through a radius of one metre twenty.
+ *    That is the hard right through the forest, and it is why this list is
+ *    shaped the way it is.
+ *
+ * The tightest curve anywhere on the sixteen ways round is now about fifteen
+ * metres, and almost all of it is over twenty — checked at startup in a
+ * development build, see `checkCurves` below.
+ */
 const SEGMENTS: Record<string, number[][]> = {
-  sheds: [[-92, 34], [-88, 56], [-78, 74]],
-  meadow: [[-78, 74], [-56, 88], [-28, 96], [-2, 98]],
-  farm: [[-2, 98], [26, 94], [40, 90]],
-  // A short run between where the woods branch comes back in and where the
-  // windmill branch goes out, so the two sets of arrows are never on screen
-  // at the same moment.
-  farmend: [[40, 90], [52, 84]],
-  hillfoot: [[52, 84], [78, 68], [96, 46]],
-  bore: [[96, 46], [106, 22], [108, -4]],
-  descent: [[108, -4], [104, -32], [90, -56]],
-  rivermouth: [[90, -56], [66, -72], [44, -82], [20, -88]],
-  harbour: [[20, -88], [-8, -94], [-36, -92]],
-  shore: [[-36, -92], [-64, -84], [-84, -64]],
-  // Split where the coast line comes back in.
-  westbank: [[-84, -64], [-95, -38]],
-  westfield: [[-95, -38], [-96, -4], [-94, 16], [-92, 34]],
+  // ---- the main line, which is one continuous curve cut into named pieces,
+  // so no two of these can disagree about where they meet.
+  sheds: [[-100, 10], [-97, 33], [-94, 57], [-86, 79], [-72, 98]],
+  meadow: [[-72, 98], [-56, 111], [-37, 121], [-18, 129], [3, 132], [24, 128], [44, 120]],
+  farm: [[44, 120], [65, 112], [85, 102], [103, 88], [116, 69], [122, 47]],
+  // A run between where the woods branch comes back in and where the windmill
+  // branch goes out, so the two sets of arrows are never on screen together.
+  farmend: [[122, 47], [123, 25], [121, 2]],
+  hillfoot: [[121, 2], [118, -17], [112, -36]],
+  bore: [[112, -36], [101, -56], [85, -72]],
+  descent: [[85, -72], [69, -83], [50, -91]],
+  rivermouth: [[50, -91], [31, -96], [11, -100], [-8, -103], [-28, -105]],
+  harbour: [[-28, -105], [-53, -106], [-77, -100]],
+  shore: [[-77, -100], [-91, -87], [-100, -71]],
+  westbank: [[-100, -71], [-107, -44]],
+  westfield: [[-107, -44], [-107, -26], [-105, -8], [-100, 10]],
 
-  // The windmill branch. Kept well out on the far side of the hill, where the
-  // ground is nearly level, so laying it does not carve a canyon next to the
-  // tunnel.
-  eastline: [[52, 84], [78, 74], [104, 76], [130, 70], [152, 54], [166, 30]],
-  windmill: [[166, 30], [170, 4], [164, -20]],
-  eastback: [[164, -20], [148, -34], [126, -36], [106, -40], [90, -56]],
-
-  // The coast line, right along the water's edge, out round the headland and
-  // back in to the west bank.
+  // ---- the city, away north-west: the longest way round there is.
   //
-  // The headland leg is deliberately long, and deliberately straight for its
-  // last forty metres. A station is thirty-four metres of straight platform
-  // built in one frame, so putting one on a curve lays it across its own
-  // rails — which is exactly what used to happen here, and is the reason the
-  // building by the lighthouse sat in the middle of the track.
-  coast: [[-36, -92], [-62, -96], [-88, -106], [-112, -110]],
-  lighthouse: [[-112, -110], [-132, -106], [-142, -92], [-142, -74], [-138, -56]],
-  coastback: [[-138, -56], [-128, -58], [-116, -60], [-106, -56], [-99, -48], [-95, -38]],
-
-  // The woods, north of the meadow: a long way round through the forest and
-  // out across the ranch, instead of the short run past The Farm. The longest
-  // branch on the railway and the only one that is entirely inland.
-  woods: [[-2, 98], [2, 122], [14, 142], [34, 152]],
-  ranch: [[34, 152], [60, 154], [84, 146]],
-  woodsback: [[84, 146], [98, 128], [92, 110], [70, 97], [40, 90]],
-
-  // And the city, away north-west, instead of the run across the meadow.
-  //
-  // It leaves where the main line is already swinging from north-east to
-  // east, so carrying straight on north is the fork rather than a turn out of
-  // one. That matters more than it sounds: a branch that leaves a straight
-  // line at forty-five degrees does not read as a railway at all.
-  //
-  // `cityrun` is two equal legs on one bearing — forty-five metres dead
-  // straight — because the city has a platform and a platform is a straight
-  // thing. The long way back round is deliberately wide: the tightest curve
-  // on it is about twenty-three metres, which is the same as the headland.
-  citynorth: [[-78, 74], [-66, 90], [-68, 110], [-84, 128], [-106, 138]],
-  cityrun: [[-106, 138], [-129, 147], [-152, 156]],
+  // `cityrun` is four points on one bearing — sixty metres dead straight —
+  // because the city has a platform and a platform is a straight thing.
+  citynorth: [[-72, 98], [-58, 114], [-53, 136], [-62, 156], [-76, 172], [-94, 186]],
+  cityrun: [[-94, 186], [-114, 196], [-134, 205], [-154, 214]],
   cityback: [
-    [-152, 156], [-164, 174], [-160, 194], [-140, 206], [-114, 206],
-    [-88, 194], [-62, 172], [-44, 146], [-30, 124], [-18, 108], [-2, 98],
+    [-154, 214], [-170, 230], [-178, 250], [-174, 271], [-158, 287], [-137, 294],
+    [-115, 293], [-94, 285], [-76, 273], [-59, 258], [-47, 239], [-37, 220],
+    [-29, 199], [-19, 179], [-8, 160], [5, 142], [23, 129], [44, 120],
   ],
+
+  // ---- the woods and the ranch, north-east of the meadow: out through the
+  // forest, round the top past the capybaras, and down to rejoin above the
+  // hill. It swings out to the outside of the main line's bend, which is what
+  // brings it back facing the right way — see rule 2 above.
+  woods: [[44, 120], [64, 114], [86, 114], [105, 124], [121, 139], [136, 154], [150, 171], [162, 189], [176, 205]],
+  ranch: [[176, 205], [195, 215], [216, 212], [233, 198], [238, 177]],
+  woodsback: [[238, 177], [233, 157], [221, 139], [204, 126], [184, 116], [163, 110], [143, 102], [127, 88], [118, 69], [122, 47]],
+
+  // ---- the windmill, out round the far side of the hill. The three points
+  // down the eastern side are deliberately on one bearing: the windmill has a
+  // platform too.
+  eastline: [[121, 2], [120, -20], [128, -40], [145, -53], [166, -61], [187, -68]],
+  windmill: [[187, -68], [204, -82], [211, -103], [212, -125], [202, -141]],
+  eastback: [[202, -141], [182, -148], [160, -145], [140, -136], [122, -123], [105, -109], [90, -92], [71, -84], [50, -91]],
+
+  // ---- the coast: along the water's edge, over the creek, out round the
+  // headland to the lighthouse and back up the west bank. The straight down
+  // the far side of the point is the lighthouse's platform.
+  coast: [[-77, -100], [-97, -90], [-119, -90], [-140, -97], [-160, -106], [-178, -119]],
+  lighthouse: [[-178, -119], [-191, -137], [-193, -158], [-191, -180], [-174, -194]],
+  coastback: [[-174, -194], [-153, -198], [-132, -191], [-117, -175], [-109, -155], [-107, -133], [-107, -111], [-107, -89], [-107, -66], [-107, -44]],
 };
 
 const FARM_WAY = ['farm'];
@@ -193,11 +230,12 @@ const MAIN_LINE = 0;
 /** From the pond in the middle of the loop, out under the bridge, to the sea. */
 const RIVER: [number, number][] = [
   [20, -18],
-  [26, -36],
-  [40, -58],
-  [55, -78],
-  [64, -104],
-  [72, -150],
+  [22, -40],
+  [26, -62],
+  [30, -84],
+  [33, -108],
+  [36, -140],
+  [40, -200],
 ];
 
 export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): World {
@@ -211,14 +249,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   net.chain(loopOf(MAIN_LINE), true);
   for (const way of [WOODS_WAY, WINDMILL_WAY, COAST_WAY, CITY_WAY]) net.chain(way);
   net.join({ segment: 'meadow', end: 'end' }, { segment: 'woods', end: 'start' });
-  net.join({ segment: 'cityback', end: 'end' }, { segment: 'woods', end: 'start' });
   net.join({ segment: 'woodsback', end: 'end' }, { segment: 'farmend', end: 'start' });
   net.join({ segment: 'farmend', end: 'end' }, { segment: 'eastline', end: 'start' });
   net.join({ segment: 'eastback', end: 'end' }, { segment: 'rivermouth', end: 'start' });
   net.join({ segment: 'harbour', end: 'end' }, { segment: 'coast', end: 'start' });
   net.join({ segment: 'coastback', end: 'end' }, { segment: 'westfield', end: 'start' });
   net.join({ segment: 'sheds', end: 'end' }, { segment: 'citynorth', end: 'start' });
+  // The main line first, both times: a joined end takes its curve from
+  // whatever was joined on first, and what should shape the end of the city
+  // branch is the line it is rejoining, not the branch that leaves the same
+  // joint a few metres off to one side.
   net.join({ segment: 'cityback', end: 'end' }, { segment: 'farm', end: 'start' });
+  net.join({ segment: 'cityback', end: 'end' }, { segment: 'woods', end: 'start' });
   const loops: Route[] = Array.from({ length: LOOPS }, (_, n) =>
     net.route(loopOf(n).map((segment) => ({ segment }))),
   );
@@ -227,6 +269,41 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   const branches: Route[] = [WOODS_WAY, WINDMILL_WAY, COAST_WAY, CITY_WAY].map((way) =>
     net.route(way.map((segment) => ({ segment })), false),
   );
+
+  // A curve this railway should never have. Checked on every one of the
+  // sixteen ways round, at startup, in a development build — because the way
+  // this goes wrong is silent: the rails still join up, the train still
+  // follows them, and the only symptom is a four-year-old saying a corner is
+  // not realistic. Which is exactly how the one-metre-twenty hairpin where the
+  // woods branch used to rejoin the main line survived as long as it did.
+  if (import.meta.env.DEV) {
+    const TIGHTEST = 14;
+    const STEP = 1.5;
+    const a = new THREE.Vector3();
+    const b = new THREE.Vector3();
+    for (let n = 0; n < LOOPS; n++) {
+      const loop = loops[n];
+      let worst = Infinity;
+      let where = 0;
+      for (let d = 0; d < loop.length; d += 1) {
+        loop.tangentAt(loop.wrap(d - STEP), a);
+        loop.tangentAt(loop.wrap(d + STEP), b);
+        const swing = a.angleTo(b);
+        const radius = swing < 1e-6 ? Infinity : (2 * STEP) / swing;
+        if (radius < worst) {
+          worst = radius;
+          where = d;
+        }
+      }
+      if (worst < TIGHTEST) {
+        console.warn(
+          `world: loop ${n} turns through a radius of ${worst.toFixed(1)} m at ` +
+            `${where.toFixed(0)} m, on ${loop.where(where).segment} — anything under ` +
+            `${TIGHTEST} m reads as a corner rather than a curve`,
+        );
+      }
+    }
+  }
 
   const lines = new Lines(loops);
   const convert = (at: number, from: number, to: number) => lines.convert(at, from, to);
@@ -276,7 +353,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   // because every sample off it reported a distance outside every span.
   const COAST_LINE = 3;
   const DRAW_HALF = 13;
-  const drawAt = 24;
+  const drawAt = 77;
   const draw = { line: COAST_LINE, from: drawAt - DRAW_HALF, to: drawAt + DRAW_HALF };
 
   // The yard beside The Sheds wants to be flat ground rather than country,
@@ -313,7 +390,11 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   const cityAt = middleOfOn(BY_CITY, 'cityrun');
   const cityGround = { ...patchBeside(BY_CITY, cityAt, 0, 46, 26) };
 
-  const shedsAt = middleOf('sheds');
+  // The home platform sits a third of the way along The Sheds rather than in
+  // the middle of it, which puts sixty-odd metres of railway between it and
+  // the city's points instead of twenty. Two seconds was never enough time to
+  // see an arrow, decide, and reach for it.
+  const shedsAt = route.startOf('sheds') + net.get('sheds').length * 0.3;
   const yard = (() => {
     const p = route.positionAt(shedsAt);
     const t = route.tangentAt(shedsAt);
@@ -330,34 +411,37 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     riverDepth: 11,
     riverWidth: 7,
     hills: [
-      // the one the tunnel goes through, sat squarely on the line
-      { x: 107, z: 16, radius: 66, height: 18 },
-      // and the far ones, so the horizon is not a hard edge. These sit beyond
-      // the new branches rather than under them: a hill the railway is laid
-      // through is a cutting the railway has to be dug out of, and the woods
-      // and the city branches both used to run straight into one.
-      { x: -258, z: 104, radius: 112, height: 28 },
-      { x: 26, z: 236, radius: 96, height: 22 },
-      { x: -150, z: -150, radius: 84, height: 21 },
-      // the point the lighthouse stands on, out beyond the end of the branch
-      { x: -168, z: -94, radius: 40, height: 11 },
-      { x: 186, z: -96, radius: 78, height: 17 },
-      // low rising ground north of the meadow, for the woods to climb into
-      { x: 10, z: 148, radius: 74, height: 9 },
+      // The one the tunnel goes through, sat squarely on the bore. Kept small
+      // on purpose: the windmill branch leaves the main line thirty metres
+      // from here, and a broader hill would put it in a cutting alongside the
+      // tunnel mouth rather than out on level ground.
+      { x: 99, z: -54, radius: 32, height: 16 },
+      // The point the lighthouse stands on, out at the end of the headland.
+      { x: -196, z: -176, radius: 46, height: 11 },
+      // Rising ground north of the woods, for the forest to climb into.
+      { x: 110, z: 270, radius: 90, height: 12 },
+      // And the far ones, so the horizon is not a hard edge. Every one of
+      // these sits beyond the end of every branch: a hill the railway is laid
+      // through is a cutting the railway has to be dug out of.
+      { x: -300, z: 140, radius: 150, height: 30 },
+      { x: 0, z: 370, radius: 150, height: 30 },
+      { x: 360, z: 60, radius: 150, height: 28 },
+      { x: 330, z: -280, radius: 140, height: 24 },
+      { x: -120, z: -330, radius: 130, height: 22 },
     ],
     ponds: [
       // the pond the river comes from
-      { x: 20, z: -12, radius: 28, depth: 9 },
-      // and the harbour basin, dug in behind the quay
-      { x: -8, z: -118, radius: 42, depth: 12 },
-      // the creek under the drawbridge, which runs out into the sea
-      { x: -55, z: -97, radius: 25, depth: 11 },
+      { x: 20, z: -10, radius: 28, depth: 9 },
+      // the harbour basin, dug in behind the quay and open to the sea
+      { x: -60, z: -150, radius: 46, depth: 12 },
+      // the creek the coast line crosses on the drawbridge
+      { x: -150, z: -100, radius: 22, depth: 10 },
     ],
     // The city stands on level ground, the way a city does.
     flats: [yard, ranchField, cityGround],
-    shore: -100,
-    deep: -128,
-    seaDepth: 15,
+    shore: -160,
+    deep: -212,
+    seaDepth: 16,
   });
   scene.add(terrain.ground, terrain.water);
 
@@ -408,8 +492,10 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     onLoop.set(place, line);
     places.push(place);
   };
-  branchPlace(buildWindmill, 'windmill', BY_WINDMILL);
-  branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE, 0.76);
+  // Both of these stand on the deliberate straight at the far end of their
+  // branch — see SEGMENTS — because both have a platform.
+  branchPlace(buildWindmill, 'windmill', BY_WINDMILL, 0.58);
+  branchPlace(buildLighthouse, 'lighthouse', BY_LIGHTHOUSE, 0.46);
   branchPlace(buildRanch, 'ranch', BY_WOODS);
   branchPlace(buildCity, 'cityrun', BY_CITY);
 
@@ -512,17 +598,29 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     // street trees, and the wood should come right up to the edge of it.
     { x: cityGround.x, z: cityGround.z, radius: 40 },
   ];
+  /**
+   * How far a trunk has to stand off the rails.
+   *
+   * A broadleaf's crown is two and a half metres across the middle before it
+   * is scaled, so a tree twelve metres off the line reaches to within nine of
+   * it — and nine metres is squarely between a trackside camera and the train
+   * it is pointing at. Everything scattered now stands back far enough that
+   * the rails are never behind a tree.
+   */
+  const CLEAR_OF_RAILS = 19;
+  /** How far the countryside reaches, which is past the end of every branch. */
+  const COUNTRY = 310;
   const taken: [number, number][] = [];
-  for (let i = 0; i < 420; i++) {
-    const a = (i / 300) * Math.PI * 2 + Math.random() * 0.3;
-    const r = 26 + Math.random() * 190;
-    const x = Math.cos(a) * r + (Math.random() - 0.5) * 30;
-    const z = Math.sin(a) * r * 0.95 + (Math.random() - 0.5) * 30;
+  for (let i = 0; i < 760; i++) {
+    const a = (i / 420) * Math.PI * 2 + Math.random() * 0.3;
+    const r = 26 + Math.random() * COUNTRY;
+    const x = Math.cos(a) * r + (Math.random() - 0.5) * 40;
+    const z = Math.sin(a) * r * 0.95 + (Math.random() - 0.5) * 40 + 40;
     const y = terrain.heightAt(x, z);
     // Not in the water, not on the railway, not in the yard, and not on top
     // of each other. A tree standing in the four-foot is funny exactly once.
     if (y < -1.5 || y > 26) continue;
-    if (terrain.distanceToTrack(x, z) < 12) continue;
+    if (terrain.distanceToTrack(x, z) < CLEAR_OF_RAILS) continue;
     if (distanceToPath(RIVER, x, z) < 13) continue;
     if ((x - yard.x) ** 2 + (z - yard.z) ** 2 < (yard.radius + 8) ** 2) continue;
     // Nor in the ranch's field, where the capybaras are, nor on the city's
@@ -536,26 +634,76 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   }
   scene.add(broadleaves(wood), conifers(hillside));
 
+  /**
+   * The underside of the leaf cover, which exists only over the woods.
+   *
+   * Taken from the run of rails the canopy was planted along rather than from
+   * the trees themselves: the trees are instanced and their positions are the
+   * woods' own business, and all the camera needs to know is where the roof
+   * is. Measured generously wide, because a crown leans in a long way.
+   */
+  const canopyLine: [number, number][] = (() => {
+    const loop = loops[BY_WOODS];
+    const from = loop.startOf('woods');
+    const to = from + net.get('woods').length;
+    const out: [number, number][] = [];
+    const q = new THREE.Vector3();
+    for (let d = from - 6; d <= to + 6; d += 6) {
+      loop.positionAt(loop.wrap(d), q);
+      out.push([q.x, q.z]);
+    }
+    return out;
+  })();
+  /** How far either side of the woods line the crowns reach. */
+  const CANOPY_REACH = 15;
+  const canopyAt = (x: number, z: number): number =>
+    distanceToPath(canopyLine, x, z) < CANOPY_REACH ? CANOPY_UNDERSIDE : 0;
+
   // A fence along the meadow, so there is something to measure speed against.
   const meadowFrom = route.startOf('meadow');
   scene.add(fenceAlong(route, meadowFrom + 8, meadowFrom + 62, 6.4));
   scene.add(fenceAlong(route, meadowFrom + 8, meadowFrom + 62, -6.4));
 
   // ----------------------------------------------------------------- views
+  /**
+   * Low shots beside the rails, for the trackside view.
+   *
+   * Each one is picked on the side of the line that is clear: a shot ten
+   * metres off the track with a tree nine metres off it is a shot of a tree,
+   * which is what the trackside view had become in half the places it chose.
+   * Both hands are tried, and then both a little further out; if the only
+   * thing to be found is a thicket, that length of line simply gets no shot.
+   */
   const tracksideAnchors: THREE.Vector3[] = [];
   const p = new THREE.Vector3();
   const t = new THREE.Vector3();
   const side = new THREE.Vector3();
-  const anchorAt = (track: Route, d: number) => {
+  /** How far a trunk has to be from a camera for the shot to be of the train. */
+  const SHOT_CLEAR = 7;
+  const clearOfTrees = (x: number, z: number): boolean =>
+    !taken.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < SHOT_CLEAR ** 2);
+
+  const anchorAt = (track: Route, d: number): void => {
     track.positionAt(d, p);
     track.tangentAt(d, t);
-    side.crossVectors(t, UP).normalize().multiplyScalar(10.5);
-    const x = p.x + side.x;
-    const z = p.z + side.z;
-    tracksideAnchors.push(new THREE.Vector3(x, Math.max(0, terrain.heightAt(x, z)) + 2.7, z));
+    side.crossVectors(t, UP).normalize();
+    for (const out of [10.5, -10.5, 14, -14]) {
+      const x = p.x + side.x * out;
+      const z = p.z + side.z * out;
+      const ground = terrain.heightAt(x, z);
+      // Not in the water, and not inside a tree.
+      if (ground < -1) continue;
+      if (!clearOfTrees(x, z)) continue;
+      tracksideAnchors.push(new THREE.Vector3(x, Math.max(0, ground) + 2.7, z));
+      return;
+    }
   };
-  for (let i = 0; i < 9; i++) {
-    const d = (i / 9) * route.length + 14;
+  // More of them than there used to be, because there is a great deal more
+  // railway: one about every sixty metres of main line, and three on each
+  // branch.
+  const SHOTS = 13;
+  for (let i = 0; i < SHOTS; i++) {
+    const d = (i / SHOTS) * route.length + 14;
     // Not inside the tunnel, where the shot would be a wall.
     if (route.ahead(tunnel.from - 8, d) < TUNNEL_HALF * 2 + 16) continue;
     anchorAt(route, d);
@@ -579,13 +727,14 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     return v;
   };
 
-  // Far enough out to hold the whole railway now that there are four branches
-  // on it: the woods away north, the city away west, the windmill east and the
-  // headland south-west. Centred a touch east and north of the main loop so
-  // none of them is hiding behind the driving buttons.
+  // Far enough out to hold the whole railway, which is now four hundred and
+  // thirty metres across and nearly five hundred deep: the city away
+  // north-west, the woods and the ranch away north-east, the windmill east and
+  // the headland south-west. Centred on the middle of all of it rather than on
+  // the main loop, so no branch is hiding behind the driving buttons.
   const wide = {
-    position: new THREE.Vector3(8, 250, 300),
-    target: new THREE.Vector3(8, 0, 34),
+    position: new THREE.Vector3(23, 470, 500),
+    target: new THREE.Vector3(23, 0, 48),
   };
 
   /**
@@ -624,6 +773,7 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     stops,
     groundAt: terrain.heightAt,
     distanceToTrack: terrain.distanceToTrack,
+    canopyAt,
     tracksideAnchors,
     wide,
     yardView,

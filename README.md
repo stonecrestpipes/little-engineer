@@ -19,7 +19,51 @@ most of them.** It is a much larger game than the one he last saw. Nothing
 below has been in front of him yet — that is the whole of what the next go is
 for.
 
-### What he asked for, and what is there
+### v0.4.0 — the second list, after he drove it
+
+He played the railway above and came back with seven things. All seven are in.
+
+- **The hello said his name twice.** It cut itself off mid-sentence and started
+  again in a different voice. Two causes, both fixed: the retry that was meant
+  for a device too slow to speak fired even when the device *had* spoken, and
+  the voice was being chosen afresh for every sentence out of a list that grows
+  while the page loads. It is said once now, in one voice.
+- **A third speed.** Green went amble → full steam and nothing between, and
+  full steam was quick enough that a bend arrived before he had decided
+  anything about it. Now: amble → a middle gear → full steam, with a chevron on
+  the button lighting for each. A fourth press still does nothing.
+- **Pinch to zoom, in every view** — the yard included, which is where it is
+  most useful, because the engines in the roundhouse are small under his own
+  thumb. The zoom stays where he puts it; the camera button gives it back.
+- **The hard right through the forest is gone.** It was not a curve at all: the
+  woods branch came back onto the main line *facing backwards*, and the rails
+  doubled through a radius of **one metre twenty** to turn it round. Every
+  branch has been re-laid to swing out to the outside of the bend the main line
+  is taking, which is what brings it back facing the right way. **The tightest
+  curve anywhere on the sixteen loops is now about fifteen metres**, and nearly
+  all of it is over twenty-five. A startup check in development builds refuses
+  to let that regress quietly, which is how the hairpin survived so long.
+- **More open track before the turns.** The main line is 755 m rather than 642,
+  and **no two sets of points are closer than 125 m** (they were 56 m, back to
+  back). The home platform is 66 m from the first junction rather than 22 — he
+  used to get three seconds between pressing green and having to choose. The
+  arrows now come up **nine seconds before the points at whatever speed he is
+  doing**, rather than a fixed seventy metres, and there is a pause after one
+  junction before the next is asked about.
+- **Trees no longer stand in front of the track.** The scattered wood is planted
+  back from the rails, the trackside camera picks a side that is clear instead
+  of filming a trunk, and the woods canopy has been lifted so the chase shots
+  travel through clear air underneath it — the crowns still close overhead.
+- **The roundhouse was built wrong and is rebuilt.** Five roads 22.5° apart are
+  only 4.3 m apart at the doors, and each bay was being built as a 7 m-wide box:
+  every doorway pier stood a metre inside its neighbour's doorway, the roofs
+  overlapped three deep, and all seven roads were drawn straight across the
+  turntable pit. It is now one curved building — shared walls between the bays,
+  one roof over the fan, doorways that are holes in one front — the roads stop
+  at the pit rim where the turntable takes over, and the doors fold back inside
+  the bays where there is room for them.
+
+### What he asked for before that, and what is there
 
 - **A roundhouse.** Five roads round a turntable, a pair of doors on each, and
   an engine asleep behind every door but the one whose engine is out. It is now
@@ -35,8 +79,8 @@ for.
   **Pressing green from the wide shot now comes down to the train.**
 - **Two more junctions**, so four altogether and sixteen whole loops. Leaving
   The Sheds: the meadow or the city. Across the meadow: The Farm or the woods.
-  Main lap 642 m; taking every branch, **1,284 m**.
-- **The woods** — seventy metres with the canopy closed over the line, A-frame
+  Main lap 755 m; taking every branch, **2,107 m**.
+- **The woods** — a hundred and seventy metres with the canopy closed over the line, A-frame
   cabins with their windows lit, deer that bolt at a whistle, an owl.
 - **The capybara ranch** — a fenced field, a pool, eight of them, two standing
   in the water. Whistle and every head turns and they squeak back.
@@ -113,7 +157,9 @@ thing to try is thinning the trees in `src/content/world.ts`.
 
 - **How the driving feels** is five numbers per engine, in
   `src/content/engines/`. For the blue one, in `thomas.ts`:
-  `cruise` 7.2 m/s on the second press of green, `slow` 2.8 m/s on the first,
+  `cruise` 7.2 m/s on the third press of green, `slow` 2.8 m/s on the first,
+  and the middle gear sits between them (the ladder is `NOTCHES` in
+  `src/ui/controls.ts`),
   `coast` 1.15 m/s² with no power on (about six seconds to a halt), `brake` 3.4
   on red, and `accel` 2.6. Reverse is 42% of `slow`, in `src/engine/train.ts`. All guesses until he drives it, and the
   first numbers likely to want changing. The grown-ups' panel scales top speed

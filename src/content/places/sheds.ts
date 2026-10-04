@@ -38,26 +38,42 @@ const BAYS = 5;
 /** Which way the middle road points, and how far the others spread from it. */
 const FAN_BEARING = 235;
 const FAN_SPREAD = 22.5;
+/** The turntable pit. Nothing is drawn inside it but the turntable itself. */
+const PIT_R = 8.6;
+
 /**
  * Radius of the doors and of the back wall.
  *
- * Deep enough for the longest engine on the railway, which is the tender one
- * at eleven and a half metres against everyone else's six. Every engine used
- * to stand at the same radius, which worked for exactly as long as they were
- * all the same length: the red one hung out of the doorway and over the
- * turntable at one end and through the back wall at the other.
+ * **These two numbers and FAN_SPREAD have to agree with each other**, and for
+ * a long time they did not. Five roads twenty-two and a half degrees apart are
+ * only four and a quarter metres apart at a radius of eleven — and each bay
+ * was being built as a seven-metre-wide box with its doorway piers three and a
+ * half metres out from its own centre line. So every pier stood a metre inside
+ * the next bay's doorway, every roof overlapped the two beside it, and the
+ * whole shed read as a heap of brick boxes rather than a roundhouse.
+ *
+ * At fourteen metres the roads are five and a half metres apart, which is a
+ * doorway with piers either side of it and nothing of its neighbour in it. The
+ * back wall then has to go out far enough for the longest engine on the
+ * railway — the tender one, at eleven and a half metres against everyone
+ * else's six — to stand inside with the door shut behind it.
  */
-const DOOR_R = 11;
-const BACK_R = 25;
+const DOOR_R = 14;
+const BACK_R = 30;
 /** Where an engine of a given length stands: buffers just inside the door. */
 const standsAt = (length: number): number => DOOR_R + 1.8 + length / 2;
 
 /**
  * The two throat roads, each as a bearing off the turntable and a list of
- * radii along it, and where it meets the running line.
+ * radii along it, then the points that take it out to the running line.
+ *
+ * The tail points used to run *backwards*: the last radius on the arrival road
+ * reached sixteen metres up the yard and the next point was at fifteen, so the
+ * road doubled back on itself and the curve through it tied a knot. Every z
+ * here increases, all the way out.
  */
-const ARRIVAL = { bearing: 55, radii: [9, 15, 21], join: 22 };
-const DEPARTURE = { bearing: 38, radii: [10, 18, 26], join: 32 };
+const ARRIVAL = { bearing: 55, radii: [10, 15, 20], tail: [[-1, 18.5], [0, 24]], join: 24 };
+const DEPARTURE = { bearing: 38, radii: [11, 18, 26], tail: [[-1.2, 29], [0, 34]], join: 34 };
 
 /** How the stock moves, in metres a second. Setting back is always slower. */
 const OUT = 8.5;
@@ -73,6 +89,13 @@ function off(bearing: number, radius: number): THREE.Vector2 {
 
 /** The bearing of roundhouse road `i`, in degrees. */
 const bayBearing = (i: number): number => FAN_BEARING + (i - (BAYS - 1) / 2) * FAN_SPREAD;
+/**
+ * The bearing of the line between road `i-1` and road `i` — where the piers
+ * and the dividing walls go. There is one more of these than there are roads,
+ * and each one is shared by the two bays either side of it, which is the whole
+ * difference between a roundhouse and five sheds standing on each other.
+ */
+const wallBearing = (i: number): number => bayBearing(0) + (i - 0.5) * FAN_SPREAD;
 
 /** Rails and ballast following a path of points, for a road that is not a route. */
 function roadAlong(points: THREE.Vector2[], closed = false): THREE.Group {
@@ -159,22 +182,127 @@ export function buildSheds(ctx: PlaceContext): Place {
   group.add(apron);
 
   // -------------------------------------------------------- the yard roads
-  const V = (p: THREE.Vector2) => p;
-  const throat = (spec: typeof ARRIVAL): THREE.Vector2[] => [
-    off(spec.bearing, 4),
-    ...spec.radii.map((r) => off(spec.bearing, r)),
-    new THREE.Vector2(-1.2, spec.join - 7),
-    new THREE.Vector2(0, spec.join),
+  //
+  // Two sets of points are being kept apart here, and keeping them apart is
+  // what stopped the middle of the yard looking like a plate of spaghetti.
+  //
+  // *Where the rails are drawn* starts at the rim of the turntable pit, because
+  // there are no rails across a turntable pit — the turntable is what carries
+  // them. All seven roads used to be drawn from four metres out, which is five
+  // metres inside a pit eight and a half metres across, so seven ballast
+  // ribbons crossed each other over the pit floor and poked up through it.
+  //
+  // *Where the stock travels* does go through the middle, because that is what
+  // riding the turntable looks like. `throat` and `outOfRoad` below are the
+  // travelling version; these are the drawn one.
+  const throat = (spec: typeof ARRIVAL, from: number): THREE.Vector2[] => [
+    off(spec.bearing, from),
+    ...spec.radii.filter((r) => r > from).map((r) => off(spec.bearing, r)),
+    ...spec.tail.map(([x, z]) => new THREE.Vector2(x, z)),
   ];
-  const arrivalRoad = throat(ARRIVAL);
-  const departureRoad = throat(DEPARTURE);
-  group.add(roadAlong(arrivalRoad), roadAlong(departureRoad));
+  group.add(roadAlong(throat(ARRIVAL, PIT_R)), roadAlong(throat(DEPARTURE, PIT_R)));
 
   for (let i = 0; i < BAYS; i++) {
-    group.add(roadAlong([V(off(bayBearing(i), 4)), V(off(bayBearing(i), BACK_R - 1))]));
+    group.add(roadAlong([off(bayBearing(i), PIT_R), off(bayBearing(i), BACK_R - 1.5)]));
   }
 
   // ------------------------------------------------------- the roundhouse
+  //
+  // One building, not five. The bays are wedges of the same fan: they share
+  // the walls between them, they share one roof, and the doorways are holes in
+  // one curved front rather than five separate fronts standing on each other.
+  //
+  // Built the other way — a box per road — it could not be made to work at any
+  // size, because a box is the same width at the back as at the front and a
+  // fan is not. Every neighbouring pair either overlapped by three metres at
+  // the doors or left daylight between them at the back wall, and for a long
+  // time it did both at once.
+  const H = 8.2;
+  /** How far up the doorway opening goes. */
+  const HEAD = 6.4;
+  /** Half the width of a pier, measured along the arc. */
+  const PIER = 0.5;
+
+  /**
+   * A slab covering the whole fan between two radii — the roof.
+   *
+   * Built as one piece of geometry rather than one box per road: a box per
+   * road is what notched the roofline like a saw at the back and stacked the
+   * eaves three deep at the front.
+   */
+  function fanSlab(inner: number, outer: number, base: number, thick: number): THREE.Mesh {
+    const FACETS = BAYS * 3;
+    const from = wallBearing(0);
+    const to = wallBearing(BAYS);
+    const pos: number[] = [];
+    const idx: number[] = [];
+    const push = (p: THREE.Vector2, y: number) => {
+      pos.push(p.x, y, p.y);
+      return pos.length / 3 - 1;
+    };
+    const quad = (a: number, b: number, c: number, d: number) => idx.push(a, b, c, a, c, d);
+    // Four corners per facet edge: inner and outer, top and bottom.
+    const ring: number[][] = [];
+    for (let i = 0; i <= FACETS; i++) {
+      const b = from + ((to - from) * i) / FACETS;
+      const pi = off(b, inner);
+      const po = off(b, outer);
+      ring.push([push(pi, base + thick), push(po, base + thick), push(po, base), push(pi, base)]);
+    }
+    for (let i = 0; i < FACETS; i++) {
+      const [ai, ao, aob, aib] = ring[i];
+      const [bi, bo, bob, bib] = ring[i + 1];
+      quad(ai, ao, bo, bi); // the top of it
+      quad(aib, bib, bob, aob); // and the underside
+      quad(ao, aob, bob, bo); // the eaves at the back
+      quad(ai, bi, bib, aib); // and at the front
+    }
+    // The two ends of the fan.
+    const [fi, fo, fob, fib] = ring[0];
+    const [li, lo, lob, lib] = ring[FACETS];
+    quad(fi, fib, fob, fo);
+    quad(li, lo, lob, lib);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    return new THREE.Mesh(geo, mat(C.slate));
+  }
+
+  // The walls between the roads, each one shared by the two bays either side.
+  for (let i = 0; i <= BAYS; i++) {
+    const b = wallBearing(i);
+    const depth = BACK_R - DOOR_R;
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(0.45, H, depth), mat(C.brick));
+    const mid = off(b, DOOR_R + depth / 2);
+    wall.position.set(mid.x, H / 2, mid.y);
+    wall.rotation.y = rad(b);
+    group.add(wall);
+
+    // And the pier standing on the end of it, in the front of the building.
+    const pier = new THREE.Mesh(new THREE.BoxGeometry(PIER * 2, H, 1.7), mat(C.brickDark));
+    const atDoor = off(b, DOOR_R + 0.5);
+    pier.position.set(atDoor.x, H / 2, atDoor.y);
+    pier.rotation.y = rad(b);
+    group.add(pier);
+  }
+
+  // The back wall, as one facet per bay. At this radius the roads are nearly
+  // ten metres apart, so the facets meet rather than overlapping.
+  const BACK_SPAN = 2 * BACK_R * Math.sin(rad(FAN_SPREAD / 2)) + 0.5;
+  for (let i = 0; i < BAYS; i++) {
+    const b = bayBearing(i);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(BACK_SPAN, H, 0.55), mat(C.brick));
+    const p = off(b, BACK_R - 0.3);
+    back.position.set(p.x, H / 2, p.y);
+    back.rotation.y = rad(b);
+    group.add(back);
+  }
+
+  // One roof over the whole fan, oversailing the doors by a little.
+  const roof = fanSlab(DOOR_R - 1.1, BACK_R + 0.5, H + 0.1, 0.55);
+  group.add(roof);
+
   /** The two leaves of each road's door, hinged at opposite piers. */
   const bayDoors: THREE.Group[][] = [];
   for (let i = 0; i < BAYS; i++) {
@@ -182,66 +310,42 @@ export function buildSheds(ctx: PlaceContext): Place {
     bay.position.set(PIT.x, 0, PIT.y);
     bay.rotation.y = rad(bayBearing(i));
 
-    const W = 7.0;
-    const H = 7.6;
-    const GAP = 3.6;
-    // Hollow, because there is an engine asleep inside it. The first pass had
-    // each bay as one solid brick box with a dark panel across the doorway,
-    // which looked like a roundhouse from outside and had every engine walled
-    // up in the middle of the brickwork.
-    const depth = BACK_R - (DOOR_R + 1.4);
-    const mid = DOOR_R + 1.4 + depth / 2;
-    for (const side of [-1, 1] as const) {
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(0.4, H, depth), mat(C.brick));
-      wall.position.set((side * W) / 2, H / 2, mid);
-      bay.add(wall);
-    }
-    // The back wall and the roof are cut to the spacing of the roads at the
-    // *back* of the shed, not at the doors. The roads fan apart as they go in,
-    // so a back wall the width of a doorway leaves daylight between every bay
-    // and a roof the same width leaves the roofline notched like a saw. They
-    // overlap their neighbours at the front instead, which is just brick.
-    const SPAN = 2 * BACK_R * Math.sin(rad(FAN_SPREAD / 2)) + 0.6;
-    const back = new THREE.Mesh(new THREE.BoxGeometry(SPAN, H, 0.5), mat(C.brick));
-    back.position.set(0, H / 2, BACK_R - 0.25);
-    bay.add(back);
-    const roof = new THREE.Mesh(new THREE.BoxGeometry(SPAN, 0.5, depth + 1.8), mat(C.slate));
-    roof.position.set(0, H + 0.2, DOOR_R + 0.9 + depth / 2);
-    bay.add(roof);
+    // Inside the bay, +z is out along its own road. The doorway is as wide as
+    // the gap between the two piers either side of it, which is what the roads
+    // leave at this radius rather than a number picked by hand.
+    const span = 2 * DOOR_R * Math.sin(rad(FAN_SPREAD / 2));
+    const GAP = span - PIER * 2;
 
-    // The doorway: two piers and a lintel, with the door's width between them.
-    for (const side of [-1, 1] as const) {
-      const pier = new THREE.Mesh(new THREE.BoxGeometry((W - GAP) / 2, H, 1.6), mat(C.brickDark));
-      pier.position.set((side * (GAP + (W - GAP) / 2)) / 2, H / 2, DOOR_R + 0.7);
-      bay.add(pier);
-    }
-    const lintel = new THREE.Mesh(new THREE.BoxGeometry(W, H - 6.0, 1.6), mat(C.brickDark));
-    lintel.position.set(0, 6.0 + (H - 6.0) / 2, DOOR_R + 0.7);
+    // Over the doorway, between its two piers.
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(GAP + 0.4, H - HEAD, 1.7), mat(C.brickDark));
+    lintel.position.set(0, HEAD + (H - HEAD) / 2, DOOR_R + 0.5);
     bay.add(lintel);
 
-    // The dark of the shed, right at the back of it, so the engine standing
-    // in between is a shape against it rather than a shape against daylight.
+    // The dark of the shed, right at the back of it, so the engine standing in
+    // between is a shape against it rather than a shape against daylight.
     const dark = new THREE.Mesh(
-      new THREE.BoxGeometry(W - 0.8, H - 0.6, 0.2),
+      new THREE.BoxGeometry(BACK_SPAN - 1.2, H - 0.6, 0.2),
       new THREE.MeshStandardMaterial({ color: 0x241f1c, roughness: 1 }),
     );
-    dark.position.set(0, (H - 0.6) / 2, BACK_R - 0.6);
+    dark.position.set(0, (H - 0.6) / 2, BACK_R - 0.9);
     bay.add(dark);
 
-    // The door: two leaves, each hinged at its own pier and swinging out.
+    // The door: two leaves, each hinged at its own pier and folding back *into*
+    // the bay, where they come to rest against the walls either side.
     //
-    // Two rather than one because the roads are only four metres apart at the
-    // doorways, and a single three-and-a-half-metre leaf swung open stands
-    // right across the next road's doorway — hiding the engine behind it, and
-    // catching the touch meant for it.
+    // Outward is where they used to swing, and outward does not fit. The
+    // doorways are five and a half metres apart and four and a half wide, so a
+    // leaf swung out stands more than a metre across the next road's doorway —
+    // in front of the engine asleep behind it. Inward there is room, because a
+    // bay is twice as wide at the back as it is at the door.
     const pair: THREE.Group[] = [];
     for (const side of [-1, 1] as const) {
       const hinge = new THREE.Group();
       hinge.position.set((side * GAP) / 2, 0, DOOR_R + 0.05);
-      const leaf = new THREE.Mesh(new THREE.BoxGeometry(GAP / 2, 5.9, 0.26), mat(C.roof));
-      leaf.position.set((-side * GAP) / 4, 2.95, 0);
+      const leaf = new THREE.Mesh(new THREE.BoxGeometry(GAP / 2, HEAD - 0.3, 0.26), mat(C.roof));
+      leaf.position.set((-side * GAP) / 4, (HEAD - 0.3) / 2, 0);
       const brace = new THREE.Mesh(new THREE.BoxGeometry(GAP * 0.44, 0.26, 0.4), mat(C.stoneDark));
-      brace.position.set((-side * GAP) / 4, 3.6, 0.12);
+      brace.position.set((-side * GAP) / 4, HEAD * 0.62, 0.12);
       hinge.add(leaf, brace);
       bay.add(hinge);
       pair.push(hinge);
@@ -436,11 +540,17 @@ export function buildSheds(ctx: PlaceContext): Place {
     return out;
   };
 
-  /** Out of road `i` as far as the turntable, in world space. */
+  /**
+   * Out of road `i` as far as the middle of the turntable, in world space.
+   *
+   * This one *does* run into the pit, right to the centre, because the next
+   * leg of every shunt starts there: the engine rides the table round. The
+   * rails drawn on the ground stop at the rim — see the yard roads above.
+   */
   const outOfRoad = (road: number, length: number) =>
-    [standsAt(length), DOOR_R - 1, 4].map((r) => at(off(bayBearing(road), r)));
-  /** A throat road, in world space, running outward from the turntable. */
-  const throatWorld = (spec: typeof ARRIVAL) => throat(spec).map(at);
+    [standsAt(length), DOOR_R - 1.5, 2].map((r) => at(off(bayBearing(road), r)));
+  /** A throat road, in world space, running out from the middle of the table. */
+  const throatWorld = (spec: typeof ARRIVAL) => throat(spec, 2).map(at);
 
   // ------------------------------------------------------------ behaviour
   let clock = 0;
@@ -667,8 +777,9 @@ export function buildSheds(ctx: PlaceContext): Place {
         // Doors are heavy, and each one is a little slower than the last.
         const rate = dt * (0.44 - i * 0.04);
         open[i] += THREE.MathUtils.clamp(want[i] - open[i], -rate, rate);
-        bayDoors[i][0].rotation.y = open[i] * 1.6;
-        bayDoors[i][1].rotation.y = -open[i] * 1.6;
+        // Negative swings a leaf inward, into the bay. See the doors above.
+        bayDoors[i][0].rotation.y = -open[i] * 1.5;
+        bayDoors[i][1].rotation.y = open[i] * 1.5;
       }
 
       // The turntable lines up with whichever road is widest open, and turns

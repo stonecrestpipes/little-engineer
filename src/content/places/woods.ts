@@ -23,9 +23,16 @@ export interface WoodsContext extends PlaceContext {
   to: number;
 }
 
-/** How far out from the centre line the near trees stand. */
-const NEAR = 7.2;
-const FAR = 13.5;
+/**
+ * How far out from the centre line the near trees stand.
+ *
+ * Far enough that a crown leaning in over the rails is over the *rails* and
+ * not over the camera: these used to stand seven metres out and lean a crown
+ * three metres wide to within a couple of metres of the four-foot, at a height
+ * the follow shot travels at.
+ */
+const NEAR = 8.8;
+const FAR = 15.5;
 
 export function buildWoods(ctx: WoodsContext): Place {
   const group = frameAt(ctx.track, ctx.at);

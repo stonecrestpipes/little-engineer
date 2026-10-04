@@ -52,6 +52,13 @@ export default defineConfig({
         // the navigation request misses the cache and there is nothing to
         // fall back to. This is what makes flight mode work.
         navigateFallback: 'index.html',
+        // Take charge of pages that are already open as soon as a worker
+        // activates. Without it, the page that *installed* the worker is
+        // never controlled by one, so the `controllerchange` that is supposed
+        // to reload the app into a new build never fires for it — the update
+        // activates and the page sits there on the old build regardless.
+        // `skipWaiting` stays off: src/ui/updates.ts decides the moment.
+        clientsClaim: true,
       },
     }),
   ],

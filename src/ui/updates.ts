@@ -23,6 +23,9 @@ export interface Updates {
   checkNow(): Promise<UpdateCheck>;
 }
 
+/** How long to let the service worker reload the page before doing it here. */
+const RELOAD_BACKSTOP = 1500;
+
 export interface UpdateOptions {
   /**
    * True once the session is genuinely in use. We never reload over the top
@@ -81,18 +84,35 @@ export function watchForUpdates({ inUse }: UpdateOptions): Updates {
     },
   });
 
+  /**
+   * Activate the waiting worker and come back on the new build.
+   *
+   * `updateSW(true)` asks the waiting worker to take over and reloads when it
+   * does — but it reloads on `controllerchange`, and a page that is not
+   * controlled by a worker never gets one. That is the state every page is in
+   * between installing a worker and being claimed by it, and it is exactly
+   * the state the app is in the first time it is opened after an install. So
+   * the reload is not left to that event alone: if it has not happened within
+   * a moment, we do it ourselves. Reloading twice would be harmless anyway;
+   * not reloading at all left the app sitting on the old build having just
+   * said it was fetching a new one.
+   */
+  function swap(): void {
+    applying = true;
+    void updateSW(true);
+    window.setTimeout(() => window.location.reload(), RELOAD_BACKSTOP);
+  }
+
   function apply(): void {
     if (!pending || applying) return;
     // Only when nothing is being interrupted.
     if (inUse() && document.visibilityState === 'visible') return;
-    applying = true;
-    void updateSW(true); // activate the waiting worker, then reload
+    swap();
   }
 
   /** Take whatever is already waiting, now. */
   function take(): UpdateCheck {
-    applying = true;
-    void updateSW(true);
+    swap();
     return 'updating';
   }
 

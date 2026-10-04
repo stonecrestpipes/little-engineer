@@ -71,6 +71,13 @@ He played the railway above and came back with seven things. All seven are in.
   water. All of them were the same mistake: **the running line curves through
   the yard, and everything built there now asks where the rails actually are
   instead of assuming.**
+- **The branches are as short as the construction allows.** He is four, and he
+  went past the building site in the city, wanted to go back, and had to drive
+  the whole way round to get there. Each lobe is pulled in to the point where
+  its straights run out — any shorter and the geometry stops closing — which
+  takes the grand tour from 2,432 m to **2,104 m** and the city lap from 1,483
+  to 1,347, with no change to the curves. *It is a smaller help than it
+  sounds:* see **Going back** below.
 - **An update check in the grown-ups' panel** (*Updates → Check now*), because
   the tablet runs a cached copy and "has it picked up the new build yet?" was
   otherwise only answerable by reading the build stamp and guessing.
@@ -99,7 +106,7 @@ He played the railway above and came back with seven things. All seven are in.
   **Pressing green from the wide shot now comes down to the train.**
 - **Two more junctions**, so four altogether and sixteen whole loops. Leaving
   The Sheds: the meadow or the city. Across the meadow: The Farm or the woods.
-  Main lap 1,100 m; taking every branch, **2,432 m**.
+  Main lap 1,100 m; taking every branch, **2,104 m**.
 - **The woods** — two hundred and twenty metres with the canopy closed over the line, A-frame
   cabins with their windows lit, deer that bolt at a whistle, an owl.
 - **The capybara ranch** — a fenced field, a pool, eight of them, two standing
@@ -222,6 +229,27 @@ it. See `assets/engines/thomas/curated/NOTES.md` locally for which reference
 files are usable; several scraped ones contain the wrong subject entirely.
 
 ---
+
+## Going back
+
+He missed the building site in the city, wanted to return to it, and had to go
+round the whole loop. Shortening the branches helps a little — the city lap is
+1,347 m rather than 1,483 — but the honest answer is that **it is still three
+minutes at full steam to see again something he has just passed**, and that is
+a long time when you are four.
+
+The control that ought to solve it is **R**, and it cannot: reverse is
+deliberately a creep, `REVERSE_FRACTION` 0.42 of the gentlest forward speed and
+capped at 1.8 m/s, which is 1.2 m/s on the blue engine. Backing up a hundred
+metres is eighty-five seconds of holding the button down. It was built for
+easing up to a car in the yard, and it is right for that.
+
+If this turns out to matter — watch whether he tries to go back and gives up —
+the smallest change that would fix it is to let reverse run at the first
+notch's speed, around 3 m/s, which makes a hundred metres half a minute. That
+is one number in `src/engine/train.ts`. The thing to be careful of is that
+**R never latches**: letting go always stops the engine, and that is a safety
+property worth more than the convenience.
 
 ## The grown-ups' panel
 

@@ -127,7 +127,7 @@ describe('Train', () => {
     expect(train.atStop).toBeNull();
     expect(Number.isFinite(train.distance)).toBe(true);
   });
-  it('the second press of green is faster than the first', () => {
+  it('a further press of green is faster than the one before', () => {
     const gentle = setup(9999);
     gentle.train.setThrottle(0.22);
     run(gentle.train, 10);

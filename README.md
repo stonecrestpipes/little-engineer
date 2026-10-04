@@ -54,6 +54,9 @@ He played the railway above and came back with seven things. All seven are in.
   back from the rails, the trackside camera picks a side that is clear instead
   of filming a trunk, and the woods canopy has been lifted so the chase shots
   travel through clear air underneath it — the crowns still close overhead.
+- **An update check in the grown-ups' panel** (*Updates → Check now*), because
+  the tablet runs a cached copy and "has it picked up the new build yet?" was
+  otherwise only answerable by reading the build stamp and guessing.
 - **The roundhouse was built wrong and is rebuilt.** Five roads 22.5° apart are
   only 4.3 m apart at the doors, and each bay was being built as a 7 m-wide box:
   every doorway pier stood a metre inside its neighbour's doorway, the roofs
@@ -210,9 +213,18 @@ starts to fill after a second. At the top is a scrapbook of how he plays —
 days, distance, whistles, where he stops, what he drives, which way he goes
 at the points — which he never sees. Below that: his name for the hello,
 speed, how much help he gets stopping, volume, evenings, the branch line,
-the blue engine's face, nameplates for each engine, picture quality, and
-resets. Changes take effect immediately. The build time at the bottom tells
-you whether the tablet has the latest push.
+the blue engine's face, nameplates for each engine, picture quality, **an
+update check**, and resets. Changes take effect immediately. The build time at
+the bottom tells you which build the tablet is running.
+
+**Updates → Check now** is the one control in there that talks to the outside
+world. The tablet keeps the whole game cached so it works in flight mode,
+which means a build pushed an hour ago may not be the one he opens; normally
+that sorts itself out next time the app is closed and reopened, and this is
+for when you want to be sure. It says what it found rather than doing
+something invisible — *found a newer one*, *this is the newest one there is*,
+*no connection*, or *this copy is not an installed one*, which is what you get
+in `npm run dev` and in a plain browser tab, since neither is cached.
 
 ## Running it
 

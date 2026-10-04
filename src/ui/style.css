@@ -143,8 +143,9 @@ html, body {
 /* -------------------------------------------------------------- the drive */
 
 /*
- * Green goes, and a second press of green is full steam. Red stops, and near a
- * platform it stops exactly on the mark. R creeps backwards while it is held.
+ * Green goes, and each further press of green is the next speed up: an amble,
+ * a middle gear, then full steam. Red stops, and near a platform it stops
+ * exactly on the mark. R creeps backwards while it is held.
  *
  * Green sits above red, which is the way round the lever put them, so what he
  * already learned about up and down still holds.
@@ -457,6 +458,11 @@ html, body {
   background: #eef2f5;
 }
 #parents .p-plain:active { background: #dde5ea; }
+#parents .p-plain:disabled { opacity: 0.6; }
+
+/* A control with a line of its own underneath saying what it just did. */
+#parents .p-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+#parents .p-said { color: #6b7c88; font-size: 14px; text-align: right; max-width: 230px; }
 
 /* ---------------------------------------------------------------- points */
 

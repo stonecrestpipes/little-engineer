@@ -1,6 +1,7 @@
 import { settings, SPEEDS, type Settings } from '../settings';
 import { ENGINES } from '../content/engines';
 import { journal } from '../journal';
+import type { UpdateCheck } from './updates';
 
 const PLACES: [string, string][] = [
   ['sheds', 'The Sheds'],
@@ -105,6 +106,15 @@ export interface ParentHooks {
   resetTrain(): void;
   /** A line for the footer about how the game is running. */
   status(): string;
+  /**
+   * Ask the host whether there is a newer build, and take it if there is.
+   *
+   * The tablet keeps the whole game cached so it works in flight mode, which
+   * means a build pushed an hour ago may not be the one he opens. Normally
+   * that sorts itself out the next time the app is closed and reopened; this
+   * is for when somebody wants to be sure.
+   */
+  checkForUpdate(): Promise<UpdateCheck>;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -227,6 +237,32 @@ export function mountParentPanel(hooks: ParentHooks): void {
     scrapbook(book);
   });
 
+  // --- checking for a new build -------------------------------------------
+  // The one control in here that talks to the outside world. It says what it
+  // found rather than just doing something invisible, because "nothing
+  // happened" and "nothing needed to happen" look identical otherwise.
+  const CHECK_LABEL = 'Check now';
+  const update = el('button', { type: 'button', className: 'p-plain', textContent: CHECK_LABEL });
+  const updateSaid = el('small', { className: 'p-said' });
+  const updateBox = el('div', { className: 'p-stack' }, update, updateSaid);
+  update.addEventListener('click', () => {
+    if (update.disabled) return;
+    update.disabled = true;
+    update.textContent = 'Checking…';
+    updateSaid.textContent = '';
+    void hooks.checkForUpdate().then((what) => {
+      update.textContent = CHECK_LABEL;
+      update.disabled = false;
+      updateSaid.textContent = {
+        // Nothing follows this one: the page reloads underneath it.
+        updating: 'Found a newer one — restarting…',
+        current: 'This is the newest one there is.',
+        offline: 'No connection, so there was nobody to ask.',
+        unmanaged: 'Only installed copies are cached, and this one is not.',
+      }[what];
+    });
+  });
+
   const resetTrain = el('button', { type: 'button', className: 'p-plain', textContent: 'Put his train back to the start' });
   resetTrain.addEventListener('click', () => hooks.resetTrain());
   const resetAll = el('button', { type: 'button', className: 'p-plain', textContent: 'Reset these settings' });
@@ -251,6 +287,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Blue engine’s face', 'Original is drawn for this game and safe to share. Familiar is the photograph', face.node),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
     row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),
+    row('Updates', 'The tablet keeps its own copy so the game works offline. This asks whether a newer one has been put out', updateBox),
   );
 
   const sheet = el(

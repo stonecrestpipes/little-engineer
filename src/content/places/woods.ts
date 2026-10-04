@@ -8,10 +8,16 @@ import { moving } from '../../engine/merge';
  * The Woods — the long way round from the meadow, under the trees.
  *
  * There is no platform here and nothing to stop for. What there is, is a
- * tunnel of trees: the line runs for seventy metres with the canopy closed
- * over the top of it, dark and green and close, and comes out the other side.
- * It is the tunnel through the hill done with leaves instead of brick, and it
- * is the whole reason to take this branch.
+ * tunnel of trees: the line runs for a hundred and seventy metres with the
+ * canopy closed over the top of it, dark and green and close, and comes out
+ * the other side. It is the tunnel through the hill done with leaves instead
+ * of brick, and it is the whole reason to take this branch.
+ *
+ * The canopy is held clear of the camera rather than closed round it — see
+ * CANOPY_UNDERSIDE in src/content/scenery.ts and `duck` in
+ * src/engine/cameras.ts. Planted lower, as it was, the chase shots spent the
+ * whole run inside the leaves with the rails invisible, which is the opposite
+ * of what the trees are for.
  *
  * Among the trees, three A-frame cabins with their lights on, and deer that
  * look up when he whistles and spring away through the wood.

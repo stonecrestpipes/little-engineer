@@ -620,8 +620,10 @@ back."* It was a small change back. What the lever had that two buttons do not i
 never be left set, and that is genuinely lost: the engine now goes round and round until he presses
 red. What it did not have is the thing he actually wanted, which is to put the train in a state and
 then have both hands back. Green keeps three speeds out of the lever's range — first press ambles, second is a middle gear,
-second press is full steam — so fast against slow survives as a second press rather than as a thumb
-held at a height.
+third is full steam — so fast against slow survives as a count of presses rather than as a thumb
+held at a height. The middle gear was added after watching him: full steam is quick enough that a
+bend arrives before he has decided anything about it, and without a gear between, the only way to
+have time to think was to potter.
 
 **R creeps backwards while it is held**, at 42% of the engine's gentlest forward speed, which is
 about 1.2 m/s. Pressing it at speed is a stop followed by a reversal rather than a lurch, so it
@@ -753,6 +755,14 @@ grown-up puts it there.
 The hello's name moved from a constant in `greeting.ts` to a setting, so it can be changed on the
 tablet. The footer shows when the running build was made, which is the quickest way to tell whether
 the tablet has picked up a push.
+
+**Updates → Check now** was added later, for the same question asked the other way round. The app
+is cached in full so it runs in flight mode, so the build a grown-up just pushed is not necessarily
+the build the child opens — `src/ui/updates.ts` applies a new one only at a moment that interrupts
+nothing, which may be hours away. The button asks the host now and says which of four things
+happened, because "nothing happened" and "nothing needed to happen" are indistinguishable
+otherwise. It is the one control in the panel that deliberately ignores the never-interrupt rule:
+somebody has asked for it on purpose, with the panel open and the game already let go of.
 
 ### Phase 6 — four engines, and something to pull
 

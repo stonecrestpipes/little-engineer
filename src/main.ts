@@ -344,10 +344,15 @@ async function boot(): Promise<void> {
     if (current) points.mark(lines.line & current.bit ? 1 : 0);
   };
 
+  // Pushed updates land the next time he opens the app, never mid-journey —
+  // and the grown-ups' panel can ask for one on purpose.
+  const updates = watchForUpdates({ inUse: () => touched || train.moving });
+
   mountParentPanel({
     opened: () => controls.letGo(),
     resetTrain: () => roster.reset(),
     status: () => ['Full detail', 'Shadows reduced', 'Shadows off'][quality.current],
+    checkForUpdate: () => updates.checkNow(),
   });
 
   // Touching the world itself, which only does anything in the yard: the
@@ -576,9 +581,6 @@ async function boot(): Promise<void> {
       THREE,
     };
   }
-
-  // Pushed updates land the next time he opens the app, never mid-journey.
-  watchForUpdates({ inUse: () => touched || train.moving });
 
   // --- in we go ----------------------------------------------------------
   controls.show();

@@ -87,8 +87,18 @@ asked — see the build log. What never moved is the *nothing else*.)
 A single continuous loop, laid out so that most of it is visible at once in Wide view — the feel of
 looking down at a wooden train set on the floor.
 
-The main lap is **755 metres**, about **two minutes** at full steam. Taking every branch is
-**2,107 metres** — nearly three times round the long way, and the better part of five minutes. Most of it is visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
+**The track is generated, not drawn.** The main line is one closed curve cut into named segments;
+each branch is a lobe of exact circular arcs and straights that leaves and rejoins on the main
+line's own heading and eases into every bend. The consequence worth knowing: *the radius of a
+branch's curves is not a free choice.* The far end of a lobe turns a half circle, so its two
+straights are anti-parallel and the sideways distance between its two junctions has to be made up
+by the arcs — which means the radius is whatever closes that gap. A gentler curve means putting the
+junctions further apart, and nothing else will do it. That, and not a wish for a longer run, is why
+the main lap is 1,100 m rather than the 642 it started at. See the comment above `SEGMENTS` in
+`src/content/world.ts`.
+
+The main lap is **1,100 metres**, about **two and a half minutes** at full steam. Taking every
+branch is **2,432 metres** — more than twice round the long way, and the better part of six minutes. Most of it is visible at once in Wide view. The order round it is: The Sheds → across the meadow and over the
 level crossing → The Farm → up the hillside and through the tunnel → down to the river and over the
 bridge → The Harbour → back along the shore to home.
 
@@ -107,7 +117,7 @@ reading:
 - A **tunnel** — whistle inside produces an echo
 - A **level crossing** — gates lower, a car waits, the driver waves
 - A **bridge** — the river running underneath, and a boat working up and down it
-- **The woods**, on the branch north-east of the meadow — a hundred and seventy metres
+- **The woods**, on the branch north-east of the meadow — two hundred and twenty metres
   with the canopy closed over the line, A-frame cabins among the trees with their windows lit, and
   deer that put their heads up at a whistle and bound away through the wood. An owl
   answers. It is the brick tunnel done in leaves, and it is the reason to take that branch.
@@ -422,11 +432,11 @@ though never while he is standing still — arrows are for choosing where to go,
 going he does not need them), each with a picture of where it goes: the tunnel, or
 the windmill. The one the points are set for is green. They are set for the main line every time
 round, so the branch is always something he chose; if he touches nothing, nothing changes. The
-grown-ups' panel can switch the arrows off. A lap by the windmill is 1,005 m against 755.
+grown-ups' panel can switch the arrows off. A lap by the windmill is 1,427 m against 1,100.
 
 A second junction followed the same day, just after The Harbour: the main line bears left for home,
 and the branch carries on along the sea wall to **The Lighthouse** on the headland, rejoining up
-the west bank. Its arrows show a house and a lighthouse. Taking both branches makes a lap of 1,338 m.
+the west bank. Its arrows show a house and a lighthouse. Taking both branches makes a lap of 1,701 m.
 
 ### Phase 6 — More engines, and something to pull *(built)*
 *Five* engines in the end, reusing the same controller — and differing in **shape** as well as in
@@ -578,8 +588,8 @@ anything needing to be unpicked.
 Built straight from a wish list rather than from watching him, which makes it a different kind of
 build: almost none of it is validated, and the README says so.
 
-**Four junctions instead of two**, so sixteen whole loops. The main lap is 755 m; taking every
-branch is 2,107 m. The two new branches each carry their own country — **the woods** (a tunnel of
+**Four junctions instead of two**, so sixteen whole loops. The main lap is 1,100 m; taking every
+branch is 2,432 m. The two new branches each carry their own country — **the woods** (a tunnel of
 trees with the canopy closed overhead, A-frames, deer, an owl) and **the ranch** on one; **the city**
 (towers, a street, the rescue station, a building site) on the other.
 
@@ -802,7 +812,7 @@ station's approach assist between runs.
 Built after the Phase 1 test passed: he picked the tablet up, found the lever and drove, with
 nothing said to him. That was the gate, and it is now behind us.
 
-**The railway is six times the place it was.** One field with one station became a 755-metre circuit
+**The railway is six times the place it was.** One field with one station became a 1,100-metre circuit
 with three stations, a tunnel, a level crossing and a bridge — a lap of about a minute and forty at
 the top of the lever, against fifty seconds before. The ground is a heightmap now rather than a flat
 disc, with one sheet of water under it that shows through wherever the land has been dug below it.
@@ -912,7 +922,7 @@ What remains for Phase 2 is whatever the play test says to change.
    minute and forty. What is still open is
    whether *a loop* is the right shape at all, or whether exploring means choosing where to go.
    There are **four** choices a lap now — the city, the woods, the windmill and the lighthouse — and
-   taking all of them makes a lap 2,107 m. Watch whether he notices the arrows, whether he picks a
+   taking all of them makes a lap 2,432 m. Watch whether he notices the arrows, whether he picks a
    branch on purpose or only by accident, and whether he goes back to one. The scrapbook counts
    every turning at all four.
 3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with

@@ -37,15 +37,21 @@ He played the railway above and came back with seven things. All seven are in.
   thumb. The zoom stays where he puts it; the camera button gives it back.
 - **The hard right through the forest is gone.** It was not a curve at all: the
   woods branch came back onto the main line *facing backwards*, and the rails
-  doubled through a radius of **one metre twenty** to turn it round. Every
-  branch has been re-laid to swing out to the outside of the bend the main line
-  is taking, which is what brings it back facing the right way. **The tightest
-  curve anywhere on the sixteen loops is now about fifteen metres**, and nearly
-  all of it is over twenty-five. A startup check in development builds refuses
-  to let that regress quietly, which is how the hairpin survived so long.
-- **More open track before the turns.** The main line is 755 m rather than 642,
-  and **no two sets of points are closer than 125 m** (they were 56 m, back to
-  back). The home platform is 66 m from the first junction rather than 22 — he
+  doubled through a radius of **one metre twenty** to turn it round. The whole
+  railway has been re-laid for this, and the numbers are now *generated* rather
+  than drawn: the main line is one curve cut into named pieces, and each branch
+  is built from exact arcs and straights, leaves and rejoins on the main line's
+  own heading, and eases into every bend the way a real railway spirals into
+  one. **The tightest curve anywhere on the sixteen loops is now about
+  thirty-three metres**, and most of the railway is over forty. A startup check
+  in development builds refuses to let that regress quietly, which is how the
+  hairpin survived so long.
+- **More open track before the turns.** The main line is 1,100 m rather than
+  642, and **no two sets of points are closer than 190 m** (they were 56 m,
+  back to back). The loop had to grow for it: on a branch built this way the
+  radius is not a free choice, it is whatever closes the gap between its two
+  junctions, so a gentler curve means putting them further apart and nothing
+  else will do. The home platform is 66 m from the first junction rather than 22 — he
   used to get three seconds between pressing green and having to choose. The
   arrows now come up **nine seconds before the points at whatever speed he is
   doing**, rather than a fixed seventy metres, and there is a pause after one
@@ -82,8 +88,8 @@ He played the railway above and came back with seven things. All seven are in.
   **Pressing green from the wide shot now comes down to the train.**
 - **Two more junctions**, so four altogether and sixteen whole loops. Leaving
   The Sheds: the meadow or the city. Across the meadow: The Farm or the woods.
-  Main lap 755 m; taking every branch, **2,107 m**.
-- **The woods** — a hundred and seventy metres with the canopy closed over the line, A-frame
+  Main lap 1,100 m; taking every branch, **2,432 m**.
+- **The woods** — two hundred and twenty metres with the canopy closed over the line, A-frame
   cabins with their windows lit, deer that bolt at a whistle, an owl.
 - **The capybara ranch** — a fenced field, a pool, eight of them, two standing
   in the water. Whistle and every head turns and they squeak back.

@@ -62,9 +62,9 @@ async function boot(): Promise<void> {
 
   const scene = new THREE.Scene();
 
-  // The far plane has to clear the sky dome from the wide shot, which is six
-  // hundred metres back from a railway five hundred metres deep.
-  const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 1800);
+  // The far plane has to clear the sky dome from the wide shot, which looks
+  // down on a railway six hundred metres deep from nine hundred metres away.
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 3200);
 
   // --- light -------------------------------------------------------------
   const hemi = new THREE.HemisphereLight(0xdcf2ff, 0x6f9455, 1.05);
@@ -73,15 +73,15 @@ async function boot(): Promise<void> {
   // Fixed over the whole railway rather than following the engine. Following
   // it swings the shadow direction as he drives and drags the edge of the
   // shadow map across the fields, which reads as grey patches on the grass.
-  sun.position.set(-240, 320, 210);
+  sun.position.set(-350, 470, 310);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.near = 60;
-  sun.shadow.camera.far = 900;
+  sun.shadow.camera.far = 1300;
   // Wide enough to take in the whole layout, so shadows never stop at a line.
   // The railway reaches from the headland out to the ranch, which is a good
   // deal further than it used to.
-  const S = 300;
+  const S = 350;
   sun.shadow.camera.left = -S;
   sun.shadow.camera.right = S;
   sun.shadow.camera.top = S;

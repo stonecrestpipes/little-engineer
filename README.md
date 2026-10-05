@@ -14,10 +14,18 @@ settled design and `Little Engineer - Game Plan.pdf` for the full phased plan.
 **Phase 1 passed** long ago: he picked the tablet up, found the control and
 drove, with nothing said to him.
 
-**He has played the big railway, asked for twenty-odd things, and this build is
+**He has played the big railway, asked for twenty-odd things, and v0.4.0 is
 most of them.** It is a much larger game than the one he last saw. Nothing
 below has been in front of him yet — that is the whole of what the next go is
-for.
+for, and v0.4.1 is there to make sure that go is actually recorded.
+
+### v0.4.1 — an instrument, not a feature
+
+Nothing he sees changed. The grown-ups' panel gained a **play log**: every
+press, tap, drag and arrival in the order it happened, timed and placed on the
+railway, so the questions under *The next thing to do* stop depending on what
+anyone remembers afterwards. See *The play log* below for what it records and
+how to get it off the tablet.
 
 ### v0.4.0 — the second list, after he drove it
 
@@ -149,7 +157,8 @@ He played the railway above and came back with seven things. All seven are in.
 ## The next thing to do
 
 1. Open it on the tablet, then close it and open it again. The corner should
-   read **v0.3.1**.
+   read **v0.4.1**. If it does not, the panel's *Updates → Check now* says
+   outright whether there is a newer one.
 2. Hand it to him. Say nothing, as before.
 3. **Watch the roundhouse.** It is the biggest new thing and the biggest
    gamble. Does he work out that touching an engine behind an open door takes
@@ -169,6 +178,14 @@ He played the railway above and came back with seven things. All seven are in.
 8. **Still open: does he leave the train running and wander off?** See open
    question 5 in [GAME_DESIGN.md](GAME_DESIGN.md) — the idle coast is designed
    and deliberately unbuilt until he has been watched.
+
+**Several of those no longer depend on remembering.** From v0.4.1 the play log
+answers 4, 7 and 8 outright — which branch, every press of R and how long it
+was held, and exactly where each sitting trails off. Copy it afterwards rather
+than trusting a recollection of a half hour spent mostly watching his face.
+What the log *cannot* tell you is 3, 5 and 6: whether he sat through the
+roundhouse swap rather than pressing green is in the timings, but what he made
+of the numbers and the Orion Express is only on his face. Watch for those.
 
 **If the screen feels busy**, the two voice buttons are the cheapest thing to
 remove: delete the two `.say` buttons from `index.html` and the `say` handler
@@ -403,6 +420,12 @@ What is in place: `public/robots.txt` disallows all crawlers and `index.html`
 carries `noindex, nofollow, noarchive`, so it stays out of search results.
 What is not: the repo is listed on the GitHub profile, and anyone with the URL
 can open it.
+
+**What a public URL does not expose is anything about him.** The settings, the
+scrapbook and the play log are all in the tablet's own storage and are never
+sent anywhere; the site is static files and the only request the app ever makes
+of its own accord is the update check. Somebody who opens the URL gets the
+game, not a word about who has been playing it.
 
 Tightening it later, best option first:
 

@@ -23,6 +23,7 @@ import { QualityGovernor } from './engine/quality';
 import { Sky } from './engine/sky';
 import { Flock } from './content/flock';
 import { journal } from './journal';
+import { trail } from './trail';
 import { setEvening } from './content/places/station';
 
 const now = () => performance.now() / 1000;
@@ -143,16 +144,25 @@ async function boot(): Promise<void> {
   /** Handed to the world every frame; the places read it, nothing writes it. */
   const trainState = { distance: 0, speed: 0, moving: false };
 
+  // Every beat in the trail is stamped with where the train was when it
+  // happened, which is what turns "he pressed red" into "he pressed red
+  // coming into The Harbour". The trail asks; nothing here has to remember to
+  // tell it.
+  trail.watch(() => ({ m: trainState.distance, v: trainState.speed }));
+  trail.mark('open', `v${__VERSION__}`);
+
   train.on((e) => {
     if (e.type === 'arrived') {
       world.arrive(e.stop);
       journal.stopped(e.stop.id);
+      trail.mark('arrive', e.stop.id);
       audio.chime();
       // A long breath out as it comes to rest.
       audio.sigh();
       for (let i = 0; i < 5; i++) emitPuff();
     } else {
       world.depart(e.stop);
+      trail.mark('depart', e.stop.id);
     }
   });
 
@@ -236,16 +246,20 @@ async function boot(): Promise<void> {
       train.setReverse(on);
       if (on) journal.reversed();
     },
-    say: (which) => speak(PHRASES[which] ?? PHRASES[0], settings.get().volume),
+    say: (which) => {
+      trail.mark('say', String(which));
+      speak(PHRASES[which] ?? PHRASES[0], settings.get().volume);
+    },
     whistle: () => {
       audio.whistle();
       journal.whistled();
+      trail.mark('whistle');
       world.whistle(trainState);
       startle();
       for (let i = 0; i < 3; i++) emitPuff();
     },
     camera: () => {
-      rig.cycle();
+      trail.mark('camera', rig.cycle());
       hisView = true;
     },
   });
@@ -291,6 +305,9 @@ async function boot(): Promise<void> {
   const points = mountPoints({
     touched: used,
     choose(way) {
+      // Marked whether or not the points will take it, because an arrow he
+      // pressed that did nothing is the more interesting of the two.
+      trail.mark('points', `${current ? current.id : 'none'}:${way}`);
       if (current && lines.set(via(current, way === 1), train.distance)) {
         points.mark(way);
         audio.chime();
@@ -320,7 +337,9 @@ async function boot(): Promise<void> {
       // Just went over the points: note which way, for the grown-ups' scrapbook,
       // and start the breath before the next question.
       if (wasBefore.get(j.id) && !before) {
-        journal.turned(j.id, lines.line & j.bit ? 1 : 0);
+        const way = lines.line & j.bit ? 1 : 0;
+        journal.turned(j.id, way);
+        trail.mark('through', `${j.id}:${way}`);
         lastChoice = clock;
       }
       wasBefore.set(j.id, before);
@@ -377,6 +396,8 @@ async function boot(): Promise<void> {
   let look: { id: number; fromX: number; fromY: number; x: number; y: number; far: number } | null = null;
   /** How far apart they were when the pinch last moved, in pixels. */
   let apart = 0;
+  /** And how far apart they were when it began, so the trail can say which way. */
+  let pinchFrom = 0;
   /** Closer than this and the ratio between them is noise. */
   const PINCH_FLOOR = 24;
 
@@ -401,6 +422,7 @@ async function boot(): Promise<void> {
       // view at the same time makes the whole gesture feel like a fight.
       look = null;
       apart = fingers.size === 2 ? spread() : 0;
+      pinchFrom = apart;
       return;
     }
     look = { id: e.pointerId, fromX: e.clientX, fromY: e.clientY, x: e.clientX, y: e.clientY, far: 0 };
@@ -433,26 +455,53 @@ async function boot(): Promise<void> {
 
   const endLook = (e: PointerEvent, mayPick: boolean): void => {
     const was = fingers.size;
+    // Measured before the finger that is lifting is forgotten, or there is
+    // nothing left to measure between.
+    const closed = was === 2 ? spread() : 0;
     fingers.delete(e.pointerId);
     rig.dragging = fingers.size > 0;
 
     if (was >= 2) {
       // Coming off a pinch. Whatever is still down is not a tap and not a
       // drag: the next gesture starts from a clean press.
+      if (was === 2 && pinchFrom > PINCH_FLOOR && closed > PINCH_FLOOR) {
+        trail.mark('pinch', closed > pinchFrom ? 'in' : 'out');
+      }
       look = null;
       apart = fingers.size === 2 ? spread() : 0;
+      pinchFrom = apart;
       return;
     }
     if (look === null || look.id !== e.pointerId) return;
     const tapped = look.far <= DRAG;
+    const far = Math.round(look.far);
     look = null;
-    if (!mayPick || !tapped) return;
+    if (!tapped) {
+      trail.mark('look', String(far));
+      return;
+    }
+    if (!mayPick) return;
     ndc.set((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
     picker.setFromCamera(ndc, camera);
     const had = roster.cars.length;
-    if (!world.pick(picker, trainState)) return;
+    const drove = roster.engine.spec.id;
+    if (!world.pick(picker, trainState)) {
+      // He touched the world and the world did nothing. Away from the yard
+      // that is the game working as designed — but it is also the only record
+      // of where he expects something to answer, which is the whole reason
+      // this is worth keeping. `m` says where on the railway he was standing.
+      trail.mark('nothing');
+      return;
+    }
     audio.chime();
-    if (roster.cars.length !== had) journal.coupled();
+    if (roster.cars.length !== had) {
+      journal.coupled();
+      trail.mark('yard', roster.cars.length > had ? 'car on' : 'car off');
+    } else if (roster.engine.spec.id !== drove) {
+      trail.mark('yard', roster.engine.spec.id);
+    } else {
+      trail.mark('yard', 'something');
+    }
   };
   canvas.addEventListener('pointerup', (e) => endLook(e, true));
   canvas.addEventListener('pointercancel', (e) => endLook(e, false));
@@ -575,6 +624,7 @@ async function boot(): Promise<void> {
       sky,
       flock,
       consist,
+      trail,
       scene,
       camera,
       renderer,

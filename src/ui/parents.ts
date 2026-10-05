@@ -1,6 +1,7 @@
 import { settings, SPEEDS, type Settings } from '../settings';
 import { ENGINES } from '../content/engines';
 import { journal } from '../journal';
+import { trail, glance, asText, type Mark } from '../trail';
 import type { UpdateCheck } from './updates';
 
 const PLACES: [string, string][] = [
@@ -80,6 +81,72 @@ function scrapbook(into: HTMLElement): void {
         `Changed what is behind the engine ${count(j.couplings)} times.`,
       el('br'),
       `Kept on this tablet since ${since}. He never sees any of this.`,
+    ),
+  );
+}
+
+/** Plain English for the names the trail keeps things under. */
+const SAID: Partial<Record<Mark, string>> = {
+  green: 'green',
+  red: 'red',
+  reverse: 'R',
+  whistle: 'the whistle',
+  say: 'a voice',
+  camera: 'the camera',
+  points: 'an arrow',
+  yard: 'the yard',
+  nothing: 'nothing',
+  look: 'a look round',
+  pinch: 'a pinch',
+};
+
+const spell = (seconds: number): string => {
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const m = Math.floor(seconds / 60);
+  const rest = Math.round(seconds - m * 60);
+  return rest === 0 ? `${m}m` : `${m}m ${rest}s`;
+};
+
+/**
+ * The trail, in a few lines: how long he plays for, how fast he presses
+ * things, and what he tends to press next.
+ *
+ * Deliberately short. The whole trail is in the log the two buttons below it
+ * hand over, and that is where the real looking happens; this is only enough
+ * to know whether the log is worth asking for yet.
+ */
+function trailGlance(into: HTMLElement): void {
+  const t = trail.get();
+  if (t.beats.length === 0) {
+    into.replaceChildren(el('p', { className: 'p-note' }, 'Nothing recorded yet.'));
+    return;
+  }
+  const g = glance(t.beats);
+  const tile = (value: string, label: string) =>
+    el('div', { className: 'p-tile' }, el('b', {}, value), el('small', {}, label));
+
+  const pairs = g.pairs.length
+    ? g.pairs
+        .map((p) => `${SAID[p.from] ?? p.from} then ${SAID[p.to] ?? p.to} (${count(p.n)})`)
+        .join(', ')
+    : 'nothing twice in a row yet';
+
+  into.replaceChildren(
+    el('div', { className: 'p-tiles' },
+      tile(count(g.sittings), g.sittings === 1 ? 'sitting' : 'sittings'),
+      tile(spell(g.typical), 'typical sitting'),
+      tile(spell(g.longest), 'longest'),
+      tile(count(g.presses), 'things pressed'),
+    ),
+    el('p', { className: 'p-note' },
+      `Usually ${g.betweenPresses}s between touching anything. `,
+      `He most often does: ${pairs}.`,
+      el('br'),
+      g.unanswered > 0
+        ? `He has tapped the world and had nothing answer ${count(g.unanswered)} times — ` +
+            'where that happened is in the log, and it is the best clue there is about ' +
+            'what he expects to be able to touch.'
+        : 'He has not yet tapped anything that failed to answer.',
     ),
   );
 }
@@ -232,10 +299,67 @@ export function mountParentPanel(hooks: ParentHooks): void {
   const book = el('div', { className: 'p-book' });
   const clearBook = el('button', { type: 'button', className: 'p-plain', textContent: 'Clear the scrapbook' });
   clearBook.addEventListener('click', () => {
-    if (!window.confirm('Clear everything in the scrapbook? This cannot be undone.')) return;
+    if (!window.confirm('Clear the scrapbook and the play log? This cannot be undone.')) return;
     journal.clear();
+    trail.clear();
     scrapbook(book);
+    trailGlance(trailBox);
+    logSaid.textContent = '';
   });
+
+  // --- the play log --------------------------------------------------------
+  // Two ways off the tablet, because the right one depends on where you are:
+  // copying it goes straight into a message, saving it gives you a file to
+  // keep. Neither sends it anywhere by itself — nothing in the game ever
+  // talks to the outside world except the update check.
+  const trailBox = el('div', { className: 'p-book' });
+  const logSaid = el('small', { className: 'p-said' });
+  const said = (what: string) => {
+    logSaid.textContent = what;
+    window.setTimeout(() => (logSaid.textContent = ''), 4000);
+  };
+  const logName = () => `little-engineer-log-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  const copyLog = el('button', { type: 'button', className: 'p-plain', textContent: 'Copy the play log' });
+  copyLog.addEventListener('click', () => {
+    trail.flush();
+    const text = asText(__BUILD__);
+    // The clipboard needs permission it may not have, and an iPad will refuse
+    // it outright in some contexts. The old way still works everywhere, so it
+    // is what happens when the new way says no rather than nothing happening.
+    const fallback = () => {
+      const box = el('textarea', { value: text });
+      box.style.position = 'fixed';
+      box.style.opacity = '0';
+      document.body.append(box);
+      box.select();
+      const ok = document.execCommand('copy');
+      box.remove();
+      said(ok ? 'Copied — paste it anywhere.' : 'This tablet would not let it be copied. Save it instead.');
+    };
+    if (!navigator.clipboard) return fallback();
+    void navigator.clipboard.writeText(text).then(
+      () => said('Copied — paste it anywhere.'),
+      () => fallback(),
+    );
+  });
+
+  const saveLog = el('button', { type: 'button', className: 'p-plain', textContent: 'Save the play log' });
+  saveLog.addEventListener('click', () => {
+    trail.flush();
+    const blob = new Blob([asText(__BUILD__)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = el('a', { href: url, download: logName() });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    // Freed on the next turn of the loop rather than immediately: revoking it
+    // in the same tick cancels the download on some browsers.
+    window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    said('Saved to wherever this tablet puts downloads.');
+  });
+
+  const logBox = el('div', { className: 'p-logs' }, copyLog, saveLog, logSaid);
 
   // --- checking for a new build -------------------------------------------
   // The one control in here that talks to the outside world. It says what it
@@ -277,6 +401,15 @@ export function mountParentPanel(hooks: ParentHooks): void {
     'div',
     { className: 'p-body' },
     el('section', { className: 'p-section' }, el('h3', { className: 'p-title' }, 'His railway so far'), book),
+    el('section', { className: 'p-section' },
+      el('h3', { className: 'p-title' }, 'How he plays'),
+      trailBox,
+      el('p', { className: 'p-note' },
+        'Every press, tap, drag and arrival, in the order it happened and with ' +
+          'where the train was at the time. Kept on this tablet only. Take a copy ' +
+          'of it to work out what to build next.'),
+      logBox,
+    ),
     row('His name', 'Used in the spoken hello, from the next time it opens', name),
     row('Say hello', 'Out loud, when the app opens', hello.node),
     row('Speed', 'For every engine', speed.node),
@@ -308,6 +441,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
   const close = () => {
     (document.activeElement as HTMLElement | null)?.blur();
     panel.hidden = true;
+    trail.mark('closed');
   };
   done.addEventListener('click', close);
   panel.addEventListener('click', (e) => {
@@ -315,8 +449,14 @@ export function mountParentPanel(hooks: ParentHooks): void {
   });
 
   const open = () => {
+    // Everything from here until the panel closes is a grown-up, and the log
+    // marks it so, because a fortnight of his play is worth nothing if an
+    // evening of fiddling in here is mixed into it.
+    trail.mark('grown-ups');
     syncs.forEach((f) => f());
     scrapbook(book);
+    trailGlance(trailBox);
+    logSaid.textContent = '';
     footnote.textContent = `${hooks.status()} · Build ${__BUILD__}`;
     hooks.opened();
     panel.hidden = false;

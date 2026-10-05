@@ -256,11 +256,56 @@ property worth more than the convenience.
 Hold the **top-right corner of the screen for three seconds**. A faint ring
 starts to fill after a second. At the top is a scrapbook of how he plays —
 days, distance, whistles, where he stops, what he drives, which way he goes
-at the points — which he never sees. Below that: his name for the hello,
+at the points — which he never sees. Under that is **How he plays**, which is
+the same play told as a story rather than as totals. Below those: his name for
+the hello,
 speed, how much help he gets stopping, volume, evenings, the branch line,
 the blue engine's face, nameplates for each engine, picture quality, **an
 update check**, and resets. Changes take effect immediately. The build time at
 the bottom tells you which build the tablet is running.
+
+## The play log
+
+**How he plays** in the panel is backed by a trail of every single thing he
+touches: green and which notch it went to, red, how long he held R, the
+whistle, the two voices, the camera and which view it landed on, every arrow
+at the points and which way he actually went, every arrival and departure,
+every tap in the yard — and, the interesting one, **every tap on the world
+that nothing answered**. Each is stamped with the time and with where the
+train was and how fast it was going.
+
+The panel shows only enough to tell whether the log is worth asking for yet:
+how many sittings, how long a typical one lasts, how long the longest was, how
+many things he pressed, how long he leaves between pressing them, and the
+things he most often does one after the other. The looking happens in the log
+itself.
+
+**Copy the play log** puts the whole thing on the clipboard, ready to paste
+into a message. **Save the play log** writes it as a `.csv`. They are the same
+text either way: a few comment lines, then a row per beat, with a `sitting`
+column that groups them into visits and an `at` column that says how many
+seconds into the visit each one happened. Load it in a spreadsheet, or hand it
+over whole and ask what it says.
+
+A few things it is built to answer:
+
+- **Does he use R at all, and for how long at a time?** A stab at it and a
+  thirty-second shunt are different facts about the same button.
+- **Where does he tap and get nothing?** Those rows carry the metres, so they
+  say *where on the railway* he expected something to be touchable.
+- **Does he go back to a branch?** `points` says which arrow he pressed,
+  `through` says which way he actually went, and the two disagreeing is a
+  button that did not work the way he thought it did.
+- **How long does a sitting last, and what is the last thing he does before
+  he stops?** The final rows of each sitting are the ones worth reading.
+
+It is kept on the tablet, in `src/trail.ts`, in the same place as the
+scrapbook, and it holds the most recent 6,000 beats — a few weeks of real
+play. **Nothing ever leaves the tablet by itself**; the only way it goes
+anywhere is one of those two buttons. *Clear the scrapbook* clears the log as
+well. Anything a grown-up does while the panel is open is marked as such and
+left out of everything above, so an evening of fiddling in here is never mixed
+in with his play.
 
 **Updates → Check now** is the one control in there that talks to the outside
 world. The tablet keeps the whole game cached so it works in flight mode,
@@ -284,13 +329,16 @@ it shows on your LAN can be opened on the tablet directly.
 ```bash
 npm run build     # typecheck + production build into dist/
 npm run preview   # serve dist/ to check the real build
-npm test          # the junctions and the platform stops, checked
+npm test          # the junctions, the platform stops and the play log
 ```
 
-The tests cover the two promises most likely to break quietly: that pulling
+The tests cover the three promises most likely to break quietly: that pulling
 down near a platform always lands exactly on the mark (and never past it),
-and that moving between loops at a junction changes nothing under the engine.
-They also run on every push, before anything is deployed.
+that moving between loops at a junction changes nothing under the engine, and
+that the play log is read correctly — a sitting split in the wrong place, or
+an evening of fiddling in the panel counted as him playing, would give a
+confident answer to the wrong question. They also run on every push, before
+anything is deployed.
 
 ## Putting it on the Pixel Tablet
 
@@ -416,6 +464,7 @@ src/
       city.ts             the far end of the longest branch
   settings.ts the grown-ups' settings, and how they adjust each engine
   journal.ts  the scrapbook: what he did, for the grown-ups only
+  trail.ts    the play log: what he did and when, in order
   ui/         the buttons, the whistle, the camera
     controls.ts   green, red, R, the whistle, the voices and the camera
     parents.ts    the hidden grown-ups' panel

@@ -1,3 +1,5 @@
+import { trail } from '../trail';
+
 export interface ControlHandlers {
   /** -1 (stop now) … 0 (no power) … +1 (full power) */
   throttle(value: number): void;
@@ -169,16 +171,31 @@ export function mountControls(h: ControlHandlers): Controls {
   wire(go, () => {
     if (notch < NOTCHES.length) notch++;
     h.throttle(NOTCHES[notch - 1]);
+    // Which notch he pressed it to, not merely that he pressed it: a fourth
+    // press of green does nothing, and only the notch says which press that was.
+    trail.mark('green', String(notch));
     paint();
   });
 
   wire(stop, () => {
     notch = 0;
     h.throttle(-1);
+    trail.mark('red');
     paint();
   });
 
-  const reverse = hold(back, (down) => h.reverse(down));
+  // R is the one control that is held, so how long he holds it is the whole
+  // question about it — a stab at it and a long shunt are different things.
+  let heldFrom = 0;
+  const reverse = hold(back, (down) => {
+    if (down) {
+      heldFrom = performance.now();
+      trail.mark('reverse');
+    } else {
+      trail.mark('release', ((performance.now() - heldFrom) / 1000).toFixed(1));
+    }
+    h.reverse(down);
+  });
 
   // Keyboard, for driving it on a laptop while building.
   window.addEventListener('keydown', (e) => {
@@ -188,12 +205,15 @@ export function mountControls(h: ControlHandlers): Controls {
     else if (e.key === 'r' || e.key === 'R') {
       h.touched();
       back.classList.add('press');
+      heldFrom = performance.now();
+      trail.mark('reverse');
       h.reverse(true);
     }
   });
   window.addEventListener('keyup', (e) => {
     if (e.key === 'r' || e.key === 'R') {
       back.classList.remove('press');
+      trail.mark('release', ((performance.now() - heldFrom) / 1000).toFixed(1));
       h.reverse(false);
     }
   });

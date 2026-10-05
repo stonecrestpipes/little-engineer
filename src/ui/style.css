@@ -552,3 +552,7 @@ html, body {
 #parents .p-bar { height: 10px; border-radius: 5px; background: #eef2f5; overflow: hidden; }
 #parents .p-bar i { display: block; height: 100%; border-radius: 5px; background: #2e7d32; min-width: 2px; }
 #parents .p-note { margin: 14px 0 4px; color: #6b7c88; font-size: 14px; line-height: 1.5; }
+/* The two ways of getting the play log off the tablet, side by side, with
+   whatever just happened said underneath them. */
+#parents .p-logs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 10px 0 4px; }
+#parents .p-logs .p-said { flex-basis: 100%; text-align: left; max-width: none; }

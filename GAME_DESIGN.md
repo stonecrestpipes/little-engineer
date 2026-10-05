@@ -476,6 +476,11 @@ grown-ups' panel is a scrapbook: days played, distance driven, whistles blown, s
 places he stops at, which engines he drives, and which way he goes at the points. It is kept only
 on the tablet, in `src/journal.ts`, and can be cleared from the panel.
 
+Underneath it sits the **play log** (`src/trail.ts`): the same play kept in order rather than as
+totals, with every press, tap and arrival timed and placed. The totals say what he did; the log
+says what he did next, which is the half the open questions below actually need. Also never shown
+to him, also only on the tablet, and it leaves it only by a button a grown-up presses.
+
 ### Phase 8 — Parent settings *(built)*
 Long-press gesture to a hidden panel: assist strength, speed control on/off, junctions on/off, which
 activities are enabled. This is how the game grows with him from four to six.
@@ -597,6 +602,42 @@ anything needing to be unpicked.
 ---
 
 ## Build log
+
+### A play log, because the totals could not answer the questions
+
+The scrapbook counts. Counting was enough to know he whistles and roughly where he stops, and it is
+useless for every question actually left open, because all of them are about *order* and *timing*:
+does he press R deliberately or by accident, does he go back to a branch he took, what is the last
+thing he does before he puts it down. A total cannot answer any of those.
+
+So `src/trail.ts` keeps the beats themselves — every press, tap, drag, pinch, arrival and departure,
+in order, each stamped with the time and with where the train was and how fast it was going. Green
+records *which notch* it went to, because a fourth press of green does nothing and only the notch
+says which press that was. R records *how long it was held*, because a stab at it and a thirty-second
+shunt are different facts about the same button. The arrows record what he pressed and, separately,
+which way the train actually went, so the two can be compared.
+
+**The one that was not on the list is `nothing`: a tap on the world that nothing answered.** Away
+from the yard that is the game working exactly as designed — a tap on the railway is supposed to do
+nothing. It is also the only record there is of *where he expects something to be touchable*, and
+because each row carries the metres, it says where on the railway he expected it. That is the single
+most useful row in the file and it exists by accident of recording everything.
+
+Sittings are worked out rather than recorded. An `open` starts one, and so does a quiet gap of more
+than four minutes, because a tablet left face-up on the sofa with the app still running is not one
+three-hour sitting. Anything a grown-up does while the panel is open is marked and left out of
+every number, since a fortnight of his play is worth nothing with an evening of fiddling mixed in.
+
+The panel shows only a glance — sittings, how long a typical one runs, how long the longest was, how
+many things he pressed, how long he leaves between pressing them, and what he most often does one
+after the other. The real looking happens in the log, which leaves the tablet only by **Copy the
+play log** or **Save the play log**, as CSV under a comment header so the same text can be pasted
+into a message or opened in a spreadsheet. Six thousand beats are kept, a few weeks of real play.
+Nothing is sent anywhere, ever; it is the scrapbook's privacy rules unchanged.
+
+`src/trail.test.ts` covers the reading rather than the recording, because that is the half that can
+be wrong while looking right: a sitting split in the wrong place, or the panel counted as play,
+produces a confident answer to the wrong question.
 
 ### Twenty things off a list, and a railway twice the size
 
@@ -939,7 +980,9 @@ What remains for Phase 2 is whatever the play test says to change.
    There are **four** choices a lap now — the city, the woods, the windmill and the lighthouse — and
    taking all of them makes a lap 2,104 m. Watch whether he notices the arrows, whether he picks a
    branch on purpose or only by accident, and whether he goes back to one. The scrapbook counts
-   every turning at all four.
+   every turning at all four — and the **play log** now has the part the counts could not give:
+   which arrow he pressed, which way he actually went, how long before the points he decided, and
+   whether the same branch comes round twice in one sitting.
 3. **How private the hosting should end up being.** It is on a public GitHub Pages URL with
    crawlers blocked, which was chosen to get it installed quickly. *Raised again on 2026-10-01 and
    deliberately left public* — but note what has changed since: the engines now carry numbers and

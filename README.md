@@ -298,8 +298,14 @@ property worth more than the convenience.
 
 ## The grown-ups' panel
 
-Hold the **top-right corner of the screen for three seconds**. A faint ring
-starts to fill after a second. At the top is a scrapbook of how he plays —
+**Two quick taps on the build stamp** in the top-right corner — the short way
+in, and the one worth remembering. Or hold the **top-right corner of the screen
+for three seconds**, which still works; a faint ring starts to fill after a
+second.
+
+Two taps rather than one because a single tap is well inside what he does to
+the screen all day, and behind the panel are every setting and the only copy of
+his play log. At the top is a scrapbook of how he plays —
 days, distance, whistles, where he stops, what he drives, which way he goes
 at the points — which he never sees. Under that is **How he plays**, which is
 the same play told as a story rather than as totals. Below those: his name for
@@ -393,7 +399,7 @@ will not register over plain HTTP (except on `localhost`). So:
 
 1. Deploy `dist/` to any static host.
 2. Open the URL on the tablet in Chrome.
-3. Hold the **top-right corner for three seconds** and press **Install app**.
+3. Two quick taps on the build stamp (top-right), then press **Install app**.
 4. After that it runs fullscreen and works in flight mode.
 
 **Use that button, not Chrome's menu.** Chrome for Android decides whether

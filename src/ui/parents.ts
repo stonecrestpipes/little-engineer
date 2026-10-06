@@ -542,6 +542,29 @@ export function mountParentPanel(hooks: ParentHooks): void {
     body.scrollTop = 0;
   };
 
+  // --- the version stamp, as the way in -------------------------------------
+  // Three seconds of holding a corner is a lot to ask of someone who only wants
+  // to check a setting, and there is nothing there to aim at. The build stamp is
+  // already sat in that same corner saying which build this is, so it doubles as
+  // the handle: two taps on it and the panel opens.
+  //
+  // Two rather than one, because a single tap is well within what he does to the
+  // screen all day — the trail is full of taps on things that answer nothing —
+  // and behind this panel are every setting and the only copy of his play log.
+  // The corner hold stays as it was, so nothing anyone has learned stops working.
+  const DOUBLE_TAP_MS = 450;
+  const stamp = document.getElementById('version');
+  let lastTap = 0;
+  stamp?.addEventListener('pointerup', (e) => {
+    if (!panel.hidden) return;
+    e.stopPropagation();
+    const t = performance.now();
+    const quick = t - lastTap < DOUBLE_TAP_MS;
+    // Reset rather than chain, so three taps is not two openings.
+    lastTap = quick ? 0 : t;
+    if (quick) open();
+  });
+
   // --- the hold ------------------------------------------------------------
   const ring = el('div', { id: 'parents-ring' });
   document.body.append(ring);

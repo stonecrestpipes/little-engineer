@@ -232,9 +232,17 @@ html, body {
  */
 #version {
   position: absolute;
-  top: 54px;
-  right: 16px;
-  pointer-events: none;
+  /* The text still lands at 54/16; the padding grows the touch target around
+     it, and the offsets are pulled back by the same amount so nothing moves.
+     Two taps here opens the grown-ups' panel. */
+  top: 44px;
+  right: 4px;
+  padding: 10px 12px;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
   font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;

@@ -74,7 +74,7 @@ asked — see the build log. What never moved is the *nothing else*.)
 | **Rewards** | None. What would have been a sticker book is a scrapbook only the grown-ups see |
 | **Audio** | Sounds and animation only. No speech, in any phase |
 | **Sessions** | Endless free play. Start instantly, stop anytime, nothing is lost |
-| **Parent controls** | Hold the top-right corner for three seconds |
+| **Parent controls** | Two taps on the build stamp, or hold the top-right corner for three seconds |
 | **Engines** | Five, each a different shape with its own number. He picks one in the roundhouse, and watches it come out |
 | **Cars** | Up to three, chosen the same way. Nothing to do with them |
 | **Artwork** | Original engines and scenery, designed for this project. The first engine's familiar face is the one exception, with an original ready to replace it |
@@ -485,7 +485,14 @@ to him, also only on the tablet, and it leaves it only by a button a grown-up pr
 Long-press gesture to a hidden panel: assist strength, speed control on/off, junctions on/off, which
 activities are enabled. This is how the game grows with him from four to six.
 
-As built: hold the **top-right corner for three seconds**. A faint ring starts filling after the
+As built, two ways in. **Two quick taps on the build stamp** in the top-right corner is the short
+one: the stamp was already sitting there saying which build this is, so it costs no new furniture,
+and it gives the gesture something to aim at instead of three seconds of holding nothing in
+particular. Two taps rather than one because a single tap is well inside what he does to the screen
+all day — the trail is full of taps on things that answer nothing — and behind this panel are every
+setting and the only copy of his play log.
+
+The original also still works: hold the **top-right corner for three seconds**. A faint ring starts filling after the
 first second so a grown-up knows it is working. The panel has his name for the hello, hello on/off,
 speed (slower, normal, faster for every engine), help stopping (how far out pulling down still
 arrives), volume, a nameplate for each engine, and two resets. Later phases add their own rows.

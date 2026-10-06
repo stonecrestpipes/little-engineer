@@ -633,11 +633,23 @@ this *is* the installed app, a copy is already on this device, the browser has n
 all presented identically, as an absence. An absence cannot be read, and it cost a round trip of
 "not see install app button" to find that out. It now says which of the three it is.
 
-Telling the second from the third needs `navigator.getInstalledRelatedApps()`, and the care there is
-that **only a positive answer means anything**: an empty list is either "not installed" or "this
-browser will not say", and nothing can tell them apart. So a find is recorded and an empty answer
-leaves the wording hedged — "usually that means it is already on this device" — rather than making a
-confident claim it cannot support. `appinstalled` is the one unambiguous sighting there is.
+**And then a third lesson, which cost another round trip: a hedge is still a guess.** Telling "already
+installed here" from "the browser has not got round to it" was handed to
+`navigator.getInstalledRelatedApps()`, on the reasoning that only a positive answer would be trusted.
+That reasoning was sound and the premise was wrong: **the method only ever reports apps the manifest
+has named in `related_applications`, and this manifest names none**, so it returns an empty list on
+every device, installed or not. The state it was supposed to detect was unreachable, and the hedge
+that covered the gap — "usually that means it is already on this device" — told a phone that did not
+have the app that it probably did. Making the call answer properly means adding
+`related_applications` to the manifest of an app that is installed on the tablet and must keep its
+identity, which is not a trade worth making for a diagnostic.
+
+So the page stopped guessing and started reporting. Under the row is one line of what it actually
+observed — whether the offer ever fired, whether a service worker is controlling the page, how the
+window was opened, whether the context is secure, how many related apps were admitted to. It is
+there because the device where this goes wrong is a phone: no console to open, nothing to ask, and
+the only way to get a fact off it is to put the fact on the screen. `appinstalled` remains the one
+unambiguous sighting there is.
 
 Worth stating plainly because it reads as a bug otherwise: **on a device where this app is already
 installed, the button correctly never appears.** Chrome's offer is keyed to this app's `start_url`,

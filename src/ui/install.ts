@@ -40,11 +40,15 @@ let offered: InstallPromptEvent | null = null;
 const watchers = new Set<() => void>();
 const changed = () => watchers.forEach((f) => f());
 
+/** Whether the browser has offered at all this session, spent or not. */
+let everOffered = false;
+
 window.addEventListener('beforeinstallprompt', (e) => {
   // Deliberately no `preventDefault()`: suppressing the event is what hides
   // the browser's own install affordances, and this is meant to sit alongside
   // them rather than replace them.
   offered = e as InstallPromptEvent;
+  everOffered = true;
   changed();
 });
 
@@ -61,8 +65,8 @@ export function runningInstalled(): boolean {
 }
 
 /**
- * Positive evidence that a copy is already on this device. Only ever set, never
- * cleared — see `lookForInstalledCopy` for why the absence proves nothing.
+ * Set only by `appinstalled` — the one unambiguous sighting there is, because
+ * it happened in this window, just now.
  */
 let knownInstalled = false;
 
@@ -73,34 +77,58 @@ interface RelatedApp {
 }
 
 /**
- * Ask the browser whether this app is already installed here.
+ * How many related apps the browser admits to, or -1 for "did not answer".
  *
- * This is what tells "already on this tablet" apart from "the browser has not
- * got round to offering yet" — two states that are otherwise both just an
- * absence, and the reason the button's absence used to be unreadable.
- *
- * **A positive answer is worth something; an empty one is worth nothing.** An
- * empty list means either "not installed" or "this browser will not say" —
- * `getInstalledRelatedApps` is Chromium-only, needs a secure context and is
- * limited to pages inside the manifest's scope — and nothing here can tell the
- * two apart. So a find is recorded and an empty answer changes nothing, which
- * leaves the wording hedged rather than confidently wrong.
+ * **This cannot tell us whether this app is installed, and it was a mistake to
+ * think it could.** `getInstalledRelatedApps()` only ever reports apps the
+ * manifest has named in `related_applications`, and this manifest names none,
+ * so it returns an empty list on every device — installed or not. The number is
+ * kept because it belongs in the report, not because anything is inferred from
+ * it. Adding `related_applications` would make it answer properly, at the cost
+ * of touching the manifest of an app that is installed and must stay put.
  */
-async function lookForInstalledCopy(): Promise<void> {
+let related = -1;
+
+async function countRelated(): Promise<void> {
   const nav = navigator as Navigator & {
     getInstalledRelatedApps?: () => Promise<RelatedApp[]>;
   };
   if (typeof nav.getInstalledRelatedApps !== 'function') return;
   try {
     const apps = await nav.getInstalledRelatedApps();
-    if (knownInstalled || !apps.some((a) => a.platform === 'webapp')) return;
-    knownInstalled = true;
+    related = apps.length;
     changed();
   } catch {
-    /* refused here; the wording stays hedged, which is the honest answer */
+    /* refused here; -1 says so */
   }
 }
-void lookForInstalledCopy();
+void countRelated();
+
+/** How the window was opened, in the manifest's own words. */
+function displayMode(): string {
+  for (const mode of ['fullscreen', 'standalone', 'minimal-ui']) {
+    if (window.matchMedia(`(display-mode: ${mode})`).matches) return mode;
+  }
+  return 'browser';
+}
+
+/**
+ * Everything the page can actually observe about its own installability, in one
+ * short line.
+ *
+ * This exists because the interesting failure happens on a phone, where there
+ * is no console to open and no way to ask the browser anything — so the answer
+ * has to be on the screen, in the grown-ups' panel, ready to be read out.
+ */
+export function installReport(): string {
+  const offer = offered !== null ? 'held' : everOffered ? 'spent' : 'never';
+  const worker =
+    !('serviceWorker' in navigator) ? 'none' : navigator.serviceWorker.controller ? 'controlling' : 'idle';
+  const relatedSaid = related < 0 ? 'unanswered' : String(related);
+  return `offer ${offer} · worker ${worker} · ${displayMode()} · secure ${
+    window.isSecureContext ? 'yes' : 'no'
+  } · related ${relatedSaid}`;
+}
 
 /** Why there is, or is not, an install to offer. */
 export type InstallState =

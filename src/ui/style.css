@@ -560,3 +560,13 @@ html, body {
 /* Where the install stands is a sentence rather than a label for the button
  * beside it, so it wraps onto a line of its own under the row. */
 #parents .p-install .p-said { flex-basis: 100%; text-align: left; max-width: none; }
+/* And under that, what the page actually observed — meant to be read off a
+ * phone screen and typed back, so it is monospaced and selectable. */
+#parents .p-facts {
+  flex-basis: 100%;
+  color: #8a99a4;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  user-select: text;
+  -webkit-user-select: text;
+}

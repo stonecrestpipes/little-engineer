@@ -3,7 +3,7 @@ import { ENGINES } from '../content/engines';
 import { journal } from '../journal';
 import { trail, glance, asText, type Mark } from '../trail';
 import type { UpdateCheck } from './updates';
-import { install, installState, onInstallChange } from './install';
+import { install, installReport, installState, onInstallChange } from './install';
 
 const PLACES: [string, string][] = [
   ['sheds', 'The Sheds'],
@@ -396,24 +396,31 @@ export function mountParentPanel(hooks: ParentHooks): void {
   // src/ui/install.ts says why the page has to make the offer itself at all.
   const installApp = el('button', { type: 'button', className: 'p-plain', textContent: 'Install app' });
   const installSaid = el('small', { className: 'p-said' });
+  // Everything the page can observe about its own installability. It is on
+  // screen because the device where this goes wrong is a phone, with no console
+  // to open and nothing to ask — so the answer has to be readable from the
+  // panel itself.
+  const installFacts = el('small', { className: 'p-facts' });
   const installRow = row(
     'Install app',
     'Put it on the home screen, so it opens fullscreen and works offline',
     installApp,
   );
   installRow.classList.add('p-install');
-  installRow.append(installSaid);
+  installRow.append(installSaid, installFacts);
 
   /** Where it stands, in a sentence, whenever there is no button to press. */
   const WHY: Record<ReturnType<typeof installState>, string> = {
     running: 'Already installed — this is it running.',
     offered: '',
-    installed: 'Already installed on this device. Open it from the home screen.',
-    // Deliberately hedged: an empty answer from the browser means either "not
-    // installed" or "will not say", and claiming the first would be a guess.
-    unoffered:
-      'The browser has not offered an install. Usually that means it is already ' +
-      'on this device; if it is not, close the game and open it again.',
+    installed: 'Installed from here just now. Open it from the home screen.',
+    // No guess about *why*. The page cannot tell "already installed here" from
+    // "the browser has not got round to it" — an earlier version claimed it
+    // could, on the strength of getInstalledRelatedApps(), which only ever
+    // reports apps named in the manifest's related_applications and so answers
+    // the same on every device. What the page *can* do is say what it observed,
+    // which is the line underneath.
+    unoffered: 'Chrome has not offered an install on this device. If it is already on the home screen, that is why.',
   };
 
   /**
@@ -427,6 +434,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     installApp.hidden = state !== 'offered';
     installSaid.textContent = WHY[state];
     installSaid.hidden = installSaid.textContent === '';
+    installFacts.textContent = installReport();
   };
   syncs.push(syncInstall);
   onInstallChange(syncInstall);

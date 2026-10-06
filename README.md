@@ -19,29 +19,33 @@ most of them.** It is a much larger game than the one he last saw. Nothing
 below has been in front of him yet — that is the whole of what the next go is
 for, and v0.4.1 is there to make sure that go is actually recorded.
 
-### v0.4.3 — a way to install it that Chrome cannot refuse, and a row that says why
+### v0.4.4 — a way to install it that Chrome cannot refuse, and a row that says what it saw
 
 Nothing he sees changed. The grown-ups' panel gained an **Install app** row, between *Picture* and
-*Updates*. The button itself is there only while the browser is actually offering an install; the
-rest of the time the row says which of the three reasons it is not:
+*Updates*. The button is there only while the browser is actually offering an install; underneath it
+is a line of what the page observed, meant to be read off the screen of whichever device is being
+awkward:
 
-| | |
-|---|---|
-| Running as the installed app | "Already installed — this is it running." |
-| A tab, and a copy is known to be installed here | "Already installed on this device." |
-| Nothing offered, and no way to tell why | "The browser has not offered an install…" |
+```
+offer never · worker controlling · browser · secure yes · related 0
+```
 
-That last one stays hedged on purpose. `navigator.getInstalledRelatedApps()` is the only way to ask,
-and an empty answer from it means either "not installed" or "this browser will not say" — so a find
-is believed and an empty answer changes nothing. (v0.4.2 hid the row entirely when there was no
-offer, which made all three look identical: an absence.)
+- **offer** — `never` (the browser has not fired `beforeinstallprompt`), `held` (it has, and the
+  button is live) or `spent` (it was used this session).
+- **worker** — whether a service worker is controlling the page. `idle` or `none` means the install
+  criteria are not met and no offer is coming.
+- then how the window was opened, whether the context is secure, and how many related apps the
+  browser admits to.
 
-It is there because Chrome for Android's own *Install and create shortcut* is broken for this site,
-and not in a way waiting will fix: it decides whether there is anything to install by **origin**
-rather than by app, so once any app on `stonecrestpipes.github.io` is installed — Shakedown, The
-Arcana, The Guild, Steel Squall — the menu refuses every other one with "This app is already
-installed", and then "Could not open app". The page's own prompt checks this app's `start_url`
-instead, so it still offers a real install. See *Putting it on the Pixel Tablet* below.
+**That last number is always 0 here, and cannot mean anything else.**
+`getInstalledRelatedApps()` only ever reports apps named in the manifest's `related_applications`,
+and this manifest names none — so it answers identically whether the app is installed or not.
+v0.4.3 wrongly treated it as evidence and told a phone without the app that it already had it.
+Making it answer properly means adding `related_applications` to the manifest of an app that is
+installed on the tablet and must stay put; not done, deliberately.
+
+So the page **cannot** tell "already installed here" from "the browser has not got round to it". It
+no longer guesses — it says what it saw and leaves the reading to whoever is holding the device.
 
 ### v0.4.1 — an instrument, not a feature
 
@@ -302,8 +306,8 @@ the same play told as a story rather than as totals. Below those: his name for
 the hello,
 speed, how much help he gets stopping, volume, evenings, the branch line,
 the blue engine's face, nameplates for each engine, picture quality, **an
-install row** (which always says where the install stands), **an update check**,
-and resets. Changes take effect immediately. The build time at
+install row** (with a line of what the browser actually did), **an update
+check**, and resets. Changes take effect immediately. The build time at
 the bottom tells you which build the tablet is running.
 
 ## The play log

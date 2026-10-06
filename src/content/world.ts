@@ -20,6 +20,7 @@ import {
   type Planting,
 } from './scenery';
 import { frameAt, type Place, type PlaceContext, type TrainState } from './places/place';
+import type { Crane } from './places/crane';
 import { buildSheds } from './places/sheds';
 import { buildCrossing } from './places/crossing';
 import { buildFarm } from './places/farm';
@@ -42,6 +43,16 @@ export interface Junction {
   pointsOn(line: number): number;
 }
 
+/**
+ * How far off the mark he can be standing and still work the crane.
+ *
+ * The hook comes down at a fixed spot about eight metres behind the stop, so
+ * this is really "is his wagon under the jib". Loose enough that a stop he
+ * made himself without the docking profile still counts, tight enough that
+ * the hook is never reaching into thin air.
+ */
+const CRANE_RANGE = 10;
+
 export interface World {
   /** Every way round, as one track whose points can be set before he reaches them. */
   track: Lines;
@@ -62,6 +73,11 @@ export interface World {
   update(dt: number, elapsed: number, train: TrainState): void;
   /** He touched the world rather than a button. True if anywhere acted on it. */
   pick(ray: THREE.Raycaster, train: TrainState): boolean;
+  /**
+   * The crane he could work from exactly where he is standing, if any. Null
+   * while he is moving, and null everywhere but the harbour and the city.
+   */
+  craneAt(train: TrainState): Crane | null;
   /** True while somewhere is moving his engine itself — the yard, shunting. */
   shunting(): boolean;
   /** Finish any shunt at once, because he has asked to drive. */
@@ -875,6 +891,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
     pick(ray, train) {
       for (const place of places) if (place.pick?.(ray, as(place, train))) return true;
       return false;
+    },
+    craneAt(train) {
+      if (train.moving) return null;
+      for (const place of places) {
+        if (!place.crane || !place.stop) continue;
+        const here = as(place, train);
+        // NaN while he is on a line this place cannot measure, which is the
+        // whole point of reading the distance through `as`.
+        if (!Number.isFinite(here.distance)) continue;
+        if (Math.abs(lines.delta(here.distance, place.stop.at)) <= CRANE_RANGE) return place.crane;
+      }
+      return null;
     },
     shunting() {
       return places.some((p) => p.busy?.() === true);

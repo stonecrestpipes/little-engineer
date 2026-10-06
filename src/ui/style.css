@@ -478,6 +478,39 @@ html, body {
  * Two big arrows, bottom centre, only while he is coming up to the junction.
  * The one the points are set for is green, like the go button.
  */
+/* The crane button sits where the points arrows do, because that is the row
+   for things he does to the world rather than to the engine — and low enough
+   that it is never on top of the wagon it is filling.
+
+   On the rare occasion both want the row at once it moves up out of the way;
+   see `points-up`, set while a junction is being offered. */
+#ui #btn-crane {
+  left: 50%;
+  bottom: var(--inset);
+  transform: translateX(-50%);
+  width: var(--primary);
+  height: var(--primary);
+  border-radius: calc(var(--primary) * 0.26);
+  background: #e8c33d;
+  color: #3a2a10;
+  box-shadow: 0 8px #b8912a, 0 14px 24px #2b3a4542;
+  animation: crane-in 320ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+#ui #btn-crane[hidden] { display: none; }
+body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1 + 18px); }
+#ui #btn-crane svg { width: 64%; }
+#ui #btn-crane.press { transform: translateX(-50%) translateY(7px); }
+#btn-crane .crane-pic { display: none; }
+#btn-crane .crane-pic.on { display: inline; }
+
+@keyframes crane-in {
+  0% { transform: translateX(-50%) scale(0.6); opacity: 0; }
+  to { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ui #btn-crane { animation: none; }
+}
+
 #points {
   position: absolute;
   left: 50%;

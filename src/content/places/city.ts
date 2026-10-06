@@ -3,6 +3,7 @@ import { C, COATS, flat, mat, person, shadowed, tree } from '../scenery';
 import { buildStation } from './station';
 import { dusk } from './station';
 import { clearOfRails, frameAt, isNear, localGround, railsNear, type Place, type PlaceContext } from './place';
+import { buildCrane } from './crane';
 import { moving } from '../../engine/merge';
 
 /**
@@ -435,6 +436,21 @@ export function buildCity(ctx: PlaceContext): Place {
   // ------------------------------------------------------------- behaviour
   let clock = 0;
   let answered = -99;
+  // ------------------------------------------------- the crane he can work
+  // The tower crane above is scenery: twenty-six metres up and swinging over
+  // the slabs, it was never going to load a wagon. This is a mobile one down
+  // at track level, brought round from the site to the station end to work
+  // the railway — which is why it stands here rather than in the middle of
+  // the slabs. It cannot be over there and over the train at the same time,
+  // and the train is the one that matters: he stops at the platform.
+  //
+  // The street side, because the platform and the station building have the
+  // whole of the other one — and ten metres rather than the harbour's
+  // fourteen, because the near row of towers starts sixteen metres out and a
+  // longer jib would sweep straight through one of them.
+  const loader = buildCrane(ctx, group, { along: -7.4, side: -1, liftY: 1.5, reach: 10 });
+  group.add(loader.group);
+
   /** Counts down from a whistle: the siren, the rotor and the lift-off. */
   let scramble = 0;
   let spin = 0;
@@ -442,6 +458,10 @@ export function buildCity(ctx: PlaceContext): Place {
   return {
     group,
     stop: { id: 'city', at: ctx.at },
+    crane: loader,
+    settle() {
+      loader.settle();
+    },
     arrive() {
       station.arrive();
     },
@@ -476,6 +496,7 @@ export function buildCity(ctx: PlaceContext): Place {
       // rather than an answer to anything.
       slew.rotation.y = Math.sin(elapsed * 0.11) * 0.9;
       arm.rotation.z = Math.sin(elapsed * 0.5) * 0.22;
+      loader.update(dt);
 
       // Every window and every lamp in the city comes up together as it gets
       // dark, which is the one moment this place is better than the country.

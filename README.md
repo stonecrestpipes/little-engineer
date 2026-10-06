@@ -301,18 +301,31 @@ round the whole loop. Shortening the branches helps a little — the city lap is
 minutes at full steam to see again something he has just passed**, and that is
 a long time when you are four.
 
-The control that ought to solve it is **R**, and it cannot: reverse is
-deliberately a creep, `REVERSE_FRACTION` 0.42 of the gentlest forward speed and
-capped at 1.8 m/s, which is 1.2 m/s on the blue engine. Backing up a hundred
-metres is eighty-five seconds of holding the button down. It was built for
-easing up to a car in the yard, and it is right for that.
+**The first play log settled this, and reverse is now quick enough to use.**
+On 6 October he stopped short of the city junction, backed up 44 m to the
+sheds and changed engines — so going back is a thing he does, and **R is what
+he reaches for.** It took him 87 seconds, because reverse was deliberately a
+creep: `REVERSE_FRACTION` 0.42 of the gentlest forward speed, which is
+1.18 m/s on the blue engine and 1.34 on the silver one. It is now the gentlest
+forward speed itself, about 3 m/s, and that trip would take a quarter as long.
 
-If this turns out to matter — watch whether he tries to go back and gives up —
-the smallest change that would fix it is to let reverse run at the first
-notch's speed, around 3 m/s, which makes a hundred metres half a minute. That
-is one number in `src/engine/train.ts`. The thing to be careful of is that
-**R never latches**: letting go always stops the engine, and that is a safety
-property worth more than the convenience.
+Two numbers, not one, which is worth knowing if it is ever tuned again:
+`REVERSE_TOP` was 1.8 and `slow * 0.42` never reached it, so the cap looked
+inert while in fact raising the fraction alone would have run straight into
+it. It is 3.5 now — a ceiling for an engine faster than anything here, rather
+than the number actually in charge.
+
+**R still never latches**: letting go always stops the engine, and that is a
+safety property worth more than any convenience.
+
+The half of this the speed does not fix is that **he taps R rather than
+holding it.** 103 of his 110 presses were under a second, and a tap moves the
+engine a few centimetres however fast reverse is set, because it never gets
+near the target speed before the button comes up again. He worked out that
+holding it works on his own, at the very end of the episode — the two long
+holds covered more ground than the preceding minute of tapping. Whether that
+sticks is the thing to watch in the next log; if it does not, the answer is an
+affordance saying *hold me*, not a latch.
 
 ## The grown-ups' panel
 

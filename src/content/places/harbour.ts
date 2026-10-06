@@ -3,6 +3,7 @@ import { C, COATS, mat, person, shadowed } from '../scenery';
 import { WATER_LEVEL } from '../terrain';
 import { buildStation } from './station';
 import { frameAt, isNear, type Place, type PlaceContext } from './place';
+import { buildCrane } from './crane';
 import { moving } from '../../engine/merge';
 
 /**
@@ -37,7 +38,7 @@ export function buildHarbour(ctx: PlaceContext): Place {
 
   // --------------------------------------------------------------- cranes
   const cranes: THREE.Group[] = [];
-  for (const z of [-13, 11]) {
+  for (const z of [-20, 14]) {
     const crane = new THREE.Group();
     crane.position.set(-14.5, 0.7, z);
     const base = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.8, 0.8, 10), mat(C.slate));
@@ -60,6 +61,19 @@ export function buildHarbour(ctx: PlaceContext): Place {
     group.add(crane);
     cranes.push(swing);
   }
+
+  // ------------------------------------------------------- the one that works
+  // The two above swing all day and reach out over the water, which is what a
+  // quay crane does and is also why neither can touch the train: fully round,
+  // their hooks still stop six metres short of the rails. This is a third,
+  // stood out on the quay beside them, at exactly its own reach from where the
+  // first car comes to rest, so its hook comes down inside the wagon.
+  //
+  // Taller than the one in the city, because its load crosses the station on
+  // the way: the gable peaks at 6.85 m and at the ordinary jib height the
+  // hook would come through the roof.
+  const loader = buildCrane(ctx, group, { along: -7.4, side: -1, liftY: 1.5, reach: 14, jibY: 13 });
+  group.add(loader.group);
 
   // ---------------------------------------------------------------- boats
   interface Boat {
@@ -190,6 +204,10 @@ export function buildHarbour(ctx: PlaceContext): Place {
   return {
     group,
     stop: { id: 'harbour', at: ctx.at },
+    crane: loader,
+    settle() {
+      loader.settle();
+    },
     arrive() {
       station.arrive();
     },
@@ -206,7 +224,7 @@ export function buildHarbour(ctx: PlaceContext): Place {
       }
       if (isNear(ctx.track, train, ctx.at, 28)) station.wave();
     },
-    update(_dt, elapsed) {
+    update(dt, elapsed) {
       clock = elapsed;
       for (const b of boats) {
         b.group.position.y = b.bob + Math.sin(elapsed * 0.9 + b.phase) * 0.18;
@@ -224,6 +242,7 @@ export function buildHarbour(ctx: PlaceContext): Place {
       cranes.forEach((c, i) => {
         c.rotation.y = Math.sin(elapsed * 0.18 + i * 2) * 0.32;
       });
+      loader.update(dt);
       station.update(elapsed);
     },
   };

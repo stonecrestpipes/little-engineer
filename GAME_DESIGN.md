@@ -623,6 +623,68 @@ anything needing to be unpicked.
 
 ## Build log
 
+### The crane, and the first thing the play log changed
+
+The first log came back on 6 October — 728 beats, of which one sitting of 19 minutes is him and the
+other fourteen are testing. Three things came out of it.
+
+**Reverse is a going-back control, not a yard creep.** He stopped short of the city junction and
+backed 44 m to the sheds to change engines. It took 87 seconds. `REVERSE_FRACTION` is now 1.0 rather
+than 0.42, and `REVERSE_TOP` 3.5 rather than 1.8 — both, because at 1.8 the cap was already below
+`slow * 0.42` for every engine and raising the fraction alone would have changed nothing. See
+*Going back* in the README for the half of it that speed does not fix: he taps R rather than holding
+it, and a tap moves the engine a few centimetres at any speed setting.
+
+**The crane he kept asking for.** Stop at the harbour or at the city and a button appears; press it
+and the crane swings over, drops its hook into the open wagon and puts a bundle of logs in, or takes
+it out again. Four things are worth keeping about how it is built:
+
+1. **It asks nothing of him.** Nobody wants the logs, nothing is counted, and the wagon is as
+   finished empty as it is full. `cars.ts` says fetching and delivering is exactly what he disliked
+   in the game this railway came from, and that still holds: what he asked for was the crane
+   *working*, which is a different thing from an errand.
+2. **The load is the logs the open wagon already had.** They were baked into the merged mesh as
+   scenery; they are now a `moving()` group that can be hidden. Nothing new had to be explained to
+   him — it is the bundle he has been looking at all along, and now it moves.
+3. **A crane stands exactly its own reach from where its hook comes down.** A jib is a fixed length,
+   so the stand position is not a free choice: pick the load point, and the reach decides the rest.
+   `buildCrane` therefore takes the load point and works the position out. The reach differs between
+   the two — 14 m at the harbour, because the platform and the station building take everything
+   within nine metres on the seaward side and it has to go out on the quay; 10 m in the city,
+   because the near row of towers starts sixteen metres out and a longer jib would sweep through
+   one. The harbour's jib is also raised to 13 m, because its load crosses the station, whose gable
+   peaks at 6.85 m and which the hook would otherwise come through.
+4. **It aims at the wagon, rather than at where the wagon usually is.** A tank engine leaves the
+   first car 5.96 m behind the stop and the tender engine 8.81 — nearly three metres apart, which in
+   a wagon 5.2 m long would have the bundle hanging over one end and then jumping to the middle when
+   it changed hands. The crane solves its slew angle for where the car actually is; over that range
+   the fixed jib is accurate to within a hand's breadth.
+
+**And a third job, `lift`, for a train with no open wagon in it.** The crane picks the bundle up,
+carries it over the track and brings it back. It exists so that standing at a crane always has
+something to press — the install row taught us that an absence he cannot read is worse than a plain
+answer, and a dead button at the crane he had been asking for would have been worse again.
+
+### The hello said twice, in two voices
+
+Reported 6 October: *"the Hello Orion plays twice and there are two different voices."* Two voices
+is the diagnosis, not a detail. `voice()` returns null without caching when `getVoices()` has not
+loaded yet — which is its state for the first moments after an app launch — so an utterance queued
+then goes out in the device default, while anything queued later gets the chosen "natural" one.
+Hearing both means two utterances existed.
+
+They came from the gesture retry. Chrome for Android will not speak until the page has been touched,
+and reports `speaking: false, pending: false` for an utterance that is merely waiting for that
+touch — so after 1.2 s the code concluded it would never speak and armed a retry on `pointerdown`.
+His first touch then did two things at once: it released the original utterance *and* fired the
+retry, which checked `speaking` in the same task, before the first had started, saw silence and
+spoke again. `synth.cancel()` does not reliably drop an utterance the gesture has just dispatched.
+
+Both halves are fixed. The retry now waits `RELEASED_MS` (350 ms) after the touch before deciding —
+long enough for an utterance that was only ever waiting for a gesture to start — and `sayHello`
+remembers the voice the first attempt went out with, so even if a double ever got through it would
+at least be the same voice twice.
+
 ### Installing it when Chrome says it is already installed
 
 Every app on this account is served from `stonecrestpipes.github.io`, and Chrome for Android decides

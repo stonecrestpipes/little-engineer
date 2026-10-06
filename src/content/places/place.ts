@@ -3,6 +3,7 @@ import type { Track } from '../../engine/track';
 import type { Stop } from '../../engine/train';
 import type { Audio } from '../../engine/audio';
 import type { Roster } from '../roster';
+import type { Crane } from './crane';
 
 /**
  * What the world tells a place about the engine, every frame.
@@ -48,6 +49,12 @@ export interface Place {
   group: THREE.Group;
   /** Set if the engine can stand at a platform here. */
   stop?: Stop;
+  /**
+   * A crane here that he can work, if this place has one. Offered to him only
+   * while he is standing still at the stop, and it moves nothing but its own
+   * jib and his wagon's load — see `crane.ts`.
+   */
+  crane?: Crane;
   arrive?(): void;
   depart?(): void;
   /** He blew the whistle. The place decides whether it is near enough to care. */

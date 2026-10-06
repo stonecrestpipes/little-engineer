@@ -32,13 +32,21 @@ export type TrainEvent =
 const DEAD_ZONE = 0.08;
 
 /**
- * Backing up is a slow creep, taken as a fraction of the gentlest forward
- * speed so that it scales with the engine and with the grown-ups' speed
- * setting. Reverse is for easing up to a car in the yard, not for getting
- * anywhere.
+ * Backing up runs at the engine's gentlest forward speed, so it scales with
+ * the engine and with the grown-ups' speed setting.
+ *
+ * It used to be a 0.42 creep, on the assumption that reverse was for easing
+ * up to a car in the yard. The first play log (2026-10-06) says otherwise: he
+ * used it to travel, backing 44 m to the sheds to change engines, and at the
+ * old 1.18-1.34 m/s that took him 87 seconds. Reverse is a going-back
+ * control, so it is now about as quick as the first notch forward.
+ *
+ * REVERSE_TOP is a ceiling for an engine faster than anything here (`slow`
+ * tops out at 3.2), not the binding number. At 1.8 it silently clamped every
+ * engine, which is why raising the fraction alone would have done nothing.
  */
-const REVERSE_FRACTION = 0.42;
-const REVERSE_TOP = 1.8;
+const REVERSE_FRACTION = 1.0;
+const REVERSE_TOP = 3.5;
 
 /** Slow enough to count as standing still, for turning round. */
 const STILL = 0.02;

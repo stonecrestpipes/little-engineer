@@ -53,6 +53,31 @@
       </svg>
     </button>
 
+    <!-- Only there while he is standing at a crane, which is the harbour and
+         the building site in the city. The picture says which way the logs
+         are about to go: down into the wagon, or up out of it. Nothing to
+         read, and it is stacked above the points so the two never collide. -->
+    <button id="btn-crane" type="button" hidden aria-label="Work the crane">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <!-- the jib and its cable, which every picture shares -->
+        <path d="M9 7h30M12 7v5"/>
+        <path d="M34 7v9" stroke-width="2.2"/>
+        <!-- the wagon, open-topped, down at the bottom -->
+        <path d="M13 41V32h22v9Z"/>
+        <g class="crane-pic" data-for="load">
+          <path d="M34 19v9" stroke-width="5.4"/>
+          <path d="M28 25l6 6 6-6" stroke-width="3.4"/>
+        </g>
+        <g class="crane-pic" data-for="unload">
+          <path d="M34 19v9" stroke-width="5.4"/>
+          <path d="M28 24l6-6 6 6" stroke-width="3.4"/>
+        </g>
+        <g class="crane-pic" data-for="lift">
+          <path d="M30 19h8v6h-8Z" stroke-width="3.2"/>
+        </g>
+      </svg>
+    </button>
+
     <!-- Only there while he is coming up to a set of points. Each way is an
          arrow and a picture of where it goes; nothing to read. The pictures
          shown are the ones for whichever junction it is. -->

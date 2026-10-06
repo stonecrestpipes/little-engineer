@@ -96,6 +96,7 @@ const SAID: Partial<Record<Mark, string>> = {
   camera: 'the camera',
   points: 'an arrow',
   yard: 'the yard',
+  crane: 'the crane',
   nothing: 'nothing',
   look: 'a look round',
   pinch: 'a pinch',

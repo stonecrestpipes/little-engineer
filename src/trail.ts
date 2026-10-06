@@ -42,6 +42,8 @@ export type Mark =
   | 'depart'
   /** he touched the yard and it answered: `d` is what changed */
   | 'yard'
+  /** he worked a crane: `d` is 'load', 'unload' or 'lift' */
+  | 'crane'
   /** he touched the world and nothing answered. `m` says where he was. */
   | 'nothing'
   /** he dragged the view round: `d` is how far, in pixels */

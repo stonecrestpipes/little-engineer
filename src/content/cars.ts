@@ -11,6 +11,15 @@ import { C, mat } from './scenery';
  * the engine. That is the whole of the feature, and it is on purpose: fetching
  * and delivering is exactly what he disliked in the game this idea came from.
  *
+ * **The open wagon's load is the one exception, and it does not break that
+ * rule.** He kept asking to work the crane, so the crane at the harbour and
+ * the one on the building site will lift this wagon's logs in and out. What
+ * he asked for is the crane *working*, not an errand: nowhere wants the logs,
+ * nothing is scored, and the wagon is equally finished full or empty. The
+ * logs are the load rather than a new kind of cargo precisely so that there
+ * is nothing new to explain — it is the bundle he has been looking at all
+ * along, and now it moves.
+ *
  * Built facing +z, like the engine, so the same code puts both on the rails.
  */
 
@@ -32,6 +41,12 @@ export interface CarMesh {
   group: THREE.Group;
   wheels: THREE.Object3D[];
   spec: CarSpec;
+  /**
+   * The part a crane can take out and put back, on the cars that have one.
+   * Null on everything else, which is what makes a car unloadable — see
+   * `loadable` below rather than testing the kind.
+   */
+  load: THREE.Group | null;
 }
 
 export const CARS: CarSpec[] = [
@@ -50,10 +65,54 @@ export const CARS: CarSpec[] = [
 const WHEEL_R = 0.42;
 const GAUGE = 1.02;
 
+/**
+ * A bundle of logs — five of them, three along the bottom and two on top.
+ *
+ * Built in one place because two things carry the identical bundle: the open
+ * wagon, and the crane's hook while it is moving it. If they did not match
+ * exactly the lift would read as a swap rather than a lift.
+ *
+ * Marked `moving` by the caller, never here: the wagon's bundle has to be
+ * hidden and shown, and the crane's has to be carried about.
+ */
+export function logBundle(length: number): THREE.Group {
+  const bundle = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const geo = new THREE.CylinderGeometry(0.3, 0.32, length, 9);
+    geo.rotateX(Math.PI / 2);
+    const log = new THREE.Mesh(geo, mat(C.trunk));
+    log.position.set(-0.66 + (i % 3) * 0.66, Math.floor(i / 3) * 0.56, 0);
+    log.castShadow = true;
+    log.receiveShadow = true;
+    bundle.add(log);
+  }
+  return bundle;
+}
+
+/** The bundle an open wagon holds, so a crane can build a matching one. */
+export const WAGON_LOAD_LENGTH = 3.8;
+
+/** True if a crane has something to take out of, or put back into, this car. */
+export function loadable(car: CarMesh): boolean {
+  return car.load !== null;
+}
+
+/** Is there anything in it now? False for a car that never had a load. */
+export function loaded(car: CarMesh): boolean {
+  return car.load !== null && car.load.visible;
+}
+
+/** Put the load in or take it out. Nothing happens to a car without one. */
+export function setLoaded(car: CarMesh, on: boolean): void {
+  if (car.load) car.load.visible = on;
+}
+
 export function buildCar(spec: CarSpec): CarMesh {
   const group = new THREE.Group();
   const wheels: THREE.Object3D[] = [];
   const L = spec.length;
+  /** Set by whichever kind of car has something a crane can move. */
+  let load: THREE.Group | null = null;
 
   const body = mat(spec.colour);
   const trim = mat(spec.trim);
@@ -124,12 +183,12 @@ export function buildCar(spec: CarSpec): CarMesh {
       add(new THREE.BoxGeometry(2.3, 0.18, L - 0.7), body, 0, 1.12, 0);
       for (const side of [-1, 1]) add(new THREE.BoxGeometry(0.16, H, L - 0.7), body, side * 1.07, 1.12 + H / 2, 0);
       for (const end of [-1, 1]) add(new THREE.BoxGeometry(2.3, H, 0.16), trim, 0, 1.12 + H / 2, (end * (L - 0.7)) / 2);
-      // a load of logs, which is scenery rather than cargo
-      for (let i = 0; i < 5; i++) {
-        const log = new THREE.CylinderGeometry(0.3, 0.32, L - 1.4, 9);
-        log.rotateX(Math.PI / 2);
-        add(log, mat(C.trunk), -0.66 + (i % 3) * 0.66, 1.5 + Math.floor(i / 3) * 0.56, 0);
-      }
+      // The load. Kept out of the merge so it can be hidden and shown, and
+      // sat at the height the crane hands it over at.
+      load = logBundle(WAGON_LOAD_LENGTH);
+      load.position.set(0, 1.5, 0);
+      moving(load);
+      group.add(load);
       break;
     }
 
@@ -203,7 +262,7 @@ export function buildCar(spec: CarSpec): CarMesh {
 
   moving(...wheels);
   mergeStatic(group);
-  return { group, wheels, spec };
+  return { group, wheels, spec, load };
 }
 
 /** Turn a car's wheels. The angle is worked out from the distance travelled. */

@@ -138,7 +138,7 @@ describe('Train', () => {
     expect(full.train.speed).toBeGreaterThan(gentle.train.speed * 1.5);
   });
 
-  it('holding R backs it up gently, and letting go brings it to a stand', () => {
+  it('holding R backs it up at about first-notch speed, and letting go brings it to a stand', () => {
     const { train } = setup(9999);
     train.distance = 100;
     train.setReverse(true);
@@ -146,8 +146,12 @@ describe('Train', () => {
     expect(train.reversing).toBe(true);
     expect(train.direction).toBe(-1);
     expect(train.distance).toBeLessThan(100);
-    // A creep. Reverse is for easing up to a car, not for getting anywhere.
-    expect(train.speed).toBeLessThan(SPEC.slow * 0.6);
+    // Reverse is a going-back control, not a yard creep: the play log of
+    // 2026-10-06 has him backing 44 m to the sheds to change engines, which
+    // took 87 seconds at the old 0.42 fraction. It should now be about as
+    // quick as the gentlest press of green, and never quicker.
+    expect(train.speed).toBeGreaterThan(SPEC.slow * 0.85);
+    expect(train.speed).toBeLessThanOrEqual(SPEC.slow);
 
     const back = train.distance;
     train.setReverse(false);

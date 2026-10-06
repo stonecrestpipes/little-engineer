@@ -17,6 +17,13 @@ const GIVE_UP_MS = 1200;
 const STILL_SILENT_MS = 2200;
 /** Nothing holds the loading screen longer than this, whatever happens. */
 const LONGEST_MS = 8000;
+/**
+ * How long to let the speaker have, after the touch that unblocks it, before
+ * deciding the hello is never coming. The touch that triggers the retry is
+ * the same gesture that releases an utterance which was only ever waiting for
+ * one, so asking in the same task is a race — see `sayHello`.
+ */
+const RELEASED_MS = 350;
 
 /**
  * The voice, chosen once and kept.
@@ -102,13 +109,28 @@ export function sayHello(text: string): Promise<void> {
     /** Anything at all coming out of, or queued for, the speaker. */
     const talking = () => started || synth.speaking || synth.pending;
 
+    /**
+     * The voice the first attempt went out with, kept so that a retry can
+     * never come out in a different one. `getVoices()` is empty for the first
+     * moments after an app launch, so an early utterance gets the device
+     * default while anything later gets the chosen voice — which is what
+     * "it said it twice in two different voices" sounded like.
+     */
+    let usedVoice: SpeechSynthesisVoice | null | undefined;
+
     const utter = (): void => {
       if (said) return;
       said = true;
       const u = new SpeechSynthesisUtterance(text);
       u.rate = 0.92;
       u.pitch = 1.1;
-      inOurVoice(u);
+      if (usedVoice === undefined) {
+        inOurVoice(u);
+        usedVoice = u.voice;
+      } else if (usedVoice) {
+        u.voice = usedVoice;
+        u.lang = usedVoice.lang;
+      }
       u.onstart = () => {
         started = true;
       };
@@ -138,8 +160,16 @@ export function sayHello(text: string): Promise<void> {
       // speaking over the top of it is worse than not speaking at all.
       const onTouch = () => {
         if (talking()) return;
-        said = false;
-        utter();
+        // This touch is also the gesture that unblocks the speaker, so an
+        // utterance that was merely waiting for one is about to start. Give
+        // it that moment before deciding it never will: re-uttering in the
+        // same task as the gesture is a race, and losing it means both the
+        // first utterance and the retry are heard.
+        window.setTimeout(() => {
+          if (talking()) return;
+          said = false;
+          utter();
+        }, RELEASED_MS);
       };
       window.addEventListener('pointerdown', onTouch, { once: true });
       done();

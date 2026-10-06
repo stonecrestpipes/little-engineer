@@ -14,12 +14,14 @@ import { Audio } from './engine/audio';
 import { buildWorld, type Junction } from './content/world';
 import { animateRunningGear } from './content/buildEngine';
 import { buildRoster } from './content/roster';
-import { CAR_WHEEL_RADIUS, turnCarWheels } from './content/cars';
+import { CAR_WHEEL_RADIUS, loadable, loaded, setLoaded, turnCarWheels } from './content/cars';
 import { ENGINES } from './content/engines';
 import { mountControls } from './ui/controls';
 import { watchForUpdates } from './ui/updates';
 import { sayHello, say as speak } from './ui/greeting';
 import { greetingFor, PHRASES } from './content/greeting';
+import { mountCrane } from './ui/crane';
+import type { CraneJob } from './content/places/crane';
 import { setNameplate } from './content/buildEngine';
 import { settings, tunedDriving } from './settings';
 import { mountParentPanel } from './ui/parents';
@@ -320,6 +322,72 @@ async function boot(): Promise<void> {
       }
     },
   });
+  // --------------------------------------------------------------- the crane
+  //
+  // The first car that a crane can do anything with. He is free to put the
+  // open wagon anywhere in the rake, or to leave it off altogether: the hook
+  // comes down where the first car stands, so this is forgiving on purpose
+  // rather than insisting the wagon be coupled next to the engine.
+  const wagon = () => roster.cars.find(loadable) ?? null;
+
+  /**
+   * How far behind the stop that wagon's middle sits, so the crane can aim.
+   *
+   * Worked out from the rake rather than assumed, because the engine in front
+   * of it is anything from a six-metre tank engine to the tender engine at
+   * nearly twelve, which moves the first car by the better part of three.
+   */
+  const wagonBack = (): number | undefined => {
+    const i = roster.cars.findIndex(loadable);
+    if (i < 0) return undefined;
+    // vehicles[0] is the engine, so the nth car is the (n+1)th vehicle. The
+    // sign flips: offsets count backwards, the crane's `along` is negative.
+    return -consist.offsets(roster.vehicles())[i + 1];
+  };
+
+  /**
+   * What the crane here would do if he pressed it now, or null for no crane
+   * and nothing to press.
+   *
+   * `lift` is the answer for a train with no open wagon in it. The crane
+   * still works — that is the thing he asked for — it just has nowhere to put
+   * the bundle down, so it carries it over the train and back.
+   */
+  const craneJob = (): CraneJob | null => {
+    const here = world.craneAt(trainState);
+    if (!here || here.busy()) return null;
+    const car = wagon();
+    if (!car) return 'lift';
+    return loaded(car) ? 'unload' : 'load';
+  };
+
+  const craneButton = mountCrane({
+    touched: used,
+    work(job) {
+      const here = world.craneAt(trainState);
+      if (!here) return;
+      const car = wagon();
+      // The load changes hands at the bottom of the drop, not now: the crane
+      // calls these when the hook actually gets there.
+      const started = here.start(
+        job,
+        {
+          fromTrain() {
+            if (car) setLoaded(car, false);
+          },
+          toTrain() {
+            if (car) setLoaded(car, true);
+          },
+        },
+        wagonBack(),
+      );
+      if (!started) return;
+      trail.mark('crane', job);
+      // Gone for the length of the lift, so a second press cannot queue one.
+      craneButton.show(null);
+    },
+  });
+
   const wasBefore = new Map<string, boolean>();
   const watchPoints = (clock: number) => {
     const head = lines.wrap(train.distance);
@@ -365,9 +433,16 @@ async function boot(): Promise<void> {
     if (showing !== current) {
       current = showing;
       points.show(current ? current.id : null);
+      // The crane button lives in the same row, so it stands aside while a
+      // junction is being offered. Choosing which way to go is the more
+      // urgent of the two: the points are about to go past either way.
+      document.body.classList.toggle('points-up', current !== null);
     }
     if (current) points.mark(lines.line & current.bit ? 1 : 0);
   };
+
+  /** Offer the crane, or take the offer away. Cheap enough to ask every frame. */
+  const watchCrane = () => craneButton.show(craneJob());
 
   // Pushed updates land the next time he opens the app, never mid-journey —
   // and the grown-ups' panel can ask for one on purpose.
@@ -559,6 +634,7 @@ async function boot(): Promise<void> {
     train.update(dt);
     journal.drove(roster.engine.spec.id, train.speed * dt);
     watchPoints(t);
+    watchCrane();
     trainState.distance = train.distance;
     trainState.speed = train.speed;
     trainState.moving = train.moving;

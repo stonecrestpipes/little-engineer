@@ -3,7 +3,7 @@ import { ENGINES } from '../content/engines';
 import { journal } from '../journal';
 import { trail, glance, asText, type Mark } from '../trail';
 import type { UpdateCheck } from './updates';
-import { canInstall, install, onInstallChange } from './install';
+import { install, installState, onInstallChange } from './install';
 
 const PLACES: [string, string][] = [
   ['sheds', 'The Sheds'],
@@ -389,21 +389,47 @@ export function mountParentPanel(hooks: ParentHooks): void {
   });
 
   // --- putting it on the home screen ---------------------------------------
-  // Only here, and only while the browser is actually offering an install: it
-  // is a thing a grown-up does once per tablet, and the play screen is no
-  // place for a button that would reinstall the game if a thumb found it.
-  // src/ui/install.ts says why the page has to make the offer itself.
+  // The row is always here and always says where it stands, because the three
+  // reasons there is no button — this *is* the installed app, a copy is already
+  // on this device, the browser has not offered one — all look identical from
+  // the outside: an absence. Saying which it is costs a line and saves a hunt.
+  // src/ui/install.ts says why the page has to make the offer itself at all.
   const installApp = el('button', { type: 'button', className: 'p-plain', textContent: 'Install app' });
+  const installSaid = el('small', { className: 'p-said' });
   const installRow = row(
     'Install app',
     'Put it on the home screen, so it opens fullscreen and works offline',
     installApp,
   );
-  // What came of asking lives *outside* the row, because the row goes the
-  // moment the offer is spent — and a button that silently vanishes under the
-  // thumb looks like a button that did nothing.
-  const installSaid = el('small', { className: 'p-said', hidden: true });
-  const installBox = el('div', { className: 'p-install' }, installRow, installSaid);
+  installRow.classList.add('p-install');
+  installRow.append(installSaid);
+
+  /** Where it stands, in a sentence, whenever there is no button to press. */
+  const WHY: Record<ReturnType<typeof installState>, string> = {
+    running: 'Already installed — this is it running.',
+    offered: '',
+    installed: 'Already installed on this device. Open it from the home screen.',
+    // Deliberately hedged: an empty answer from the browser means either "not
+    // installed" or "will not say", and claiming the first would be a guess.
+    unoffered:
+      'The browser has not offered an install. Usually that means it is already ' +
+      'on this device; if it is not, close the game and open it again.',
+  };
+
+  /**
+   * The offer arrives whenever the browser feels like it, which may well be
+   * after this panel was built, and it is spent as soon as it is used — so both
+   * the button and the line hang on the live answer rather than on whatever was
+   * true at mount.
+   */
+  const syncInstall = () => {
+    const state = installState();
+    installApp.hidden = state !== 'offered';
+    installSaid.textContent = WHY[state];
+    installSaid.hidden = installSaid.textContent === '';
+  };
+  syncs.push(syncInstall);
+  onInstallChange(syncInstall);
 
   installApp.addEventListener('click', () => {
     // Nothing may be awaited before the prompt: the browser only allows it
@@ -412,33 +438,24 @@ export function mountParentPanel(hooks: ParentHooks): void {
     installApp.disabled = true;
     void asked.then((what) => {
       installApp.disabled = false;
+      // The standing wording first, so the button is right, then what just
+      // happened over the top of it — that is the more interesting of the two
+      // until the panel is next opened.
+      syncInstall();
       installSaid.textContent = {
         accepted: 'Installing — look for it on the home screen.',
         // Chrome will not offer again in this page load, and its own menu is
         // no help on this origin, so say what actually will work.
         dismissed: 'Not installed. Close the game and open it again to be asked afresh.',
-        // A refused prompt keeps the offer, so the row is about to come back
-        // and trying again is the right advice. With nothing left to offer it
-        // is not, and the row stays gone.
-        unavailable: canInstall()
-          ? 'The browser would not show it just then. Try again.'
-          : 'The browser would not show the prompt. Close the game and open it again.',
+        // A refused prompt keeps the offer, so the button is still there and
+        // trying again is the right advice.
+        unavailable: installApp.hidden
+          ? 'The browser would not show the prompt. Close the game and open it again.'
+          : 'The browser would not show it just then. Try again.',
       }[what];
-      syncInstall();
+      installSaid.hidden = false;
     });
   });
-
-  /**
-   * The offer arrives whenever the browser feels like it, which may well be
-   * after this panel was built, and it is spent as soon as it is used — so the
-   * row hangs on the live answer rather than on whatever was true at mount.
-   */
-  const syncInstall = () => {
-    installRow.hidden = !canInstall();
-    installSaid.hidden = installSaid.textContent === '';
-  };
-  syncs.push(syncInstall);
-  onInstallChange(syncInstall);
 
   const resetTrain = el('button', { type: 'button', className: 'p-plain', textContent: 'Put his train back to the start' });
   resetTrain.addEventListener('click', () => hooks.resetTrain());
@@ -473,7 +490,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Blue engine’s face', 'Original is drawn for this game and safe to share. Familiar is the photograph', face.node),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
     row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),
-    installBox,
+    installRow,
     row('Updates', 'The tablet keeps its own copy so the game works offline. This asks whether a newer one has been put out', updateBox),
   );
 

@@ -1,6 +1,6 @@
 {
   "name": "little-engineer",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "private": true,
   "description": "A calm, offline train game for a four-year-old.",
   "type": "module",

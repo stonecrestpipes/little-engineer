@@ -623,12 +623,26 @@ affordances, and this is meant to sit beside them rather than take their place.
 
 The button lives in the grown-ups' panel, next to the update check, rather than anywhere he can
 reach: it is a once-per-tablet thing for whoever owns the tablet, and a button on the play screen
-that reinstalls the game is exactly the kind of thing a four-year-old's thumb finds. It is on screen
-only while the browser is actually offering an install and the game is not already running installed,
-so inside the installed app it never appears at all. Spending the offer takes the row away and leaves
-a line in its place saying what happened — a button that silently vanishes under the thumb reads as a
-button that did nothing. A prompt the browser *refuses* to show does not count as spent: the offer
-goes back, the row returns, and the line says to try again.
+that reinstalls the game is exactly the kind of thing a four-year-old's thumb finds. The button is
+there only while the browser is actually offering an install. A prompt the browser *refuses* to show
+does not count as spent: the offer goes back and the line says to try again.
+
+**The row, though, is always there, and that is the second lesson.** The first cut hid it whenever
+there was nothing to offer, which meant the three quite different reasons for having no button —
+this *is* the installed app, a copy is already on this device, the browser has not offered one — were
+all presented identically, as an absence. An absence cannot be read, and it cost a round trip of
+"not see install app button" to find that out. It now says which of the three it is.
+
+Telling the second from the third needs `navigator.getInstalledRelatedApps()`, and the care there is
+that **only a positive answer means anything**: an empty list is either "not installed" or "this
+browser will not say", and nothing can tell them apart. So a find is recorded and an empty answer
+leaves the wording hedged — "usually that means it is already on this device" — rather than making a
+confident claim it cannot support. `appinstalled` is the one unambiguous sighting there is.
+
+Worth stating plainly because it reads as a bug otherwise: **on a device where this app is already
+installed, the button correctly never appears.** Chrome's offer is keyed to this app's `start_url`,
+which is installed, so no event fires. This app's own button is for a device that does not have it
+yet; what unblocks a tablet that already has it is the same button in each of the sibling apps.
 
 ⚠️ The cure that suggests itself — clearing Chrome's data for `stonecrestpipes.github.io` — is not a
 cure. That origin is shared by every app on it, and clearing it takes all of their storage with it.

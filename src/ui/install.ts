@@ -50,12 +50,78 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 window.addEventListener('appinstalled', () => {
   offered = null;
+  // The one unambiguous sighting there is: it happened here, just now.
+  knownInstalled = true;
   changed();
 });
 
 /** True when this copy is the installed app rather than a browser tab. */
 export function runningInstalled(): boolean {
   return window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+}
+
+/**
+ * Positive evidence that a copy is already on this device. Only ever set, never
+ * cleared — see `lookForInstalledCopy` for why the absence proves nothing.
+ */
+let knownInstalled = false;
+
+interface RelatedApp {
+  platform: string;
+  id?: string;
+  url?: string;
+}
+
+/**
+ * Ask the browser whether this app is already installed here.
+ *
+ * This is what tells "already on this tablet" apart from "the browser has not
+ * got round to offering yet" — two states that are otherwise both just an
+ * absence, and the reason the button's absence used to be unreadable.
+ *
+ * **A positive answer is worth something; an empty one is worth nothing.** An
+ * empty list means either "not installed" or "this browser will not say" —
+ * `getInstalledRelatedApps` is Chromium-only, needs a secure context and is
+ * limited to pages inside the manifest's scope — and nothing here can tell the
+ * two apart. So a find is recorded and an empty answer changes nothing, which
+ * leaves the wording hedged rather than confidently wrong.
+ */
+async function lookForInstalledCopy(): Promise<void> {
+  const nav = navigator as Navigator & {
+    getInstalledRelatedApps?: () => Promise<RelatedApp[]>;
+  };
+  if (typeof nav.getInstalledRelatedApps !== 'function') return;
+  try {
+    const apps = await nav.getInstalledRelatedApps();
+    if (knownInstalled || !apps.some((a) => a.platform === 'webapp')) return;
+    knownInstalled = true;
+    changed();
+  } catch {
+    /* refused here; the wording stays hedged, which is the honest answer */
+  }
+}
+void lookForInstalledCopy();
+
+/** Why there is, or is not, an install to offer. */
+export type InstallState =
+  /** This *is* the installed app. Nothing to do. */
+  | 'running'
+  /** The browser has an install to offer, and a tap will raise it. */
+  | 'offered'
+  /** A browser tab, and a copy is known to be installed on this device. */
+  | 'installed'
+  /** Nothing offered, and no way to tell whether that is because it is here. */
+  | 'unoffered';
+
+/**
+ * Which of the four it is, asked fresh each time: the offer arrives when the
+ * browser feels like it and is spent the moment it is used.
+ */
+export function installState(): InstallState {
+  if (runningInstalled()) return 'running';
+  if (offered !== null) return 'offered';
+  if (knownInstalled) return 'installed';
+  return 'unoffered';
 }
 
 /**
@@ -66,7 +132,7 @@ export function runningInstalled(): boolean {
  * be holding one.
  */
 export function canInstall(): boolean {
-  return offered !== null && !runningInstalled();
+  return installState() === 'offered';
 }
 
 /**

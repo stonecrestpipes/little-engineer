@@ -19,10 +19,22 @@ most of them.** It is a much larger game than the one he last saw. Nothing
 below has been in front of him yet — that is the whole of what the next go is
 for, and v0.4.1 is there to make sure that go is actually recorded.
 
-### v0.4.2 — a way to install it that Chrome cannot refuse
+### v0.4.3 — a way to install it that Chrome cannot refuse, and a row that says why
 
-Nothing he sees changed. The grown-ups' panel gained an **Install app** button, which is on screen
-only while the browser is actually offering an install and the game is not already running installed.
+Nothing he sees changed. The grown-ups' panel gained an **Install app** row, between *Picture* and
+*Updates*. The button itself is there only while the browser is actually offering an install; the
+rest of the time the row says which of the three reasons it is not:
+
+| | |
+|---|---|
+| Running as the installed app | "Already installed — this is it running." |
+| A tab, and a copy is known to be installed here | "Already installed on this device." |
+| Nothing offered, and no way to tell why | "The browser has not offered an install…" |
+
+That last one stays hedged on purpose. `navigator.getInstalledRelatedApps()` is the only way to ask,
+and an empty answer from it means either "not installed" or "this browser will not say" — so a find
+is believed and an empty answer changes nothing. (v0.4.2 hid the row entirely when there was no
+offer, which made all three look identical: an absence.)
 
 It is there because Chrome for Android's own *Install and create shortcut* is broken for this site,
 and not in a way waiting will fix: it decides whether there is anything to install by **origin**
@@ -290,7 +302,7 @@ the same play told as a story rather than as totals. Below those: his name for
 the hello,
 speed, how much help he gets stopping, volume, evenings, the branch line,
 the blue engine's face, nameplates for each engine, picture quality, **an
-install button** (only when there is an install to offer), **an update check**,
+install row** (which always says where the install stands), **an update check**,
 and resets. Changes take effect immediately. The build time at
 the bottom tells you which build the tablet is running.
 
@@ -387,8 +399,14 @@ every app on `stonecrestpipes.github.io` shares one origin. So once any of them
 is installed the menu refuses the rest — "This app is already installed", then
 "Could not open app". The in-app button raises the page's own prompt, which
 checks this app's `start_url` instead (`WebappsUtils::IsWebApkInstalled`) and
-offers a real install. It only appears while the browser has an offer to make,
-so if it is not there, close the game and open it again.
+offers a real install.
+
+**If there is no button, the row says why** — read it before assuming anything
+is broken. On a device where this app is *already* installed there will never
+be one: Chrome fires no offer, because this app's own `start_url` is installed.
+That is the feature working. Little Engineer's button matters on a device that
+does not have it yet; the buttons that matter for a tablet which already has it
+are the ones in the sibling apps.
 
 ⚠️ **Do not clear Chrome's site data for `stonecrestpipes.github.io` to fix
 this.** It will not fix it, and that origin is shared by every app on it —

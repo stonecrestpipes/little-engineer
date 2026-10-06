@@ -1,3 +1,9 @@
+// Before anything else, including three.js: the browser may fire
+// `beforeinstallprompt` as soon as the page starts and will not replay it for
+// a listener that turned up late. src/ui/install.ts says why the page has to
+// offer the install itself rather than leaving it to Chrome's menu.
+import './ui/install';
+
 import * as THREE from 'three';
 import './ui/style.css';
 

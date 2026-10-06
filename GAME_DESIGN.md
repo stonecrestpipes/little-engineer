@@ -603,6 +603,36 @@ anything needing to be unpicked.
 
 ## Build log
 
+### Installing it when Chrome says it is already installed
+
+Every app on this account is served from `stonecrestpipes.github.io`, and Chrome for Android decides
+whether *Install and create shortcut* has anything to do by **origin**, not by app:
+`WebappRegistry.isAppInstalledForUrl` asks `hasAtLeastOneWebApkForOrigin`. So the moment any one of
+them is installed, that menu item refuses all the others — "This app is already installed", then
+"Could not open app" when you take it at its word. Verified in the Chromium source, 6 October 2026.
+
+The page's own install prompt does not go through that check. `beforeinstallprompt` and `prompt()`
+test the app's `start_url` instead (`WebappsUtils::IsWebApkInstalled`), which is this game's and
+nothing else's, so a prompt raised from inside the page still offers a real install. That is the
+whole of `src/ui/install.ts`: keep the event the browser hands over, and spend it on a tap.
+
+It is imported at the top of `main.ts`, above three.js, because the browser fires the event once at a
+moment of its own choosing and does not replay it for a listener that turned up late. It deliberately
+does **not** call `preventDefault()` — suppressing the event is what hides the browser's own install
+affordances, and this is meant to sit beside them rather than take their place.
+
+The button lives in the grown-ups' panel, next to the update check, rather than anywhere he can
+reach: it is a once-per-tablet thing for whoever owns the tablet, and a button on the play screen
+that reinstalls the game is exactly the kind of thing a four-year-old's thumb finds. It is on screen
+only while the browser is actually offering an install and the game is not already running installed,
+so inside the installed app it never appears at all. Spending the offer takes the row away and leaves
+a line in its place saying what happened — a button that silently vanishes under the thumb reads as a
+button that did nothing. A prompt the browser *refuses* to show does not count as spent: the offer
+goes back, the row returns, and the line says to try again.
+
+⚠️ The cure that suggests itself — clearing Chrome's data for `stonecrestpipes.github.io` — is not a
+cure. That origin is shared by every app on it, and clearing it takes all of their storage with it.
+
 ### A play log, because the totals could not answer the questions
 
 The scrapbook counts. Counting was enough to know he whistles and roughly where he stops, and it is

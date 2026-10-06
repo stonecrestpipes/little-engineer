@@ -3,6 +3,7 @@ import { ENGINES } from '../content/engines';
 import { journal } from '../journal';
 import { trail, glance, asText, type Mark } from '../trail';
 import type { UpdateCheck } from './updates';
+import { canInstall, install, onInstallChange } from './install';
 
 const PLACES: [string, string][] = [
   ['sheds', 'The Sheds'],
@@ -387,6 +388,58 @@ export function mountParentPanel(hooks: ParentHooks): void {
     });
   });
 
+  // --- putting it on the home screen ---------------------------------------
+  // Only here, and only while the browser is actually offering an install: it
+  // is a thing a grown-up does once per tablet, and the play screen is no
+  // place for a button that would reinstall the game if a thumb found it.
+  // src/ui/install.ts says why the page has to make the offer itself.
+  const installApp = el('button', { type: 'button', className: 'p-plain', textContent: 'Install app' });
+  const installRow = row(
+    'Install app',
+    'Put it on the home screen, so it opens fullscreen and works offline',
+    installApp,
+  );
+  // What came of asking lives *outside* the row, because the row goes the
+  // moment the offer is spent — and a button that silently vanishes under the
+  // thumb looks like a button that did nothing.
+  const installSaid = el('small', { className: 'p-said', hidden: true });
+  const installBox = el('div', { className: 'p-install' }, installRow, installSaid);
+
+  installApp.addEventListener('click', () => {
+    // Nothing may be awaited before the prompt: the browser only allows it
+    // while the tap is still being handled.
+    const asked = install();
+    installApp.disabled = true;
+    void asked.then((what) => {
+      installApp.disabled = false;
+      installSaid.textContent = {
+        accepted: 'Installing — look for it on the home screen.',
+        // Chrome will not offer again in this page load, and its own menu is
+        // no help on this origin, so say what actually will work.
+        dismissed: 'Not installed. Close the game and open it again to be asked afresh.',
+        // A refused prompt keeps the offer, so the row is about to come back
+        // and trying again is the right advice. With nothing left to offer it
+        // is not, and the row stays gone.
+        unavailable: canInstall()
+          ? 'The browser would not show it just then. Try again.'
+          : 'The browser would not show the prompt. Close the game and open it again.',
+      }[what];
+      syncInstall();
+    });
+  });
+
+  /**
+   * The offer arrives whenever the browser feels like it, which may well be
+   * after this panel was built, and it is spent as soon as it is used — so the
+   * row hangs on the live answer rather than on whatever was true at mount.
+   */
+  const syncInstall = () => {
+    installRow.hidden = !canInstall();
+    installSaid.hidden = installSaid.textContent === '';
+  };
+  syncs.push(syncInstall);
+  onInstallChange(syncInstall);
+
   const resetTrain = el('button', { type: 'button', className: 'p-plain', textContent: 'Put his train back to the start' });
   resetTrain.addEventListener('click', () => hooks.resetTrain());
   const resetAll = el('button', { type: 'button', className: 'p-plain', textContent: 'Reset these settings' });
@@ -420,6 +473,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     row('Blue engine’s face', 'Original is drawn for this game and safe to share. Familiar is the photograph', face.node),
     row('Nameplates', 'Painted on the side tanks. Blank for none', plates),
     row('Picture', 'Auto turns shadows down if the tablet struggles', picture.node),
+    installBox,
     row('Updates', 'The tablet keeps its own copy so the game works offline. This asks whether a newer one has been put out', updateBox),
   );
 

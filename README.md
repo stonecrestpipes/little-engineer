@@ -19,6 +19,18 @@ most of them.** It is a much larger game than the one he last saw. Nothing
 below has been in front of him yet — that is the whole of what the next go is
 for, and v0.4.1 is there to make sure that go is actually recorded.
 
+### v0.4.2 — a way to install it that Chrome cannot refuse
+
+Nothing he sees changed. The grown-ups' panel gained an **Install app** button, which is on screen
+only while the browser is actually offering an install and the game is not already running installed.
+
+It is there because Chrome for Android's own *Install and create shortcut* is broken for this site,
+and not in a way waiting will fix: it decides whether there is anything to install by **origin**
+rather than by app, so once any app on `stonecrestpipes.github.io` is installed — Shakedown, The
+Arcana, The Guild, Steel Squall — the menu refuses every other one with "This app is already
+installed", and then "Could not open app". The page's own prompt checks this app's `start_url`
+instead, so it still offers a real install. See *Putting it on the Pixel Tablet* below.
+
 ### v0.4.1 — an instrument, not a feature
 
 Nothing he sees changed. The grown-ups' panel gained a **play log**: every
@@ -278,7 +290,8 @@ the same play told as a story rather than as totals. Below those: his name for
 the hello,
 speed, how much help he gets stopping, volume, evenings, the branch line,
 the blue engine's face, nameplates for each engine, picture quality, **an
-update check**, and resets. Changes take effect immediately. The build time at
+install button** (only when there is an install to offer), **an update check**,
+and resets. Changes take effect immediately. The build time at
 the bottom tells you which build the tablet is running.
 
 ## The play log
@@ -364,8 +377,22 @@ will not register over plain HTTP (except on `localhost`). So:
 
 1. Deploy `dist/` to any static host.
 2. Open the URL on the tablet in Chrome.
-3. Menu → *Add to home screen*.
+3. Hold the **top-right corner for three seconds** and press **Install app**.
 4. After that it runs fullscreen and works in flight mode.
+
+**Use that button, not Chrome's menu.** Chrome for Android decides whether
+*Install and create shortcut* has anything to do by **origin**, not by app
+(`WebappRegistry.isAppInstalledForUrl` → `hasAtLeastOneWebApkForOrigin`), and
+every app on `stonecrestpipes.github.io` shares one origin. So once any of them
+is installed the menu refuses the rest — "This app is already installed", then
+"Could not open app". The in-app button raises the page's own prompt, which
+checks this app's `start_url` instead (`WebappsUtils::IsWebApkInstalled`) and
+offers a real install. It only appears while the browser has an offer to make,
+so if it is not there, close the game and open it again.
+
+⚠️ **Do not clear Chrome's site data for `stonecrestpipes.github.io` to fix
+this.** It will not fix it, and that origin is shared by every app on it —
+clearing it takes all of their storage with it.
 
 Deploying into a subfolder (a GitHub Pages project site, say) needs the base
 path set, or every asset 404s:
@@ -445,7 +472,10 @@ Tightening it later, best option first:
 
 ⚠️ Do not rename the repo or flip it private without planning for it: the
 installed app's `start_url` points at the current URL, and changing it means
-reinstalling on the tablet.
+reinstalling on the tablet. The manifest's `start_url` and `scope` (and so its
+implied `id`) are the app's identity to the browser — they are what tells the
+install prompt this app apart from its siblings on the same origin, and what
+tells the installed copy on the tablet it is still the same app.
 
 ## How it is put together
 

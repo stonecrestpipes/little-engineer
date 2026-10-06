@@ -522,9 +522,27 @@ export function mountParentPanel(hooks: ParentHooks): void {
     panel.hidden = true;
     trail.mark('closed');
   };
-  done.addEventListener('click', close);
+
+  /**
+   * When the panel last opened, so that the gesture which opened it cannot also
+   * close it.
+   *
+   * The panel appears *underneath a finger that is still on the glass*, and
+   * whatever is at that point — the backdrop, or Done, which sits in the same
+   * top-right corner the way in is — gets the tail of that gesture and shuts it
+   * again. It opened and closed in a blink. Nobody can deliberately press Done
+   * within a third of a second of it existing, so anything that quick is the
+   * gesture that opened it, not a decision to leave.
+   */
+  let openedAt = 0;
+  const SETTLE_MS = 350;
+  const settled = () => performance.now() - openedAt > SETTLE_MS;
+
+  done.addEventListener('click', () => {
+    if (settled()) close();
+  });
   panel.addEventListener('click', (e) => {
-    if (e.target === panel) close();
+    if (e.target === panel && settled()) close();
   });
 
   const open = () => {
@@ -540,6 +558,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
     hooks.opened();
     panel.hidden = false;
     body.scrollTop = 0;
+    openedAt = performance.now();
   };
 
   // --- the version stamp, as the way in -------------------------------------
@@ -555,7 +574,7 @@ export function mountParentPanel(hooks: ParentHooks): void {
   const DOUBLE_TAP_MS = 450;
   const stamp = document.getElementById('version');
   let lastTap = 0;
-  stamp?.addEventListener('pointerup', (e) => {
+  stamp?.addEventListener('click', (e) => {
     if (!panel.hidden) return;
     e.stopPropagation();
     const t = performance.now();

@@ -492,6 +492,19 @@ particular. Two taps rather than one because a single tap is well inside what he
 all day — the trail is full of taps on things that answer nothing — and behind this panel are every
 setting and the only copy of his play log.
 
+The trap, found the moment it reached a phone: **the panel opens under a finger that is still on the
+glass, and the tail of that same gesture shuts it again.** Two taps opened it and it vanished in a
+blink. The tap lands at the top-right of the screen, which on a phone-sized window is exactly where
+*Done* appears — the two overlap outright — so the `click` that follows the opening `pointerup`
+pressed it. Two fixes, both wanted: the taps are counted on `click` rather than `pointerup`, so by
+the time the panel opens the browser has already decided that click belonged to the stamp; and the
+incidental ways out (Done, and tapping the backdrop) ignore anything arriving within 350 ms of
+opening, since nobody presses Done a third of a second after it comes into existence.
+
+Worth remembering as a testing lesson too: synthetic `pointerup` events do not generate the `click`
+that follows a real tap, so the bug was invisible to the check that was supposed to catch it. Gestures
+have to be exercised as gestures.
+
 The original also still works: hold the **top-right corner for three seconds**. A faint ring starts filling after the
 first second so a grown-up knows it is working. The panel has his name for the hello, hello on/off,
 speed (slower, normal, faster for every engine), help stopping (how far out pulling down still

@@ -17,7 +17,25 @@ drove, with nothing said to him.
 **He has played the big railway, asked for twenty-odd things, and v0.4.0 is
 most of them.** It is a much larger game than the one he last saw. Nothing
 below has been in front of him yet — that is the whole of what the next go is
-for, and v0.4.1 is there to make sure that go is actually recorded.
+for, and v0.4.1 is there to make sure that go is actually recorded. Everything since has been for
+whoever holds the tablet, not for him: installing it, and getting into the panel.
+
+### v0.4.5–0.4.6 — two taps on the build stamp opens the panel
+
+Nothing he sees changed. Getting into the grown-ups' panel no longer means holding a corner for three
+seconds with nothing to aim at: **two quick taps on the build stamp** in the top-right opens it. The
+stamp was already sitting there saying which build this is, so it costs no new furniture. The
+three-second corner hold still works.
+
+Two taps rather than one is deliberate — a single tap is well inside what he does to the screen all
+day, and behind the panel are every setting and the only copy of his play log.
+
+v0.4.6 fixed the bug v0.4.5 shipped with: the panel opens under a finger still on the glass, and on a
+phone-sized window *Done* sits exactly where the stamp is, so the `click` following the opening tap
+pressed it and the panel shut in a blink. Taps are counted on `click` now, and both incidental ways
+out ignore anything arriving within 350 ms of opening. The testing lesson is in GAME_DESIGN.md:
+synthetic `pointerup` events never produce the `click` a real tap does, so the check that was meant
+to catch this could not have.
 
 ### v0.4.4 — a way to install it that Chrome cannot refuse, and a row that says what it saw
 

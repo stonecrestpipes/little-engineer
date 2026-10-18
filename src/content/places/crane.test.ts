@@ -30,10 +30,12 @@ function circle() {
 function setup() {
   const track = circle();
   const at = 100;
+  /** Every clunk it makes, so the handovers can be heard as well as counted. */
+  let clanks = 0;
   const ctx = {
     track,
     at,
-    audio: {} as PlaceContext['audio'],
+    audio: { clank: () => void clanks++ } as unknown as PlaceContext['audio'],
     groundAt: () => 0,
     roster: {} as PlaceContext['roster'],
   } as PlaceContext;
@@ -53,7 +55,7 @@ function setup() {
       full = true;
     },
   };
-  return { crane, hands, moves, wagon: () => full };
+  return { crane, hands, moves, wagon: () => full, clanks: () => clanks };
 }
 
 /** Run it to a stand, or give up — a cycle that never ends is the bug. */
@@ -150,6 +152,39 @@ describe('the crane', () => {
       // Long enough to be worth watching, short enough to press again.
       expect(frames / 60).toBeGreaterThan(4);
       expect(frames / 60).toBeLessThan(12);
+    }
+  });
+
+  it('clunks once each time the bundle changes hands', () => {
+    // Twice a cycle, whichever cycle it is: picked up, and put down. The
+    // sound is how he knows it landed from the far shot, where the crane is
+    // too small to read.
+    for (const job of ['load', 'unload', 'lift'] as CraneJob[]) {
+      const { crane, hands, clanks } = setup();
+      // An unload needs something in the wagon first, which is a cycle of its
+      // own; count from after it.
+      if (job === 'unload') {
+        crane.start('load', hands);
+        finish(crane);
+      }
+      const before = clanks();
+      crane.start(job, hands);
+      finish(crane);
+      expect(clanks() - before).toBe(2);
+    }
+  });
+
+  it('settles without a volley of clunks', () => {
+    // `settle` fires whatever is left of the cycle at once, so sounding each
+    // one would be a noise rather than a sound. At most the one that had
+    // already played before he interrupted it.
+    for (let cut = 0; cut < 60 * 8; cut += 7) {
+      const { crane, hands, clanks } = setup();
+      crane.start('load', hands);
+      for (let i = 0; i < cut && crane.busy(); i++) crane.update(1 / 60);
+      const before = clanks();
+      crane.settle();
+      expect(clanks()).toBe(before);
     }
   });
 

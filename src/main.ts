@@ -21,7 +21,7 @@ import { watchForUpdates } from './ui/updates';
 import { sayHello, say as speak } from './ui/greeting';
 import { greetingFor, PHRASES } from './content/greeting';
 import { mountCrane } from './ui/crane';
-import type { CraneJob } from './content/places/crane';
+import type { Crane, CraneJob } from './content/places/crane';
 import { setNameplate } from './content/buildEngine';
 import { settings, tunedDriving } from './settings';
 import { mountParentPanel } from './ui/parents';
@@ -242,7 +242,13 @@ async function boot(): Promise<void> {
     throttle: (v) => {
       // Asking to drive always wins: whatever the yard is in the middle of,
       // it puts everything where it was going and gets out of the way.
-      world.settle();
+      //
+      // Red is not asking to drive, though, and a lift is the one thing on
+      // the railway that takes its own time — so red at a stand leaves a
+      // crane alone rather than snapping it to the end of its cycle. Green
+      // still settles everything, and must: if the hold on green ever fails,
+      // the train must not pull out with a bundle in mid-air.
+      if (v > 0 || world.craning() === null) world.settle();
       train.setThrottle(v);
       // Setting off from the shot of the whole railway, where the train is a
       // speck: come down to it, so pressing green is visibly a thing he did
@@ -269,6 +275,10 @@ async function boot(): Promise<void> {
     camera: () => {
       trail.mark('camera', rig.cycle());
       hisView = true;
+      // Asking for a view during a lift is asking for that view: the crane
+      // gets the screen because he pressed its button, and it gives it back
+      // the moment he says he would rather look at something else.
+      if (lift) lift.watching = false;
     },
   });
 
@@ -361,6 +371,16 @@ async function boot(): Promise<void> {
     return loaded(car) ? 'unload' : 'load';
   };
 
+  /**
+   * The lift that is running, if one is.
+   *
+   * `job` keeps the button on screen saying which way the logs are going;
+   * `watching` is whether the view is still turned to it, which it is until
+   * he says otherwise with the camera button. Cleared by `watchCrane` when
+   * the crane comes to rest.
+   */
+  let lift: { crane: Crane; job: CraneJob; watching: boolean } | null = null;
+
   const craneButton = mountCrane({
     touched: used,
     work(job) {
@@ -383,8 +403,11 @@ async function boot(): Promise<void> {
       );
       if (!started) return;
       trail.mark('crane', job);
-      // Gone for the length of the lift, so a second press cannot queue one.
-      craneButton.show(null);
+      // Pressed, and now visibly working: the button stays where it is,
+      // inert, for the length of the lift. The driving buttons go quiet with
+      // it — see *the lift holds the buttons* in src/ui/controls.ts.
+      lift = { crane: here, job, watching: true };
+      craneButton.working(job);
     },
   });
 
@@ -441,8 +464,22 @@ async function boot(): Promise<void> {
     if (current) points.mark(lines.line & current.bit ? 1 : 0);
   };
 
-  /** Offer the crane, or take the offer away. Cheap enough to ask every frame. */
-  const watchCrane = () => craneButton.show(craneJob());
+  /**
+   * Offer the crane, or hold the offer while it works, or take it away.
+   * Cheap enough to ask every frame.
+   */
+  const watchCrane = () => {
+    if (lift !== null) {
+      // `craneAt` goes null the moment a crane is busy, so without this the
+      // button would vanish for the length of the very job he pressed it for.
+      if (world.craning()) {
+        craneButton.working(lift.job);
+        return;
+      }
+      lift = null;
+    }
+    craneButton.show(craneJob());
+  };
 
   // Pushed updates land the next time he opens the app, never mid-journey —
   // and the grown-ups' panel can ask for one on purpose.
@@ -686,9 +723,17 @@ async function boot(): Promise<void> {
     const home = inTheYard();
     if (!home) hisView = false;
     rig.showYard(home && !hisView);
+    // A lift running, and not yet waved off: watch the crane work. It is the
+    // only thing in the game that takes the view out of a shot of the train,
+    // and it is eight seconds long.
+    rig.showCrane(lift?.watching ? lift.crane.shot : null);
     rig.update(dt, train.distance, pos, fwd, train.moving, consist.length(roster.vehicles()));
     world.update(dt, t, trainState);
-    controls.reflect({ moving: train.moving, atStop: train.atStop !== null });
+    controls.reflect({
+      moving: train.moving,
+      atStop: train.atStop !== null,
+      held: world.craning() !== null,
+    });
 
     renderer.render(scene, camera);
   });

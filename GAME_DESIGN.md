@@ -665,6 +665,60 @@ carries it over the track and brings it back. It exists so that standing at a cr
 something to press — the install row taught us that an absence he cannot read is worse than a plain
 answer, and a dead button at the crane he had been asking for would have been worse again.
 
+### The lift nobody could see
+
+Asked for on 17 October, in his own words: come up to one of the two places where things get loaded
+on and off, press a button, **watch it get loaded**, and then have green come back. Three of those
+four shipped in v0.5.0, and the fourth — the watching — turned out to be missing in a way no test
+could have caught, because nothing was wrong with the crane.
+
+**The lift was happening off screen.** Every shot in the game is framed on the train: `wide` looks
+at the whole railway, and `above`, `follow` and `trackside` are all aimed at the engine or up the
+middle of the track. The crane stands nine to fourteen metres off to one side by construction — the
+reach *is* the stand-off distance — so at the harbour the mast sat in the top corner of the frame
+and the entire swing happened outside it. He pressed the button, nothing visible happened for five
+seconds, and then logs appeared in his wagon.
+
+So each crane now carries its own shot of itself, worked out from the three numbers it is already
+built from: twenty-four metres back along the line, six metres round toward the crane, and a height
+and an aim scaled off the jib so that a thirteen-metre harbour jib and an eight-and-a-half-metre
+city one both sit inside the frame with the wagon. A shot written as world coordinates would have
+been a fourth place to remember when a crane moves; this one moves with it.
+
+The rig takes it the way it takes the yard — see `showCrane` in `src/engine/cameras.ts` — with one
+difference: it overrides whichever view he is in, including `wide`. The yard is somewhere he *is*,
+and waits to be asked; a lift is the direct answer to a button he has just pressed one second ago,
+which is the same reasoning that brings `toTrain` down to the train when he presses green. **The
+camera button hands it straight back**, and the lift carries on without it.
+
+**And green goes quiet for the eight seconds, which is the one thing in this game that asks him to
+wait.** It is worth being honest about the cost: a button that does nothing is what everything else
+here is built to avoid. Three things make it worth paying.
+
+1. *He asked for it in these words.* Being allowed to go again is half of what he described, and a
+   thing can only be given back if it was taken away.
+2. *The alternative was worse rather than safer.* Green used to call `settle()`: the crane snapped
+   to the end of its cycle and the train pulled out. The press always worked — and the price was
+   that the one piece of machinery he had asked for most could be cut off in mid-air by the button
+   nearest his thumb, which is exactly what a four-year-old does to a thing he is waiting on. R is
+   held for the same reason: it would pull the wagon out from under the hook.
+3. *Red is never taken away.* The button that means stop always answers, so there is no moment when
+   the whole panel has gone quiet. Red at a stand no longer settles a lift either — only an actual
+   ask to drive does, and that path is kept precisely so that if the hold ever fails the train
+   cannot leave with a bundle hanging in the air.
+
+Two smaller things went with it. **The button he pressed stays on screen** — sunk onto its shadow
+and breathing, rather than vanishing for the length of the job, because a button that disappears and
+a button that was never there look identical and only one of them means his press worked. That is
+the install row's lesson applied a second time. And **the bundle clunks as it changes hands**, twice
+a cycle, with the same `clank()` the turntable and the shed doors use; `settle` fires its leftover
+handovers silently, because four clunks in one frame is a noise rather than a sound.
+
+**Eight seconds is the number to watch, and it is measured rather than argued about.** Every press
+he makes while a lift has the buttons — green, R, or the crane button again — goes into the trail as
+`held`. A handful of those is curiosity. A stream of them means waiting is beyond him, and the
+answer then is a shorter cycle in `crane.ts`, not a green button that can cut the hook loose.
+
 ### The hello said twice, in two voices
 
 Reported 6 October: *"the Hello Orion plays twice and there are two different voices."* Two voices

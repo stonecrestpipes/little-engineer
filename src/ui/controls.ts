@@ -14,7 +14,7 @@ export interface ControlHandlers {
 }
 
 export interface Controls {
-  reflect(state: { moving: boolean; atStop: boolean }): void;
+  reflect(state: { moving: boolean; atStop: boolean; held: boolean }): void;
   show(): void;
   /** Let go of everything — the grown-ups' panel is opening. */
   letGo(): void;
@@ -46,6 +46,34 @@ const NOTCHES = [0.22, 0.55, 1];
  *
  * Green also counts up: each press is the next speed, and the chevrons on it
  * light to say which one he is on.
+ *
+ * ### The lift holds the buttons
+ *
+ * There is exactly one moment in the game when green does not go: while a
+ * crane is in the middle of a lift. He presses the crane, the hook comes down
+ * into his wagon, and for those eight seconds green and R are dim and inert —
+ * then the bundle lands and green comes back, halo and all.
+ *
+ * It is a real cost and worth being honest about: a button that does nothing
+ * is the thing this game avoids everywhere else. Three things make it worth
+ * paying here.
+ *
+ * 1. **He asked for it in these words.** The thing he wanted to see was the
+ *    crane working and then being allowed to go — the going-again is half of
+ *    what he described.
+ * 2. **The alternative was worse, not safer.** Green used to settle the lift:
+ *    the crane snapped to the end of its cycle and the train pulled out. So
+ *    the press always worked, and the price was that the one bit of machinery
+ *    he had asked for most could be cut off mid-air by the button nearest his
+ *    thumb — which is exactly what a four-year-old does to a thing he is
+ *    waiting on.
+ * 3. **Red still answers.** The button that means *stop* is never taken away
+ *    from him, so there is no moment where the whole panel has gone quiet.
+ *
+ * Eight seconds is the number to watch. Every press he makes while it is held
+ * goes into the trail as `held`, so the next play log says outright whether
+ * waiting is something he can do. If it is not, the answer is a shorter
+ * cycle in `crane.ts`, not a green button that can cut the hook loose.
  */
 export function mountControls(h: ControlHandlers): Controls {
   const ui = document.getElementById('ui') as HTMLDivElement;
@@ -160,15 +188,30 @@ export function mountControls(h: ControlHandlers): Controls {
   // ----------------------------------------------------------- green and red
   /** 0 not driving, then one notch per press of green. */
   let notch = 0;
+  /** True while a crane has the driving buttons. See the note above. */
+  let held = false;
 
   function paint(): void {
     go.dataset.notch = String(notch);
     go.classList.toggle('on', notch > 0);
     stop.classList.toggle('on', notch === 0);
     go.setAttribute('aria-pressed', notch > 0 ? 'true' : 'false');
+    // Dim and flat while the crane has them, and not `disabled`: a disabled
+    // button stops reporting presses, and the presses he makes while waiting
+    // are the whole measure of whether the wait is bearable.
+    for (const el of [go, back]) {
+      el.classList.toggle('held', held);
+      el.setAttribute('aria-disabled', held ? 'true' : 'false');
+    }
   }
 
   wire(go, () => {
+    // The crane is in the middle of a lift. Green comes back when the bundle
+    // lands; until then the press is recorded and nothing else happens.
+    if (held) {
+      trail.mark('held', 'green');
+      return;
+    }
     if (notch < NOTCHES.length) notch++;
     h.throttle(NOTCHES[notch - 1]);
     // Which notch he pressed it to, not merely that he pressed it: a fourth
@@ -188,6 +231,13 @@ export function mountControls(h: ControlHandlers): Controls {
   // question about it — a stab at it and a long shunt are different things.
   let heldFrom = 0;
   const reverse = hold(back, (down) => {
+    // R would pull the wagon out from under the hook, so it waits too. The
+    // press still shows on the button, because a control that looks dead to
+    // the touch as well as to the eye is a control he stops trying.
+    if (held) {
+      if (down) trail.mark('held', 'reverse');
+      return;
+    }
     if (down) {
       heldFrom = performance.now();
       trail.mark('reverse');
@@ -202,7 +252,7 @@ export function mountControls(h: ControlHandlers): Controls {
     if (e.repeat || e.target !== document.body) return;
     if (e.key === 'ArrowUp') go.click();
     else if (e.key === 'ArrowDown') stop.click();
-    else if (e.key === 'r' || e.key === 'R') {
+    else if ((e.key === 'r' || e.key === 'R') && !held) {
       h.touched();
       back.classList.add('press');
       heldFrom = performance.now();
@@ -221,10 +271,19 @@ export function mountControls(h: ControlHandlers): Controls {
   paint();
 
   return {
-    reflect({ moving, atStop }) {
+    reflect({ moving, atStop, held: busy }) {
+      if (busy !== held) {
+        held = busy;
+        paint();
+      }
       // A soft halo on green when he is standing at a platform: the only
       // nudge in the game, and it goes away the moment he sets off.
-      go.classList.toggle('invite', atStop && !moving);
+      //
+      // Not while the crane has it — and so the halo coming *back* is what
+      // says the lift is over and he may go. That is the one piece of this
+      // he has already been taught: the same halo has meant "you can set off
+      // from here" since he first picked the tablet up.
+      go.classList.toggle('invite', atStop && !moving && !busy);
     },
     show() {
       ui.hidden = false;

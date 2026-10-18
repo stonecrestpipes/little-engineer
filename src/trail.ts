@@ -44,6 +44,12 @@ export type Mark =
   | 'yard'
   /** he worked a crane: `d` is 'load', 'unload' or 'lift' */
   | 'crane'
+  /**
+   * he pressed to drive, or pressed the crane again, while a lift had the
+   * buttons: `d` is which button. Every one of these is him being told to
+   * wait, so a run of them says the eight seconds is too long for him.
+   */
+  | 'held'
   /** he touched the world and nothing answered. `m` says where he was. */
   | 'nothing'
   /** he dragged the view round: `d` is how far, in pixels */

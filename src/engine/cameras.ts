@@ -82,7 +82,10 @@ const CANOPY_CLEAR = 1.2;
  * Standing still at The Sheds the rig turns to face the yard by itself, which
  * is the only way the spare engines and cars are ever big enough to pick out
  * from under the driving buttons. Pressing the camera button gives him his
- * view back.
+ * view back. A crane in the middle of a lift takes the view the same way, for
+ * the eight seconds it is working, and for the same reason: the thing he
+ * pressed the button to see is nine to fourteen metres off the side of the
+ * track, which is outside every shot that is framed on the train.
  *
  * Switching views glides rather than cuts. Moving between trackside anchors
  * does cut, because that reads as a new shot rather than a lurch.
@@ -108,6 +111,8 @@ export class CameraRig {
   /** How far in or out the pinch has taken it, as a multiple of the shot's reach. */
   private zoom = 1;
   private yard = false;
+  /** The lift being watched, if the view has been turned to one. */
+  private crane: { position: THREE.Vector3; target: THREE.Vector3 } | null = null;
   /** End to end of engine and cars, so `above` frames whatever he is pulling. */
   private trainLength = 6;
 
@@ -161,6 +166,23 @@ export class CameraRig {
     return this.yard;
   }
 
+  /**
+   * Watch a lift, or stop watching it. Called every frame with the shot of
+   * whichever crane is working, so it is safe to spam.
+   *
+   * Unlike the yard this overrides whichever view he is in, including `wide`
+   * — a lift lasts eight seconds and is the direct answer to a button he has
+   * just pressed, so showing him what he pressed is the same reasoning as
+   * `toTrain` coming down to the train when he presses green. Pressing the
+   * camera button during one hands it straight back; see src/main.ts.
+   */
+  showCrane(shot: { position: THREE.Vector3; target: THREE.Vector3 } | null): void {
+    if (shot === this.crane) return;
+    this.crane = shot;
+    // Coming back out, a trackside shot picks itself again from where he is.
+    if (!shot && this.view === 'trackside') this.settled = false;
+  }
+
   /** He dragged across the screen: swing the view by that much. */
   nudge(dx: number, dy: number): void {
     this.swing = THREE.MathUtils.clamp(this.swing - dx * SWING_RATE, -MAX_SWING, MAX_SWING);
@@ -199,7 +221,10 @@ export class CameraRig {
   ): void {
     this.trainLength = trainLength;
     this.train.copy(trainPos);
-    if (this.yard) {
+    if (this.crane) {
+      this.wantPos.copy(this.crane.position);
+      this.wantAim.copy(this.crane.target);
+    } else if (this.yard) {
       this.wantPos.copy(this.opts.yard.position);
       this.wantAim.copy(this.opts.yard.target);
     } else {
@@ -253,7 +278,7 @@ export class CameraRig {
     }
 
     // Exponential smoothing: frame-rate independent, and it glides.
-    const k = this.view === 'trackside' && !this.yard ? 6 : 2.6;
+    const k = this.view === 'trackside' && !this.yard && !this.crane ? 6 : 2.6;
     const t = 1 - Math.exp(-k * dt);
     this.pos.lerp(this.wantPos, t);
     this.aim.lerp(this.wantAim, t);

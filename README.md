@@ -20,6 +20,37 @@ below has been in front of him yet — that is the whole of what the next go is
 for, and v0.4.1 is there to make sure that go is actually recorded. Everything since has been for
 whoever holds the tablet, not for him: installing it, and getting into the panel.
 
+### v0.5.1 — the crane keeps the buttons until it has finished
+
+He asked for this in his own words: come up to one of the two places where things get loaded on and
+off, press a button, **watch it get loaded**, and then be allowed to go again. Three of those four
+were already there in v0.5.0. This is the watching, and the being allowed to go.
+
+- **The view turns to the crane.** This was the real bug, and nothing about it was broken in code:
+  the lift ran correctly nine to fourteen metres off the side of the track, which is outside every
+  shot in the game, because every shot is framed on the *train*. From the wide shot the whole thing
+  happened in a corner of the screen the size of a thumbnail. Each crane now works out its own shot
+  from the three numbers it is built from — the load point, the reach and the jib height — and holds
+  the screen for the eight seconds it is working. **Pressing the camera button hands it straight
+  back**, the same way it does in the yard.
+- **Green and R go quiet while the hook is down**, dim and flat, and come back — halo and all — the
+  moment the bundle lands. They used to do the opposite: green *settled* the lift, so the crane
+  snapped to the end of its cycle and the train pulled out. The press always worked, and the price
+  was that the one piece of machinery he had asked for most could be cut off mid-air by the button
+  nearest his thumb. **Red is never taken away from him.**
+- **The button he pressed stays on screen**, sunk onto its shadow and breathing, rather than
+  vanishing for the length of the job. A button that disappears and a button that was never there
+  look identical, and only one of them means his press worked — which is the lesson the install row
+  cost us once already.
+- **It clunks as the bundle changes hands**, twice a cycle, picked up and put down. The same clunk
+  the turntable and the shed doors make. A sound carries from the far shot, where the hook is too
+  small to read.
+
+**Eight seconds is the number to watch**, and the play log answers it without anyone having to
+remember: every press he makes while the lift has the buttons is logged as `held`. A run of them
+means waiting is beyond him, and the answer to that is a shorter cycle in `crane.ts` — not a green
+button that can cut the hook loose again.
+
 ### v0.4.5–0.4.6 — two taps on the build stamp opens the panel
 
 Nothing he sees changed. Getting into the grown-ups' panel no longer means holding a corner for three
@@ -221,15 +252,20 @@ He played the railway above and came back with seven things. All seven are in.
    looks nothing like the others and the only one with a name already on it.
 7. **Still open from last time: does he press R?** It remains the one control
    that was a guess rather than an answer to something he said.
-8. **Still open: does he leave the train running and wander off?** See open
+8. **Watch whether he can wait out a lift.** Eight seconds with green dim is
+   the only moment in the game he is told to wait for anything. The trail logs
+   every press he makes during one as `held`; a handful means he is curious,
+   a stream means the cycle is too long and should be cut.
+9. **Still open: does he leave the train running and wander off?** See open
    question 5 in [GAME_DESIGN.md](GAME_DESIGN.md) — the idle coast is designed
    and deliberately unbuilt until he has been watched.
 
 **Several of those no longer depend on remembering.** From v0.4.1 the play log
-answers 4, 7 and 8 outright — which branch, every press of R and how long it
+answers 4, 7, 8 and 9 outright — which branch, every press of R and how long it
 was held, and exactly where each sitting trails off. Copy it afterwards rather
 than trusting a recollection of a half hour spent mostly watching his face.
-What the log *cannot* tell you is 3, 5 and 6: whether he sat through the
+The lift is the same question the roundhouse swap is, and `held` answers it
+the same way. What the log *cannot* tell you is 3, 5 and 6: whether he sat through the
 roundhouse swap rather than pressing green is in the timings, but what he made
 of the numbers and the Orion Express is only on his face. Watch for those.
 

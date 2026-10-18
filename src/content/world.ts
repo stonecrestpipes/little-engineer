@@ -78,6 +78,19 @@ export interface World {
    * while he is moving, and null everywhere but the harbour and the city.
    */
   craneAt(train: TrainState): Crane | null;
+  /**
+   * The crane in the middle of a lift, if one is, and null the rest of the
+   * time — which is nearly always.
+   *
+   * It is the crane itself rather than a yes or no because two things hang
+   * off it: the driving buttons go quiet for exactly this long (see *the lift
+   * holds the buttons* in src/ui/controls.ts), and the view turns to that
+   * crane's own shot of itself. The train has to stand still for a lift
+   * anyway, since the hook comes down where the wagon is standing; what the
+   * hold adds is that it *looks* as though it has to, so the lift reads as
+   * something he set going rather than something he could walk out of.
+   */
+  craning(): Crane | null;
   /** True while somewhere is moving his engine itself — the yard, shunting. */
   shunting(): boolean;
   /** Finish any shunt at once, because he has asked to drive. */
@@ -902,6 +915,10 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
         if (!Number.isFinite(here.distance)) continue;
         if (Math.abs(lines.delta(here.distance, place.stop.at)) <= CRANE_RANGE) return place.crane;
       }
+      return null;
+    },
+    craning() {
+      for (const place of places) if (place.crane?.busy()) return place.crane;
       return null;
     },
     shunting() {

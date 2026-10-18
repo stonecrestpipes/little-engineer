@@ -208,6 +208,23 @@ html, body {
 /* Held down, it stays down: the one control that does not latch. */
 #ui #btn-back.press { background: #8fa4b1; }
 
+/*
+ * Dim and flat while a crane has them: the one moment in the game when green
+ * does not go. Both of them go together, because R would pull the wagon out
+ * from under the hook just as surely as green would.
+ *
+ * Deliberately *not* greyed out of recognition. It is the same green button
+ * in the same place, turned down — so what he reads is "not yet" rather than
+ * "gone", and when it comes back up with its halo it is the button he already
+ * knows rather than a new one appearing.
+ */
+#ui #btn-go.held,
+#ui #btn-back.held {
+  filter: saturate(0.3) brightness(0.82);
+}
+#ui #btn-go.held { box-shadow: 0 4px 0 #1b5e20, 0 7px 14px rgba(43, 58, 69, 0.2); }
+#ui #btn-back.held { box-shadow: 0 3px 0 #5b6f7c, 0 5px 10px rgba(43, 58, 69, 0.16); }
+
 /* A halo on green while he is standing at a platform: the only nudge. */
 #btn-go.invite::after {
   content: '';
@@ -503,12 +520,33 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
 #btn-crane .crane-pic { display: none; }
 #btn-crane .crane-pic.on { display: inline; }
 
+/*
+ * Pressed, and working. It stays exactly where it was rather than vanishing,
+ * sunk onto its shadow and breathing, so the button he pressed is visibly the
+ * thing that is busy — and so that the moment it lifts back up is the moment
+ * he may go. After `.press`, so a press on a button that is already working
+ * does not bob it; there is nothing there to answer.
+ */
+#ui #btn-crane.working {
+  transform: translateX(-50%) translateY(5px);
+  background: #d9b63a;
+  box-shadow: 0 3px #b8912a, 0 6px 12px #2b3a4542;
+  animation: crane-work 1.15s ease-in-out infinite;
+}
+
 @keyframes crane-in {
   0% { transform: translateX(-50%) scale(0.6); opacity: 0; }
   to { transform: translateX(-50%) scale(1); opacity: 1; }
 }
+@keyframes crane-work {
+  0%, 100% { opacity: 0.68; }
+  50%      { opacity: 1; }
+}
+/* Without the breathing it still reads as busy: sunk, duller, and dimmed. */
 @media (prefers-reduced-motion: reduce) {
-  #ui #btn-crane { animation: none; }
+  #ui #btn-crane,
+  #ui #btn-crane.working { animation: none; }
+  #ui #btn-crane.working { opacity: 0.78; }
 }
 
 #points {

@@ -93,6 +93,22 @@ export interface Crane {
   /** Where the hook comes down, in the place's frame. For the stack of logs. */
   readonly over: THREE.Vector2;
   /**
+   * Where to watch the lift from, in world space: the jib, the hook and the
+   * wagon under it, all in one frame.
+   *
+   * A crane needs a shot of its own because the default view is a shot of the
+   * *train*, aimed up the middle of the track — and this crane stands between
+   * nine and fourteen metres off to one side, which at the harbour put the
+   * mast in the very top corner of the screen and the whole swing outside it.
+   * The lift was running correctly and he could not see it happen.
+   *
+   * Worked out from the same three numbers the crane itself is built from —
+   * the load point, the reach and the jib height — so a crane moved or
+   * re-proportioned brings its camera with it rather than leaving a shot
+   * pointing at where it used to stand.
+   */
+  readonly shot: { position: THREE.Vector3; target: THREE.Vector3 };
+  /**
    * Where the hook would actually come down for a wagon `back` metres behind
    * the stop — the aim, after the clamp and the fixed-jib approximation. Only
    * the tests use it, and they use it to check that the bundle lands in the
@@ -218,6 +234,21 @@ export function buildCrane(ctx: PlaceContext, frame: THREE.Group, opts: CraneOpt
   /** Where it is aiming for this job. Set when the job starts. */
   let atTrain = squareOn;
 
+  // --- where it is watched from -------------------------------------------
+  // Behind the train and a little way round toward the crane, looking at the
+  // middle of the jib's travel: high enough that the jib top is in frame,
+  // back far enough that the wagon it is reaching into is in frame with it.
+  // Both points are built in the place's frame and then taken out to world
+  // space, because that is the only frame the camera rig knows.
+  const shot = {
+    position: frame.localToWorld(
+      new THREE.Vector3(over.x + side * 6, groundY + JIB * 0.55 + 2.5, over.y - 24),
+    ),
+    target: frame.localToWorld(
+      new THREE.Vector3(over.x + side * 1.5, groundY + liftY + 2.5, over.y),
+    ),
+  };
+
   // --- the crane ----------------------------------------------------------
   const group = new THREE.Group();
   group.position.set(stand.x, groundY, stand.y);
@@ -301,7 +332,11 @@ export function buildCrane(ctx: PlaceContext, frame: THREE.Group, opts: CraneOpt
   let drop = 0;
   let slew = 0;
 
-  const apply = (act: Step['act']): void => {
+  /**
+   * The bundle changes hands. `quiet` is for `settle`, which fires whatever
+   * is left over at once: four clunks in one frame is a noise, not a sound.
+   */
+  const apply = (act: Step['act'], quiet = false): void => {
     switch (act) {
       case 'take-stack':
         carried.visible = true;
@@ -317,7 +352,13 @@ export function buildCrane(ctx: PlaceContext, frame: THREE.Group, opts: CraneOpt
       case 'give-stack':
         carried.visible = false;
         break;
+      default:
+        return;
     }
+    // A clunk as it lands, because the hook is thirty metres away in the wide
+    // shot and a sound carries from anywhere. It is the same clunk the
+    // turntable and the shed doors make: a thing of this railway moving.
+    if (!quiet) ctx.audio.clank();
   };
 
   /** Put the crane where the numbers say it is. */
@@ -346,6 +387,7 @@ export function buildCrane(ctx: PlaceContext, frame: THREE.Group, opts: CraneOpt
   return {
     group,
     over,
+    shot,
 
     aimFor(back) {
       return hookAt(aimAt(back));
@@ -372,7 +414,7 @@ export function buildCrane(ctx: PlaceContext, frame: THREE.Group, opts: CraneOpt
       for (let i = step; i < steps.length; i++) {
         const act = steps[i].act;
         // The step in progress has already had its act applied.
-        if (act && i !== step) apply(act);
+        if (act && i !== step) apply(act, true);
       }
       rest();
     },

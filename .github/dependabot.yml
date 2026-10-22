@@ -1,0 +1,27 @@
+# Nine advisories had piled up unnoticed before this file existed, which is the
+# whole argument for it. Weekly rather than daily: this is a side project, and a
+# pull request nobody reads is worse than none.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: saturday
+    open-pull-requests-limit: 5
+    groups:
+      # three.js minors land often and need the game looked at, not just a green
+      # tick, so it is kept out of the grouped bump and arrives on its own.
+      dev-dependencies:
+        patterns: ['*']
+        exclude-patterns: ['three', '@types/three']
+        dependency-type: development
+
+  # The pinned action SHAs in deploy.yml would otherwise never move, and a
+  # stale pin is its own slow-growing problem. Dependabot rewrites the SHA and
+  # the trailing version comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: saturday

@@ -67,7 +67,14 @@ async function boot(): Promise<void> {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // PCFSoftShadowMap was removed upstream in three: the constant and its type
+  // both still exist, so nothing fails to compile — the renderer just warns
+  // and quietly uses PCFShadowMap instead. Stated outright here so the edges
+  // we actually get are the edges we asked for. The softer look would now mean
+  // VSMShadowMap, which costs a blur pass every frame and bleeds light where
+  // casters overlap, and the sun below throws one shadow map over the whole
+  // layout, so that is a change to make on purpose, not as a side effect.
+  renderer.shadowMap.type = THREE.PCFShadowMap;
 
   const scene = new THREE.Scene();
 

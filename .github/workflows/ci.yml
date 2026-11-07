@@ -1,0 +1,61 @@
+name: CI
+
+# Pull requests only. The push-to-main path is already covered by deploy.yml,
+# which runs these same three commands before it publishes, so triggering on
+# both would mean two identical runs per merge.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Nothing here publishes anything, and that is the point. This job runs
+# `npm ci` — which executes dependency install scripts — and then project code
+# from a branch nobody has reviewed yet; on a fork pull request, code written
+# by someone else entirely. So it holds the least a job can hold: read the
+# files, nothing else. No `pages`, no `id-token`, no secrets.
+#
+# It is `pull_request` rather than `pull_request_target` on purpose. The latter
+# would hand this repository's secrets to that same unreviewed code in return
+# for being able to write back to the PR, which is a poor trade for a check
+# whose entire output is a green tick.
+permissions:
+  contents: read
+
+# One run per pull request. Pushing a fixup should replace the run in flight
+# rather than queue behind it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      # Pinned to commit SHAs, and to the same SHAs deploy.yml pins, so this
+      # repository has one set of pins rather than two that drift apart. The
+      # github-actions entry in dependabot.yml rewrites the SHA and the
+      # trailing version comment together.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # The junctions and the platform stops are the two things most likely to
+      # break quietly, which is the same reason deploy.yml runs these first.
+      - run: npm test
+      # `npm run build` is `tsc --noEmit` and then the bundle, so this covers
+      # the typecheck as well.
+      - run: npm run build
+        env:
+          # Built the way it actually ships. A wrong base path breaks in a way
+          # that only appears once the assets are served from a subfolder,
+          # which is far too late to find out.
+          BASE_PATH: /${{ github.event.repository.name }}/
+
+      # `npm audit` is deliberately not a gate here. It fails on advisories
+      # that have no patched release at all — deepmerge is one today — so
+      # wiring it in would block every pull request on something no bump can
+      # fix. Dependabot is what watches dependencies, and it files a pull
+      # request that can be read and argued with. This job's job is narrower:
+      # whether the game still builds and the track still works.

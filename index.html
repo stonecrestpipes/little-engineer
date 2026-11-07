@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1">
-<meta name="theme-color" content="#2F7FC9">
+<meta name="theme-color" content="#0B0F2A">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Little Engineer</title>
@@ -15,7 +15,7 @@
 
   <div id="ui" hidden>
     <button id="btn-camera" type="button" aria-label="Change the view">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true">
         <path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
         <circle cx="12" cy="12.5" r="3.5"/>
       </svg>
@@ -27,7 +27,7 @@
     <div id="version" aria-hidden="true"></div>
 
     <button id="btn-whistle" type="button" aria-label="Whistle">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true">
         <path d="M4 9.5h3l4-3v11l-4-3H4Z" fill="currentColor"/>
         <path d="M15 8.5a5 5 0 0 1 0 7"/>
         <path d="M18 5.5a9 9 0 0 1 0 13"/>
@@ -37,7 +37,7 @@
     <!-- The two that talk, stood above the whistle: the left corner is where
          every noise in the game comes from. -->
     <button id="btn-aboard" class="say" type="button" data-say="0" aria-label="Say all aboard">
-      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true">
         <path d="M5 8a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9l-6 5v-5H8a3 3 0 0 1-3-3Z"/>
         <circle cx="16" cy="9.5" r="2.1" fill="currentColor" stroke="none"/>
         <path d="M16 12.6v4M12.8 14.4h6.4M14 20l2-3.4 2 3.4"/>
@@ -45,7 +45,7 @@
     </button>
 
     <button id="btn-steam" class="say" type="button" data-say="1" aria-label="Say full steam ahead">
-      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true">
         <path d="M5 11a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-6 5v-5H8a3 3 0 0 1-3-3Z"/>
         <circle cx="12.5" cy="15" r="2.4" fill="currentColor" stroke="none"/>
         <circle cx="18" cy="14.2" r="3" fill="currentColor" stroke="none"/>
@@ -58,7 +58,7 @@
          are about to go: down into the wagon, or up out of it. Nothing to
          read, and it is stacked above the points so the two never collide. -->
     <button id="btn-crane" type="button" hidden aria-label="Work the crane">
-      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true">
         <!-- the jib and its cable, which every picture shares -->
         <path d="M9 7h30M12 7v5"/>
         <path d="M34 7v9" stroke-width="2.2"/>
@@ -114,8 +114,8 @@
             <path d="M22 16 42 4M22 4l20 12" stroke="#d9573f" stroke-width="3.4" stroke-linecap="round"/>
             <circle cx="32" cy="10" r="2.6" fill="#f4f1e8" stroke="#d9573f" stroke-width="1.6"/>
           </g>
-          <path class="arrow" d="M40 82V64q0-12-12-12h-6" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path class="arrow" d="M26 41 14 52l12 11" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="arrow" d="M40 82V64q0-12-12-12h-6" fill="none" stroke-width="8" stroke-linecap="butt" stroke-linejoin="miter"/>
+          <path class="arrow" d="M26 41 14 52l12 11" fill="none" stroke-width="8" stroke-linecap="butt" stroke-linejoin="miter"/>
         </svg>
       </button>
       <button class="way" data-line="1" type="button" aria-label="The branch line">
@@ -166,8 +166,8 @@
               <rect x="45" y="24" width="3" height="3"/><rect x="50" y="24" width="3" height="3"/>
             </g>
           </g>
-          <path class="arrow" d="M32 82V46" fill="none" stroke-width="8" stroke-linecap="round"/>
-          <path class="arrow" d="M20 54 32 42l12 12" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="arrow" d="M32 82V46" fill="none" stroke-width="8" stroke-linecap="butt"/>
+          <path class="arrow" d="M20 54 32 42l12 12" fill="none" stroke-width="8" stroke-linecap="butt" stroke-linejoin="miter"/>
         </svg>
       </button>
     </div>
@@ -180,7 +180,7 @@
         <!-- One chevron per speed, bottom first. The ones he has not pressed
              up to yet are dim, which is the only hint that green has three
              speeds in it. -->
-        <svg viewBox="0 0 24 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 24 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true">
           <path class="chev chev-up chev-3" d="M5 11 12 4l7 7"/>
           <path class="chev chev-up chev-2" d="M5 20l7-7 7 7"/>
           <path class="chev" d="M5 29l7-7 7 7"/>
@@ -189,12 +189,12 @@
 
       <button id="btn-stop" type="button" aria-label="Stop">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <rect x="5.5" y="5.5" width="13" height="13" rx="3"/>
+          <rect x="5.5" y="5.5" width="13" height="13"/>
         </svg>
       </button>
 
       <button id="btn-back" type="button" aria-label="Back up">
-        <svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true">
           <path d="M12 17V5h5.6a3.2 3.2 0 0 1 0 6.6H12m4.6 0L21.5 17"/>
           <path d="M24 27H11m0 0 4.2-4.2M11 27l4.2 4.2"/>
         </svg>

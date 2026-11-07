@@ -88,8 +88,10 @@ export default defineConfig({
         display: 'fullscreen',
         display_override: ['fullscreen', 'standalone'],
         orientation: 'landscape',
-        background_color: '#CDEAF2',
-        theme_color: '#2F7FC9',
+        // The field and the sky from the brand guide: the install splash and
+        // the launch screen match what src/ui/style.css paints.
+        background_color: '#05070F',
+        theme_color: '#0B0F2A',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },

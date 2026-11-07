@@ -1,6 +1,29 @@
 /* What is on screen: the two that drive, the two that talk, the whistle and
    the camera. */
 
+/*
+ * The look comes from the Shakedown brand guide: flat colour, square corners,
+ * a 1px stroke, no gradients, no soft shadows, no glow. Cool is yours, warm
+ * can hurt you, and bright colour is earned by meaning something.
+ *
+ * Two places this game knowingly departs from it, both for the same reason —
+ * the world behind these buttons is a daylight railway rendered in three.js,
+ * not a dark starfield:
+ *
+ *   1. The guide's button is cyan at 12% *over the field*, which assumes the
+ *      field is near-black. At 12% over a summer sky it is invisible. So each
+ *      button carries its own field: an opaque navy plate with the 1px stroke
+ *      on top of it. It reads the same on sky, grass or ballast.
+ *   2. The guide's press is a click sound and no animation. He cannot read,
+ *      and the button moving is one of three confirmations he gets that his
+ *      press landed, so the movement stays — but it lands on a filled button
+ *      rather than sinking onto a drop shadow.
+ *
+ * Hostile pink #FF2E7E is reserved for hostile fire and nothing in this game
+ * can hurt him, so it appears nowhere below. Neither do the coin, bomb,
+ * time-warp or laser hues: there is no score here to spend or win.
+ */
+
 :root {
   --primary: 164px;
   /* Green and red. A shade under the whistle, which is still his favourite. */
@@ -9,6 +32,24 @@
   --small: 78px;
   --camera: 88px;
   --inset: 44px;
+
+  /* ------------------------------------------------- the guide's palette */
+  /* FIELD */
+  --void: #05070F;
+  --navy: #0B0F2A;
+  --bar: #1B2352;
+  /* INTERFACE */
+  --hud: #DFE8FF;
+  --label: #8FA6CC;
+  --hint: #5F7099;
+  /* BRAND — YOURS */
+  --cyan: #4AD4FF;
+  --trim: #2F7FE0;
+  --glow: #8FF7FF;
+  /* SIGNALS */
+  --warn: #FF4D6A;
+  --gold: #FFD23D;
+  --power: #5CFF9D;
 }
 
 /* Keep the controls reachable if the window is shorter than a tablet. */
@@ -29,8 +70,11 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #cdeaf2;
-  font-family: 'Fredoka', 'Trebuchet MS', system-ui, sans-serif;
+  background: var(--void);
+  /* The guide pairs its pixel font with the system monospace for labels.
+     There is no font file to load — the policy is that this game talks to
+     nobody — so the monospace stack is the whole of it. */
+  font-family: ui-monospace, Consolas, Menlo, 'DejaVu Sans Mono', monospace;
   /* nothing in this game is scrollable, zoomable or selectable */
   overscroll-behavior: none;
   touch-action: none;
@@ -51,16 +95,21 @@ html, body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  /* A stacking context of its own, so the halo behind the green button
-     (z-index -1) stays above the canvas instead of disappearing behind it. */
+  /* A stacking context of its own, so everything in here paints above the
+     canvas rather than fighting it for paint order. */
   z-index: 0;
 }
 #ui[hidden] { display: none; }
 
+/*
+ * Every control is the same object: a navy plate, a 1px stroke in its own
+ * colour, and a pixel-flat icon. A button says which it is with three custom
+ * properties and nothing else — `--accent` for the icon, `--edge` for the
+ * stroke, `--fill` for the moment it is pressed.
+ */
 #ui button {
   position: absolute;
   pointer-events: auto;
-  border: none;
   padding: 0;
   margin: 0;
   display: flex;
@@ -68,46 +117,53 @@ html, body {
   justify-content: center;
   font-family: inherit;
   font-weight: 600;
-  color: #fff;
+  /* Square corners, flat fill, 1px stroke, and no shadow under any of them. */
+  border: 1px solid var(--edge, rgba(74, 212, 255, 0.55));
+  border-radius: 0;
+  background: var(--navy);
+  box-shadow: none;
+  color: var(--accent, var(--hud));
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 90ms ease, box-shadow 90ms ease, opacity 220ms ease, filter 160ms ease;
+  transition: transform 90ms ease, background 90ms ease, opacity 220ms ease, filter 160ms ease;
 }
 
 #ui button svg { width: 32%; height: auto; display: block; }
 
-/* The whistle is his favourite thing, so it gets the corner to itself. */
+/* The whistle is his favourite thing, so it gets the corner to itself.
+   Gold is a UI-only hue in the guide, which is exactly what this is. */
 #ui #btn-whistle {
   left: var(--inset);
   bottom: var(--inset);
   width: var(--primary);
   height: var(--primary);
-  border-radius: 50%;
-  background: #f0b23e;
-  color: #3a2a10;
-  box-shadow: 0 8px 0 #b8812a, 0 14px 24px rgba(43, 58, 69, 0.26);
+  --accent: var(--gold);
+  --edge: rgba(255, 210, 61, 0.55);
+  --fill: rgba(255, 210, 61, 0.55);
 }
 #ui #btn-whistle svg { width: 52%; }
 
 /* The `#ui button` rule above is a tag more specific than a bare id, so the
    colour has to be set at the same strength or the icon is painted white on
-   a white button and the control looks blank. It was, for a while. */
+   a white button and the control looks blank. It was, for a while. Driving it
+   through `--accent` sidesteps that: a custom property set on the element
+   wins however weak the selector that set it. */
 #ui #btn-camera {
   left: 32px;
   top: 32px;
   width: var(--camera);
   height: var(--camera);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  color: #2b3a45;
-  box-shadow: 0 4px 0 rgba(43, 58, 69, 0.22), 0 8px 18px rgba(43, 58, 69, 0.18);
+  --accent: var(--hud);
+  --edge: rgba(74, 212, 255, 0.55);
+  --fill: rgba(74, 212, 255, 0.55);
 }
 #ui #btn-camera svg { width: 50%; }
 
-/* Pressed: the button physically moves. One of three confirmations. */
+/* Pressed: the button physically moves and fills. One of three confirmations. */
 #ui button.press {
-  transform: translateY(7px);
-  box-shadow: 0 1px 0 rgba(43, 58, 69, 0.3);
+  transform: translateY(5px);
+  background: var(--fill, rgba(74, 212, 255, 0.55));
+  color: var(--void);
 }
 #ui #btn-camera.press { transform: translateY(3px); }
 
@@ -121,24 +177,23 @@ html, body {
   bottom: calc(var(--inset) + var(--primary) + 14px);
   width: var(--small);
   height: var(--small);
-  border-radius: 50%;
 }
 #ui .say svg { width: 54%; }
 
 #ui #btn-aboard {
   left: var(--inset);
-  background: rgba(255, 255, 255, 0.92);
-  color: #2b3a45;
-  box-shadow: 0 5px 0 rgba(43, 58, 69, 0.2), 0 9px 16px rgba(43, 58, 69, 0.2);
+  --accent: var(--hud);
+  --edge: rgba(223, 232, 255, 0.55);
+  --fill: rgba(223, 232, 255, 0.55);
 }
 #ui #btn-steam {
   left: calc(var(--inset) + var(--small) + 12px);
-  background: #9ed2ea;
-  color: #1c4a63;
-  box-shadow: 0 5px 0 #6da8c4, 0 9px 16px rgba(43, 58, 69, 0.2);
+  --accent: var(--glow);
+  --edge: rgba(143, 247, 255, 0.55);
+  --fill: rgba(143, 247, 255, 0.55);
 }
 /* While it is talking, so a second press is obviously a second press. */
-#ui .say.saying { filter: brightness(1.12); }
+#ui .say.saying { filter: brightness(1.25); }
 
 /* -------------------------------------------------------------- the drive */
 
@@ -157,28 +212,30 @@ html, body {
   right: var(--inset);
   width: var(--drive);
   height: var(--drive);
-  border-radius: 50%;
 }
 
+/* Green is the guide's power hue, red its warning hue. Warm can hurt you and
+   cool cannot — except here, where the warm button is the one that stops the
+   train, and is the safest thing on the screen. */
 #ui #btn-go {
   bottom: calc(var(--inset) + var(--drive) + 16px);
-  background: #2e7d32;
-  color: #eafce5;
-  box-shadow: 0 8px 0 #1b5e20, 0 14px 24px rgba(43, 58, 69, 0.26);
+  --accent: var(--power);
+  --edge: rgba(92, 255, 157, 0.55);
+  --fill: rgba(92, 255, 157, 0.55);
 }
 #ui #btn-go svg { width: 42%; }
 
 #ui #btn-stop {
   bottom: var(--inset);
-  background: #d5392c;
-  color: #fff3f1;
-  box-shadow: 0 8px 0 #9c2419, 0 14px 24px rgba(43, 58, 69, 0.26);
+  --accent: var(--warn);
+  --edge: rgba(255, 77, 106, 0.55);
+  --fill: rgba(255, 77, 106, 0.55);
 }
 #ui #btn-stop svg { width: 36%; }
 
 /* Whichever one is being obeyed is the bright one. */
 #ui #btn-go:not(.on),
-#ui #btn-stop:not(.on) { filter: saturate(0.78) brightness(0.97); }
+#ui #btn-stop:not(.on) { filter: saturate(0.78) brightness(0.9); }
 
 /*
  * The chevrons above the one he is on are dim, which is the only hint that
@@ -199,14 +256,11 @@ html, body {
   bottom: var(--inset);
   width: var(--small);
   height: var(--small);
-  border-radius: 50%;
-  background: #7b8f9c;
-  color: #fff;
-  box-shadow: 0 5px 0 #5b6f7c, 0 9px 16px rgba(43, 58, 69, 0.2);
+  --accent: var(--hud);
+  --edge: rgba(143, 166, 204, 0.55);
+  --fill: rgba(143, 166, 204, 0.55);
 }
 #ui #btn-back svg { width: 58%; }
-/* Held down, it stays down: the one control that does not latch. */
-#ui #btn-back.press { background: #8fa4b1; }
 
 /*
  * Dim and flat while a crane has them: the one moment in the game when green
@@ -215,25 +269,45 @@ html, body {
  *
  * Deliberately *not* greyed out of recognition. It is the same green button
  * in the same place, turned down — so what he reads is "not yet" rather than
- * "gone", and when it comes back up with its halo it is the button he already
+ * "gone", and when it comes back up with its ring it is the button he already
  * knows rather than a new one appearing.
+ *
+ * This is the guide's LOCKED state, which it already had a recipe for: the
+ * stroke drops to a fifth and the icon goes to the hint colour.
  */
 #ui #btn-go.held,
 #ui #btn-back.held {
-  filter: saturate(0.3) brightness(0.82);
+  --accent: var(--hint);
+  --edge: rgba(143, 166, 204, 0.18);
+  filter: none;
 }
-#ui #btn-go.held { box-shadow: 0 4px 0 #1b5e20, 0 7px 14px rgba(43, 58, 69, 0.2); }
-#ui #btn-back.held { box-shadow: 0 3px 0 #5b6f7c, 0 5px 10px rgba(43, 58, 69, 0.16); }
 
-/* A halo on green while he is standing at a platform: the only nudge. */
-#btn-go.invite::after {
-  content: '';
-  position: absolute;
-  inset: -16px;
-  border-radius: 50%;
-  background: rgba(76, 175, 80, 0.22);
-  animation: breathe 2.4s ease-in-out infinite;
-  z-index: -1;
+/*
+ * A ring on green while he is standing at a platform: the only nudge.
+ *
+ * It used to be a soft halo. The guide has no glows in it anywhere — a blur
+ * can hide something — so the nudge is two rings stepping outward on the same
+ * breath instead, which is how the guide pulses a coin.
+ *
+ * It carries its own field, for the same reason the buttons do: a bare green
+ * line on a green field is no nudge at all, and this is the only one he gets.
+ * So the ring is a navy band with a green line on its outer edge, and it
+ * reads over grass, water or ballast alike.
+ *
+ * It is drawn on the button rather than in a pseudo-element, because a
+ * `<button>` does not paint `::before` or `::after` at all here — checked in
+ * the browser, with a plain red block that never appeared. The halo this
+ * replaces was a pseudo-element, so it is worth looking at the real tablet
+ * to see whether he was ever getting it.
+ *
+ * Two hard-edged rings with no blur in them: a spread with no blur radius is
+ * a stroke, not the drop shadow the guide is banning.
+ */
+#btn-go.invite { animation: invite-ring 2.4s ease-in-out infinite; }
+
+@keyframes invite-ring {
+  0%, 100% { box-shadow: 0 0 0 8px var(--navy), 0 0 0 10px rgba(92, 255, 157, 0.6); }
+  50%      { box-shadow: 0 0 0 16px var(--navy), 0 0 0 19px rgba(92, 255, 157, 0.95); }
 }
 
 @keyframes breathe {
@@ -262,9 +336,15 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   font-size: 13px;
   font-weight: 600;
+  letter-spacing: 1.2px;
   font-variant-numeric: tabular-nums;
-  color: rgba(43, 58, 69, 0.42);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  /* It used to be dark text with a white shadow under it, which is how it
+     stayed readable over anything. There are no shadows here, so it gets a
+     field of its own instead — the same navy plate the buttons sit on, drawn
+     by the padding that was already there for the touch target. */
+  background: var(--navy);
+  color: var(--label);
+  text-shadow: none;
 }
 
 /* ------------------------------------------------------------------ boot */
@@ -278,7 +358,8 @@ html, body {
   justify-content: center;
   gap: 22px;
   padding: 0 32px;
-  background: linear-gradient(180deg, #8fcfe9 0%, #cdeaf2 60%, #9fd07a 100%);
+  /* The splash is the void, flat. No gradient: the guide has none anywhere. */
+  background: var(--void);
   transition: opacity 420ms ease;
   z-index: 10;
 }
@@ -287,39 +368,40 @@ html, body {
 .boot-face {
   width: 128px;
   height: 128px;
-  border-radius: 50%;
-  background: #faf7f0;
-  border: 11px solid #1e5e9b;
-  box-shadow: 0 10px 26px rgba(43, 58, 69, 0.22);
+  background: var(--navy);
+  border: 4px solid var(--cyan);
+  box-shadow: none;
   animation: breathe 2s ease-in-out infinite;
 }
 
-/* He cannot read it. It is there so whoever hands him the tablet can. */
+/* He cannot read it. It is there so whoever hands him the tablet can.
+   All caps, because in the guide type is always all caps. */
 #boot-hello {
   margin: 0;
   max-width: 22ch;
   text-align: center;
-  font-size: clamp(20px, 3.4vw, 34px);
+  font-size: clamp(18px, 3vw, 30px);
   font-weight: 600;
-  line-height: 1.25;
-  color: #1e5e9b;
-  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
+  line-height: 1.3;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-shadow: none;
 }
 #boot-hello:empty { display: none; }
 
 .boot-bar {
   width: 190px;
   height: 12px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(74, 212, 255, 0.55);
+  background: transparent;
   overflow: hidden;
 }
 .boot-bar i {
   display: block;
   width: 40%;
   height: 100%;
-  border-radius: 6px;
-  background: #2f7fc9;
+  background: var(--trim);
   animation: slide 1.15s ease-in-out infinite;
 }
 @keyframes slide {
@@ -328,7 +410,12 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #btn-go.invite::after, .boot-face, .boot-bar i { animation: none; }
+  .boot-face, .boot-bar i { animation: none; }
+  /* Still a ring, just not a breathing one. */
+  #btn-go.invite {
+    animation: none;
+    box-shadow: 0 0 0 12px var(--navy), 0 0 0 15px rgba(92, 255, 157, 0.9);
+  }
 }
 
 /* ------------------------------------------------------------- grown-ups */
@@ -336,6 +423,9 @@ html, body {
 /*
  * Nothing below is for him. It is reached by holding the top-right corner for
  * three seconds, and it is written in words because the person using it reads.
+ *
+ * The guide's rule for a panel: dim the field behind it, title in HUD white at
+ * twice the size, lines in the label colour, buttons stacked at the bottom.
  */
 
 /* A faint ring that fills while the corner is held, so a grown-up knows the
@@ -346,11 +436,10 @@ html, body {
   right: 18px;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
   pointer-events: none;
   opacity: 0;
   z-index: 5;
-  background: conic-gradient(rgba(255, 255, 255, 0.9) calc(var(--fill, 0) * 1turn), rgba(255, 255, 255, 0.18) 0);
+  background: conic-gradient(var(--cyan) calc(var(--fill, 0) * 1turn), rgba(74, 212, 255, 0.18) 0);
   -webkit-mask: radial-gradient(circle, transparent 13px, #000 14px);
   mask: radial-gradient(circle, transparent 13px, #000 14px);
 }
@@ -371,9 +460,9 @@ html, body {
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(30, 45, 55, 0.45);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: #1f2d36;
+  background: rgba(5, 7, 15, 0.74);
+  font-family: ui-monospace, Consolas, Menlo, monospace;
+  color: var(--hud);
   touch-action: auto;
 }
 #parents[hidden] { display: none; }
@@ -383,9 +472,10 @@ html, body {
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  background: #fbfcfd;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(20, 30, 40, 0.35);
+  background: var(--navy);
+  border: 1px solid var(--bar);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -397,16 +487,26 @@ html, body {
   padding: 14px 20px;
   flex-wrap: wrap;
 }
-#parents header { border-bottom: 1px solid #e3eaef; }
-#parents footer { border-top: 1px solid #e3eaef; }
-#parents h2 { margin: 0; flex: 1; font-size: 22px; }
-#parents footer small { margin-left: auto; color: #7a8a95; }
+#parents header { border-bottom: 1px solid var(--bar); }
+#parents footer { border-top: 1px solid var(--bar); }
+#parents h2 {
+  margin: 0;
+  flex: 1;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--hud);
+}
+#parents footer small { margin-left: auto; color: var(--label); }
 
 #parents .p-body {
   overflow-y: auto;
   padding: 4px 20px;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hint) var(--navy);
 }
 
 #parents .p-row {
@@ -414,38 +514,82 @@ html, body {
   align-items: center;
   gap: 16px;
   padding: 14px 0;
-  border-bottom: 1px solid #eef2f5;
+  border-bottom: 1px solid var(--bar);
   flex-wrap: wrap;
 }
 #parents .p-row:last-child { border-bottom: none; }
 #parents .p-label { flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px; }
-#parents .p-label b { font-size: 17px; }
-#parents .p-label small { color: #6b7c88; font-size: 14px; }
+#parents .p-label b { font-size: 16px; font-weight: 400; color: var(--hud); }
+/* Long reading text is the one place the guide allows a clean sans. */
+#parents .p-label small {
+  color: var(--label);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+}
 
 #parents input[type='text'] {
   font: inherit;
-  font-size: 17px;
+  font-size: 16px;
+  letter-spacing: 1.2px;
   padding: 10px 12px;
-  border: 1.5px solid #cdd8df;
-  border-radius: 10px;
+  border: 1px solid rgba(74, 212, 255, 0.55);
+  border-radius: 0;
   width: 200px;
-  background: #fff;
-  color: inherit;
+  background: rgba(74, 212, 255, 0.12);
+  color: var(--hud);
   -webkit-user-select: text;
   user-select: text;
 }
-#parents input[type='text']:focus { outline: none; border-color: #2f7fc9; }
-#parents input[type='range'] { width: 240px; accent-color: #2f7fc9; }
+#parents input[type='text']:focus { outline: none; border-color: var(--cyan); }
+
+/* The native slider paints itself a light grey, which is the one thing in
+   here that still looked like the old panel. Only the painting changes; it
+   is the same input and it still works the same way. */
+#parents input[type='range'] {
+  width: 240px;
+  height: 24px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+#parents input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  background: rgba(74, 212, 255, 0.12);
+  border: 1px solid rgba(74, 212, 255, 0.55);
+}
+#parents input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 22px;
+  margin-top: -9px;
+  border: none;
+  border-radius: 0;
+  background: var(--cyan);
+}
+#parents input[type='range']::-moz-range-track {
+  height: 6px;
+  background: rgba(74, 212, 255, 0.12);
+  border: 1px solid rgba(74, 212, 255, 0.55);
+}
+#parents input[type='range']::-moz-range-thumb {
+  width: 12px;
+  height: 22px;
+  border: none;
+  border-radius: 0;
+  background: var(--cyan);
+}
 
 #parents .p-seg {
   display: flex;
-  border: 1.5px solid #cdd8df;
-  border-radius: 12px;
+  border: 1px solid rgba(74, 212, 255, 0.55);
+  border-radius: 0;
   overflow: hidden;
 }
 #parents button {
   font: inherit;
-  font-size: 16px;
+  font-size: 14px;
+  letter-spacing: 1.2px;
   border: none;
   cursor: pointer;
   color: inherit;
@@ -454,10 +598,12 @@ html, body {
 #parents .p-seg button {
   min-width: 84px;
   padding: 11px 14px;
-  background: #fff;
+  background: rgba(74, 212, 255, 0.12);
+  color: var(--hud);
 }
-#parents .p-seg button + button { border-left: 1.5px solid #cdd8df; }
-#parents .p-seg button.on { background: #2f7fc9; color: #fff; font-weight: 600; }
+#parents .p-seg button + button { border-left: 1px solid rgba(74, 212, 255, 0.55); }
+/* Selected is the guide's filled button: navy on cyan. */
+#parents .p-seg button.on { background: rgba(74, 212, 255, 0.55); color: var(--void); font-weight: 600; }
 
 #parents .p-plates { display: grid; grid-template-columns: repeat(2, auto); gap: 10px 14px; }
 #parents .p-plates label { display: flex; align-items: center; gap: 8px; }
@@ -465,29 +611,35 @@ html, body {
 #parents .p-swatch {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
   flex: none;
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 0 0 1px var(--void);
 }
 
+/* The guide's primary button, filled; the plain ones are its standard. */
 #parents .p-done {
-  padding: 10px 22px;
-  border-radius: 12px;
-  background: #2f7fc9;
-  color: #fff;
+  padding: 14px 26px;
+  border: 1px solid var(--cyan);
+  border-radius: 0;
+  background: rgba(74, 212, 255, 0.55);
+  color: var(--void);
   font-weight: 600;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
 }
 #parents .p-plain {
-  padding: 9px 14px;
-  border-radius: 10px;
-  background: #eef2f5;
+  padding: 10px 14px;
+  border: 1px solid rgba(143, 166, 204, 0.55);
+  border-radius: 0;
+  background: rgba(143, 166, 204, 0.12);
+  color: var(--hud);
+  text-transform: uppercase;
 }
-#parents .p-plain:active { background: #dde5ea; }
-#parents .p-plain:disabled { opacity: 0.6; }
+#parents .p-plain:active { background: rgba(143, 166, 204, 0.3); }
+#parents .p-plain:disabled { opacity: 0.5; }
 
 /* A control with a line of its own underneath saying what it just did. */
 #parents .p-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-#parents .p-said { color: #6b7c88; font-size: 14px; text-align: right; max-width: 230px; }
+#parents .p-said { color: var(--label); font-size: 13px; text-align: right; max-width: 230px; }
 
 /* ---------------------------------------------------------------- points */
 
@@ -507,16 +659,15 @@ html, body {
   transform: translateX(-50%);
   width: var(--primary);
   height: var(--primary);
-  border-radius: calc(var(--primary) * 0.26);
-  background: #e8c33d;
-  color: #3a2a10;
-  box-shadow: 0 8px #b8912a, 0 14px 24px #2b3a4542;
+  --accent: var(--gold);
+  --edge: rgba(255, 210, 61, 0.55);
+  --fill: rgba(255, 210, 61, 0.55);
   animation: crane-in 320ms cubic-bezier(0.2, 1.4, 0.4, 1);
 }
 #ui #btn-crane[hidden] { display: none; }
 body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1 + 18px); }
 #ui #btn-crane svg { width: 64%; }
-#ui #btn-crane.press { transform: translateX(-50%) translateY(7px); }
+#ui #btn-crane.press { transform: translateX(-50%) translateY(5px); }
 #btn-crane .crane-pic { display: none; }
 #btn-crane .crane-pic.on { display: inline; }
 
@@ -526,11 +677,15 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
  * thing that is busy — and so that the moment it lifts back up is the moment
  * he may go. After `.press`, so a press on a button that is already working
  * does not bob it; there is nothing there to answer.
+ *
+ * With no shadow to sink onto this is the guide's SELECTED state instead: the
+ * button fills, and the icon goes dark against it.
  */
 #ui #btn-crane.working {
-  transform: translateX(-50%) translateY(5px);
-  background: #d9b63a;
-  box-shadow: 0 3px #b8912a, 0 6px 12px #2b3a4542;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(255, 210, 61, 0.55);
+  border-color: var(--gold);
+  color: var(--void);
   animation: crane-work 1.15s ease-in-out infinite;
 }
 
@@ -542,7 +697,7 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
   0%, 100% { opacity: 0.68; }
   50%      { opacity: 1; }
 }
-/* Without the breathing it still reads as busy: sunk, duller, and dimmed. */
+/* Without the breathing it still reads as busy: filled, and dimmed. */
 @media (prefers-reduced-motion: reduce) {
   #ui #btn-crane,
   #ui #btn-crane.working { animation: none; }
@@ -566,10 +721,9 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
   pointer-events: auto;
   width: calc(var(--primary) * 0.86);
   height: calc(var(--primary) * 1.1);
-  border-radius: calc(var(--primary) * 0.2);
-  background: rgba(255, 255, 255, 0.92);
-  color: #2b3a45;
-  box-shadow: 0 7px 0 rgba(43, 58, 69, 0.22), 0 12px 20px rgba(43, 58, 69, 0.22);
+  --accent: var(--hud);
+  --edge: rgba(223, 232, 255, 0.55);
+  --fill: rgba(223, 232, 255, 0.55);
 }
 #ui #points .way svg { width: 74%; }
 #points .way .arrow { stroke: currentColor; }
@@ -579,18 +733,21 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
 #points .pic { display: none; }
 #points .pic.on { display: inline; }
 
+/* The way the points are set for: green arrows on a green-edged plate, the
+   same hue as the button that will take him down it. */
 #ui #points .way.on {
-  background: #2e7d32;
-  color: #fff;
-  box-shadow: 0 7px 0 #1b5e20, 0 12px 20px rgba(43, 58, 69, 0.26);
+  --accent: var(--power);
+  --edge: var(--power);
+  --fill: rgba(92, 255, 157, 0.55);
+  background: rgba(92, 255, 157, 0.18);
 }
-#points .way.on .pic { filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7)); }
+#points .way.on .pic { filter: none; }
 #points.chosen .way:not(.on) { opacity: 0.6; }
 
 /* Until he picks one, both breathe: the same invitation as the yard. */
 #points:not(.chosen) .way { animation: breathe-way 2.2s ease-in-out infinite; }
 #points:not(.chosen) .way + .way { animation-delay: -1.1s; }
-#ui #points .way.press { transform: translateY(6px); }
+#ui #points .way.press { transform: translateY(5px); }
 
 @keyframes breathe-way {
   0%, 100% { transform: scale(1); }
@@ -606,9 +763,16 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
 }
 
 /* The scrapbook at the top of the grown-ups' panel. */
-#parents .p-section { padding: 14px 0 6px; border-bottom: 1px solid #eef2f5; }
-#parents h3 { margin: 16px 0 8px; font-size: 15px; color: #4a5a66; }
-#parents .p-title { margin-top: 0; font-size: 17px; color: inherit; }
+#parents .p-section { padding: 14px 0 6px; border-bottom: 1px solid var(--bar); }
+#parents h3 {
+  margin: 16px 0 8px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--label);
+}
+#parents .p-title { margin-top: 0; font-size: 16px; letter-spacing: 1.2px; color: var(--hud); }
 #parents .p-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 @media (max-width: 560px) { #parents .p-tiles { grid-template-columns: repeat(2, 1fr); } }
 #parents .p-tile {
@@ -616,21 +780,27 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
   flex-direction: column;
   gap: 2px;
   padding: 12px;
-  border-radius: 12px;
-  background: #eef5fb;
+  border: 1px solid var(--bar);
+  background: transparent;
 }
-#parents .p-tile b { font-size: 22px; color: #1e5e9b; }
-#parents .p-tile small { color: #6b7c88; font-size: 13px; }
+#parents .p-tile b { font-size: 22px; font-weight: 400; color: var(--cyan); }
+#parents .p-tile small { color: var(--label); font-size: 12px; letter-spacing: 1px; }
 #parents .p-bars {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 6px 12px;
-  font-size: 15px;
+  font-size: 14px;
 }
-#parents .p-bar { height: 10px; border-radius: 5px; background: #eef2f5; overflow: hidden; }
-#parents .p-bar i { display: block; height: 100%; border-radius: 5px; background: #2e7d32; min-width: 2px; }
-#parents .p-note { margin: 14px 0 4px; color: #6b7c88; font-size: 14px; line-height: 1.5; }
+#parents .p-bar { height: 10px; border: 1px solid var(--bar); background: transparent; overflow: hidden; }
+#parents .p-bar i { display: block; height: 100%; background: var(--power); min-width: 2px; }
+#parents .p-note {
+  margin: 14px 0 4px;
+  color: var(--label);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
 /* The two ways of getting the play log off the tablet, side by side, with
    whatever just happened said underneath them. */
 #parents .p-logs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 10px 0 4px; }
@@ -643,7 +813,7 @@ body.points-up #ui #btn-crane { bottom: calc(var(--inset) + var(--primary) * 1.1
  * phone screen and typed back, so it is monospaced and selectable. */
 #parents .p-facts {
   flex-basis: 100%;
-  color: #8a99a4;
+  color: var(--hint);
   font-family: ui-monospace, Menlo, Consolas, monospace;
   font-size: 12px;
   user-select: text;

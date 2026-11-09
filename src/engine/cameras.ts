@@ -53,6 +53,20 @@ const TILT_RATE = 0.0035;
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 2.6;
 /**
+ * How far past those a pinch may push, and how fast it is pulled back.
+ *
+ * The first play log ended with seven pinch-outs in five seconds, which is
+ * what hitting the end of the travel looks like when nothing says so: the
+ * gesture is working, the view is not moving, and the only thing left to try
+ * is doing it harder. He cannot be told in words. So the view gives a tenth
+ * further than it will keep and springs back the moment he stops pushing —
+ * which is the one answer to "that is as far as it goes" that needs no
+ * reading, and the same answer every scrollable surface he will ever touch
+ * gives him.
+ */
+const GIVE = 0.1;
+const SPRING = 7;
+/**
  * And never nearer the engine than this, so a pinch cannot end up inside it.
  *
  * Measured from the train rather than from whatever the shot is aimed at —
@@ -196,12 +210,24 @@ export class CameraRig {
    */
   pinch(apart: number): void {
     if (!(apart > 0)) return;
-    this.zoom = THREE.MathUtils.clamp(this.zoom / apart, MIN_ZOOM, MAX_ZOOM);
+    // Clamped to the stretch rather than to the travel; `update` does the
+    // springing back, so pushing on against it reads as the view resisting.
+    this.zoom = THREE.MathUtils.clamp(this.zoom / apart, MIN_ZOOM * (1 - GIVE), MAX_ZOOM * (1 + GIVE));
+  }
+
+  /** Where the pinch would settle if he let go now. */
+  private get zoomHome(): number {
+    return THREE.MathUtils.clamp(this.zoom, MIN_ZOOM, MAX_ZOOM);
   }
 
   /** True while the view is anywhere other than where the shot puts it. */
   get moved(): boolean {
     return this.swing !== 0 || this.tilt !== 0 || this.zoom !== 1;
+  }
+
+  /** True while a pinch is holding the view past the end of its travel. */
+  get stretched(): boolean {
+    return this.zoom !== this.zoomHome;
   }
 
   /** Put the view back where the shot says it should be. */
@@ -221,6 +247,14 @@ export class CameraRig {
   ): void {
     this.trainLength = trainLength;
     this.train.copy(trainPos);
+    // Out of the stretch and back into the travel. Eased, so letting go is a
+    // settle rather than a snap, and landed exactly rather than approached
+    // forever, so `moved` can still tell a pinched view from an untouched one.
+    if (this.stretched) {
+      const home = this.zoomHome;
+      this.zoom += (home - this.zoom) * Math.min(1, dt * SPRING);
+      if (Math.abs(this.zoom - home) < 0.002) this.zoom = home;
+    }
     if (this.crane) {
       this.wantPos.copy(this.crane.position);
       this.wantAim.copy(this.crane.target);

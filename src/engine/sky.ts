@@ -11,6 +11,18 @@ import * as THREE from 'three';
  *
  * With the setting off it simply stays day, easing back there if it was
  * somewhere else when it was switched off.
+ *
+ * The hues are the Shakedown brand guide's, carried out of the interface and
+ * into the world: the zenith is the guide's own blue (`--trim`) and the
+ * deepest dusk its field blue (`--bar`), so the navy plates the buttons are
+ * drawn on belong to the sky behind them rather than sitting on top of a
+ * different picture. Two departures, both deliberate. Nothing here goes near
+ * the field's near-black — the paragraph above outranks the guide, and a game
+ * he cannot see is a game that has stopped. And the sun stays warm: "warm can
+ * hurt you" is a rule about what a signal means, and sunlight is not a signal.
+ *
+ * Only the dome and the fog changed hue. Every intensity below is the number
+ * it was, so the railway is lit exactly as brightly as it was before.
  */
 
 interface Look {
@@ -27,9 +39,13 @@ interface Look {
 }
 
 const DAY: Look = {
-  top: 0x7fc8e6,
-  mid: 0xc6e6f1,
-  low: 0xdcf0f4,
+  // The guide's --trim, which was this app's theme colour before the restyle
+  // and is now the top of its sky, down through the cyan family to a pale
+  // horizon. The horizon stays light on purpose: it is also the fog, so it
+  // is what the far side of the railway is seen through.
+  top: 0x3e86dc,
+  mid: 0x8fc9f0,
+  low: 0xd6eefb,
   hemiSky: 0xdcf2ff,
   hemiGround: 0x6f9455,
   hemi: 1.05,
@@ -38,9 +54,12 @@ const DAY: Look = {
   dusk: 0,
 };
 const GOLDEN: Look = {
-  top: 0x86b4dc,
-  mid: 0xe9d6b8,
-  low: 0xf7d9ac,
+  // Evening keeps its warm half — the low sky goes toward the guide's --gold
+  // rather than peach — while the zenith stays in the cool family, which is
+  // what a real evening does and what the guide asks for in the same breath.
+  top: 0x3c6fc0,
+  mid: 0xefd3a6,
+  low: 0xffd98c,
   hemiSky: 0xffe8cc,
   hemiGround: 0x6f8a4a,
   hemi: 0.92,
@@ -49,10 +68,15 @@ const GOLDEN: Look = {
   dusk: 0.15,
 };
 const DUSK: Look = {
-  top: 0x4d5e98,
-  mid: 0xb792a6,
-  low: 0xf0ae86,
-  hemiSky: 0xc4c0ea,
+  // The deepest it gets, and the one moment the game wears the brand's field
+  // outright: --bar at the zenith, cooled from the old mauve through the
+  // label blues, with the warm band left along the horizon so the far hills
+  // and the fog are still lit. The lights have not been turned down — see the
+  // intensities, unchanged — so everything is as visible as it was.
+  top: 0x1b2352,
+  mid: 0x5a6aa8,
+  low: 0xf2b184,
+  hemiSky: 0xb8c4f0,
   hemiGround: 0x5c8250,
   hemi: 0.78,
   sun: 0xffa370,

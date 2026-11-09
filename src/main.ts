@@ -330,10 +330,18 @@ async function boot(): Promise<void> {
   const points = mountPoints({
     touched: used,
     choose(way) {
-      // Marked whether or not the points will take it, because an arrow he
-      // pressed that did nothing is the more interesting of the two.
-      trail.mark('points', `${current ? current.id : 'none'}:${way}`);
-      if (current && lines.set(via(current, way === 1), train.distance)) {
+      const taken = current !== null && lines.set(via(current, way === 1), train.distance);
+      // Marked whether or not the points took it, because an arrow he pressed
+      // that did nothing is the more interesting of the two — and now the
+      // mark says which it was. The first log has him pressing the same arrow
+      // four times in seven seconds, which was read as the press going
+      // unanswered; it cannot have been, since every press that lands rings
+      // the chime. `no` is the only reading that would mean something is
+      // wrong, and it should never appear while an arrow is on screen: the
+      // arrows are only up while the engine is short of the points, which is
+      // exactly the window in which a switch is allowed.
+      trail.mark('points', `${current ? current.id : 'none'}:${way}${taken ? '' : ':no'}`);
+      if (taken) {
         points.mark(way);
         audio.chime();
       }
@@ -615,7 +623,15 @@ async function boot(): Promise<void> {
       // that is the game working as designed — but it is also the only record
       // of where he expects something to answer, which is the whole reason
       // this is worth keeping. `m` says where on the railway he was standing.
-      trail.mark('nothing');
+      //
+      // And `d` says where on the glass, as a fraction of each side, because
+      // the first log left a question the metres could not answer: ten of the
+      // sixty-four dead taps landed within a tenth of a second of letting go
+      // of R. Either a second finger was down, or he was stabbing at R and
+      // missing it — and those two want opposite fixes, one of them a bigger
+      // target under the thumb. A cluster in the corner the button is in says
+      // which, and nothing else will.
+      trail.mark('nothing', `${(e.clientX / window.innerWidth).toFixed(2)},${(e.clientY / window.innerHeight).toFixed(2)}`);
       return;
     }
     audio.chime();

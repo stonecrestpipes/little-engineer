@@ -34,7 +34,12 @@ export type Mark =
   | 'say'
   /** the camera button: `d` is the view it went to */
   | 'camera'
-  /** he touched an arrow at the points: `d` is `junction:way` */
+  /**
+   * he touched an arrow at the points: `d` is `junction:way`, with `:no` on
+   * the end if the points would not take it. `no` should never appear — the
+   * arrows are only up while a switch is still allowed — so one is a bug
+   * rather than a reading.
+   */
   | 'points'
   /** he went over a set of points: `d` is the `junction:way` actually taken */
   | 'through'
@@ -50,7 +55,13 @@ export type Mark =
    * wait, so a run of them says the eight seconds is too long for him.
    */
   | 'held'
-  /** he touched the world and nothing answered. `m` says where he was. */
+  /**
+   * he touched the world and nothing answered. `m` says where he was on the
+   * railway; `d` is where on the glass, across and down, each as a fraction
+   * of that side. The fractions are there to settle one question from the
+   * first log — whether the dead taps that land a tenth of a second after
+   * letting go of R are a second finger or a thumb missing the button.
+   */
   | 'nothing'
   /** he dragged the view round: `d` is how far, in pixels */
   | 'look'

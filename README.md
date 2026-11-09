@@ -20,6 +20,44 @@ below has been in front of him yet — that is the whole of what the next go is
 for, and v0.4.1 is there to make sure that go is actually recorded. Everything since has been for
 whoever holds the tablet, not for him: installing it, and getting into the panel.
 
+### v0.5.2 — one look, and the end of the zoom made findable
+
+Nothing here is new to play with. It is the game being made to look like one
+picture instead of two, and two things the first play log asked for.
+
+- **The interface is the Shakedown brand guide now**: flat colour, square
+  corners, a 1px stroke, no gradients and no soft shadows, in a palette where
+  a bright hue has to mean something to be spent. Every control is the same
+  object and says which one it is through three custom properties, which
+  retires an old trap — a bare id could not beat `#ui button` on colour, and
+  the camera icon once came out white on white. Two knowing departures: each
+  button carries its own opaque navy plate, because the guide's cyan-at-12%
+  assumes a near-black field and over a summer sky it is not there at all; and
+  the press still *moves*, because he cannot read and the button moving is one
+  of three confirmations he gets that his press landed.
+- **The sky is in the same palette.** The restyle stopped at the canvas and
+  left a daylight railway under a near-black interface. The zenith is now the
+  guide's own blue, evening keeps its warm half while the top of the sky stays
+  cool, and the deepest dusk wears the field outright. **The lights were not
+  touched** — every intensity in `src/engine/sky.ts` is the number it was, so
+  the railway is lit exactly as brightly as it ever was. Never night remains
+  the rule, and it is still a `sky.ts` decision rather than a stylesheet one.
+- **The zoom gives at the end of its travel and springs back.** The log ends
+  with seven pinch-outs in five seconds, which is what a clamp with no
+  feedback looks like from the outside: the gesture works, the view does not
+  move, and the only thing left to try is doing it harder. The view now gives
+  a tenth further than it will keep. Pushing against the spring reads as the
+  view resisting, which is the one answer to *that is as far as it goes* that
+  needs no reading.
+- **Two questions the next log answers by itself.** A dead tap now records
+  where on the glass it landed, as a fraction of each side, because ten of the
+  sixty-four in the first log came within a tenth of a second of letting go of
+  R — either a second finger or a thumb missing the button, and those want
+  opposite fixes. And an arrow press records whether the points took it.
+  *(The four presses of the same arrow in seven seconds were not presses going
+  unanswered: every press that lands rings the chime. He was pressing
+  something that was already true.)*
+
 ### v0.5.1 — the crane keeps the buttons until it has finished
 
 He asked for this in his own words: come up to one of the two places where things get loaded on and
@@ -234,8 +272,10 @@ He played the railway above and came back with seven things. All seven are in.
 ## The next thing to do
 
 1. Open it on the tablet, then close it and open it again. The corner should
-   read **v0.4.1**. If it does not, the panel's *Updates → Check now* says
-   outright whether there is a newer one.
+   read **v0.5.2**. If it does not, the panel's *Updates → Check now* says
+   outright whether there is a newer one. *(Two taps on that same corner stamp
+   is what opens the panel — the three-second hold still works, but there is
+   nothing to aim at.)*
 2. Hand it to him. Say nothing, as before.
 3. **Watch the roundhouse.** It is the biggest new thing and the biggest
    gamble. Does he work out that touching an engine behind an open door takes
@@ -252,20 +292,26 @@ He played the railway above and came back with seven things. All seven are in.
    looks nothing like the others and the only one with a name already on it.
 7. **Still open from last time: does he press R?** It remains the one control
    that was a guess rather than an answer to something he said.
-8. **Watch whether he can wait out a lift.** Eight seconds with green dim is
+8. **Look at whether green has a halo at all.** The invite ring was a
+   `::after` on a `<button>`, which that element does not paint — a plain red
+   block parked in the same place never appeared either — so on every build
+   before v0.5.2 the one nudge in the game may never have reached the screen.
+   It is drawn on the button itself now. If it is suddenly obvious to him,
+   that is the answer to why the first press used to take a while.
+9. **Watch whether he can wait out a lift.** Eight seconds with green dim is
    the only moment in the game he is told to wait for anything. The trail logs
    every press he makes during one as `held`; a handful means he is curious,
    a stream means the cycle is too long and should be cut.
-9. **Still open: does he leave the train running and wander off?** See open
-   question 5 in [GAME_DESIGN.md](GAME_DESIGN.md) — the idle coast is designed
-   and deliberately unbuilt until he has been watched.
+10. **Still open: does he leave the train running and wander off?** See open
+    question 5 in [GAME_DESIGN.md](GAME_DESIGN.md) — the idle coast is designed
+    and deliberately unbuilt until he has been watched.
 
 **Several of those no longer depend on remembering.** From v0.4.1 the play log
-answers 4, 7, 8 and 9 outright — which branch, every press of R and how long it
+answers 4, 7, 9 and 10 outright — which branch, every press of R and how long it
 was held, and exactly where each sitting trails off. Copy it afterwards rather
 than trusting a recollection of a half hour spent mostly watching his face.
 The lift is the same question the roundhouse swap is, and `held` answers it
-the same way. What the log *cannot* tell you is 3, 5 and 6: whether he sat through the
+the same way. What the log *cannot* tell you is 3, 5, 6 and 8: whether he sat through the
 roundhouse swap rather than pressing green is in the timings, but what he made
 of the numbers and the Orion Express is only on his face. Watch for those.
 

@@ -623,6 +623,60 @@ anything needing to be unpicked.
 
 ## Build log
 
+### One look, and the end of the zoom — v0.5.2
+
+**The interface went to the Shakedown brand guide, and then the sky followed it.** The guide is
+written for a series: flat colour, square corners, a 1px stroke, no gradients, no soft shadows, and
+a palette where a bright hue has to mean something before it is spent. Every control is now the same
+object saying which one it is through three custom properties — `--accent` for the icon, `--edge`
+for the stroke, `--fill` for the press — which also retires a trap this file has recorded twice: a
+bare id could not beat `#ui button` on colour, so the camera icon once came out white on white. A
+custom property set on the element wins however weak the selector that set it.
+
+**Two departures from the guide, both because the field here is a daylight railway.** The guide's
+button is cyan at 12% over a near-black field; over a summer sky it is not there at all, so each
+button carries its own opaque navy plate with the stroke on top and reads the same over grass, water
+or ballast. And the guide's press is a click with no animation, which is a rule for players who can
+read the screen. He cannot. The button moving is one of three confirmations he gets that his press
+landed, so the movement stays — it just lands on a filled button instead of sinking onto a drop
+shadow.
+
+**The restyle stopped at the canvas, which left two pictures rather than one**: a pale summer
+afternoon under a near-black interface. The sky is now in the same palette — the zenith is the
+guide's own blue, evening keeps its warm half while the top of the sky stays cool, and the deepest
+dusk wears the field outright. **The lights were not touched.** Every intensity in `sky.ts` is the
+number it was; only the dome and the fog changed hue, so the railway is lit exactly as brightly as
+it always was. *Never night* is not negotiable against a brand guide: a game he cannot see is a game
+that has stopped. Sunlight stays warm for the same kind of reason — "warm can hurt you" is a rule
+about what a signal means, and the sun is not a signal.
+
+**The zoom now has an end he can feel.** The first play log finishes with seven pinch-outs in five
+seconds, which is what a clamp with no feedback looks like from outside: the gesture works, the view
+does not move, and the only thing left to try is doing it harder. The view gives a tenth past the
+limit and springs back when he stops pushing. Pushing against the spring reads as the view
+resisting, which is the one answer to *that is as far as it goes* that needs no reading — and the
+answer every scrollable surface he will ever touch already gives him.
+
+**Two questions handed to the next log instead of being argued about.** A dead tap now records where
+on the glass it landed, as a fraction of each side, because ten of the sixty-four in the first log
+came within a tenth of a second of letting go of R — either a second finger or a thumb missing the
+button, and those want opposite fixes, one of them a bigger target. And an arrow press records
+whether the points took it. *The four presses of the same arrow in seven seconds were not presses
+going unanswered*: every press that lands rings the chime and lights the lamp, so what that run
+shows is him pressing something that was already true. A `:no` in the next log would be a real bug,
+since the arrows are only up while a switch is still allowed.
+
+**One thing to point the real tablet at.** The invite ring on green was a `::after` on a `<button>`,
+and that element does not paint one — a plain red block parked in the same place never appeared
+either. It is drawn on the button itself now, as two hard-edged rings. On every build before this
+one, the single nudge in the game may never have reached the screen at all.
+
+**And the number in the corner.** The restyle shipped live under **0.5.1 — the same number the crane
+build went out under**, so for two builds the stamp could not tell a device which one it had, and
+that stamp is the whole of how a push is checked on the tablet. Two sibling apps already cost a
+second version bump for exactly this mistake. This is 0.5.2, and the lesson is the plain one: a
+visible change without a version bump is a change nobody can confirm arrived.
+
 ### The crane, and the first thing the play log changed
 
 The first log came back on 6 October — 728 beats, of which one sitting of 19 minutes is him and the

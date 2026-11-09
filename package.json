@@ -6,15 +6,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/build-sw.mjs",
     "preview": "vite preview --host",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:sw": "node scripts/test-sw.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
     "typescript": "^5.6.3",
     "vite": "^8.3.5",
-    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.5"
   },
   "dependencies": {

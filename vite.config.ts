@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
 
 const { version } = JSON.parse(readFileSync('./package.json', 'utf8')) as { version: string };
 
@@ -46,6 +45,58 @@ const contentSecurityPolicy: Plugin = {
 // Set BASE_PATH=/little-engineer/ at build time; defaults to root.
 const base = process.env.BASE_PATH ?? '/';
 
+/**
+ * The web app manifest, and the link to it at the end of the head.
+ *
+ * This used to come out of vite-plugin-pwa, and the values below are the ones it
+ * generated, kept field for field on purpose. Chrome keys an installed app by its
+ * `start_url`: change that string and the copy already installed on the tablet is
+ * orphaned — it stays on the home screen pointing at a URL no longer claimed by
+ * the manifest, and reinstalling adds a second icon rather than replacing it. So
+ * `start_url` and `scope` stay the absolute `base`, not the relative './' the
+ * sibling games use, however much tidier that would look.
+ *
+ * Build only, which is also how it was: `npm run dev` serves no manifest and no
+ * service worker, so the pair is only ever exercised on a real build.
+ */
+const webManifest: Plugin = {
+  name: 'little-engineer:manifest',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'manifest.webmanifest',
+      source: JSON.stringify({
+        name: 'Little Engineer',
+        short_name: 'Engineer',
+        description: 'A calm train game.',
+        start_url: base,
+        // No status bar over the sky. Falls back to standalone where fullscreen
+        // is not supported.
+        display: 'fullscreen',
+        // The field and the sky from the brand guide: the install splash and the
+        // launch screen match what src/ui/style.css paints.
+        background_color: '#05070F',
+        theme_color: '#0B0F2A',
+        lang: 'en',
+        scope: base,
+        display_override: ['fullscreen', 'standalone'],
+        orientation: 'landscape',
+        icons: [
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      }),
+    });
+  },
+  transformIndexHtml() {
+    return [
+      { tag: 'link', attrs: { rel: 'manifest', href: `${base}manifest.webmanifest` }, injectTo: 'head' },
+    ];
+  },
+};
+
 export default defineConfig({
   base,
   // Shown in the corner of the screen and at the foot of the grown-ups'
@@ -71,48 +122,6 @@ export default defineConfig({
   build: { target: 'es2022', assetsInlineLimit: 0 },
   plugins: [
     contentSecurityPolicy,
-    VitePWA({
-      // 'prompt' does not prompt anyone here — it just stops the new worker
-      // activating itself mid-play. src/ui/updates.ts decides the moment.
-      registerType: 'prompt',
-      injectRegister: false,
-      includeAssets: ['assets/**/*'],
-      manifest: {
-        name: 'Little Engineer',
-        short_name: 'Engineer',
-        description: 'A calm train game.',
-        start_url: base,
-        scope: base,
-        // No status bar over the sky. Falls back to standalone where
-        // fullscreen is not supported.
-        display: 'fullscreen',
-        display_override: ['fullscreen', 'standalone'],
-        orientation: 'landscape',
-        // The field and the sky from the brand guide: the install splash and
-        // the launch screen match what src/ui/style.css paints.
-        background_color: '#05070F',
-        theme_color: '#0B0F2A',
-        icons: [
-          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,png,jpg,webp,svg,woff2}'],
-        cleanupOutdatedCaches: true,
-        // Without this, opening the installed app with no network fails:
-        // the navigation request misses the cache and there is nothing to
-        // fall back to. This is what makes flight mode work.
-        navigateFallback: 'index.html',
-        // Take charge of pages that are already open as soon as a worker
-        // activates. Without it, the page that *installed* the worker is
-        // never controlled by one, so the `controllerchange` that is supposed
-        // to reload the app into a new build never fires for it — the update
-        // activates and the page sits there on the old build regardless.
-        // `skipWaiting` stays off: src/ui/updates.ts decides the moment.
-        clientsClaim: true,
-      },
-    }),
+    webManifest,
   ],
 });

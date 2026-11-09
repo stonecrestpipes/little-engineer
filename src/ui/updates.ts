@@ -1,4 +1,4 @@
-import { registerSW } from 'virtual:pwa-register';
+import { registerSW } from './sw';
 
 /** What came of asking the host whether there is a newer build. */
 export type UpdateCheck =

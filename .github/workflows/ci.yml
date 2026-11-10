@@ -63,8 +63,10 @@ jobs:
       - run: npm run test:sw
 
       # `npm audit` is deliberately not a gate here. It fails on advisories
-      # that have no patched release at all — deepmerge is one today — so
-      # wiring it in would block every pull request on something no bump can
-      # fix. Dependabot is what watches dependencies, and it files a pull
-      # request that can be read and argued with. This job's job is narrower:
+      # that have no patched release at all, so wiring it in would block every
+      # pull request on something no bump can fix. (deepmerge used to be the
+      # example named here; it left the lockfile, so the example went with it
+      # rather than the reasoning.) Dependabot is what watches dependencies,
+      # and it files a pull request that can be read and argued with. This
+      # job's job is narrower:
       # whether the game still builds and the track still works.

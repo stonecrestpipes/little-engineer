@@ -192,12 +192,18 @@ controls sit in the **bottom corners** where thumbs already are — never along 
 └─────────────────────────────────────────────────────┘
 ```
 
-- **GREEN** (bottom-right, upper) — press it and the engine goes. Press it again and it goes at its
-  own top speed. A third press does nothing, so there is never a wrong number of presses.
+- **GREEN** (bottom-right, upper) — press it and the engine goes, gently. Press it again and it
+  picks up; a third press sends it at its own top speed. Three notches, at 0.22, 0.55 and full
+  power (`NOTCHES` in `src/ui/controls.ts`). A fourth press does nothing, so there is never a
+  wrong number of presses.
 - **RED** (bottom-right, lower) — press it and the engine stops. Anywhere near a platform it stops
   exactly on the mark.
-- **R** (bottom-right, small, beside red) — held down, the engine creeps backwards at about a metre
-  a second. Let go and it stops. It is for easing up to a car in the yard, not for getting anywhere.
+- **R** (bottom-right, small, beside red) — held down, the engine backs up at its gentlest forward
+  speed, so it scales with the engine and with the grown-ups' speed setting (`REVERSE_FRACTION` in
+  `src/engine/train.ts`; `REVERSE_TOP` caps it at 3.5 m/s, which no engine here reaches). Let go and
+  it stops. It was a 0.42 creep for easing up to a car in the yard until the first play log showed
+  him backing 44 m to the sheds to change engines, which took 87 seconds — reverse is a going-back
+  control, not just a shunting one.
 - **WHISTLE** (bottom-left) — always available, whether moving or stopped, always responds
   instantly, and can be hammered repeatedly with no penalty or cooldown.
 - **THE TWO VOICES** (bottom-left, small, above the whistle) — one says *All aboard!* and the other
@@ -511,6 +517,14 @@ speed (slower, normal, faster for every engine), help stopping (how far out pull
 arrives), volume, a nameplate for each engine, and two resets. Later phases add their own rows.
 Everything takes effect immediately and is kept in `localStorage`; every default is the game exactly
 as it played before the panel existed.
+
+**Known gap (noted 2026-11-10): the spoken hello ignores the volume row.** `say()` in
+`src/ui/greeting.ts` takes a volume and `main.ts` passes it `settings.get().volume` for the voice
+buttons, but `sayHello()` beside it never sets `u.volume` — so with the volume at zero the greeting
+still speaks at full on the device's own level. Every other sound goes through the audio engine's
+master gain and does honour the row. The fix is one argument threaded from the `sayHello` call in
+`boot()`; it is left alone here because it changes what his son hears on the next launch, which is
+the owner's call rather than a tidy-up.
 
 ### Phase 9 — Polish *(first pass built)*
 Only for things he actually uses repeatedly. Weather, day/night, more scenery, more sounds, more

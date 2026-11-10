@@ -869,7 +869,9 @@ the colours in the engine spec gives an entirely different, original engine.
 
 ## Testing the driving without waiting
 
-In development, `window.LE` exposes `{ train, rig, world, audio, spec }`. The
+In development, `window.LE` exposes `{ train, rig, world, audio, roster, quality,
+sky, flock, consist, trail, scene, camera, renderer, THREE }` (see the end of
+`boot()` in `src/main.ts`; there is no `spec`). The
 train can be stepped directly, which is how the glide path was verified:
 
 ```js
@@ -880,7 +882,7 @@ const dt = 1 / 60;
 train.setThrottle(0);
 train.speed = 0;
 train.distance = world.track.wrap(stopAt - 120);
-train.setThrottle(1); // both presses of green
+train.setThrottle(1); // the third notch, i.e. green pressed three times
 
 let t = 0;
 while (t < 60 && !train.atStop) {
@@ -893,7 +895,8 @@ Math.abs(world.track.delta(train.distance, stopAt)); // → 0
 ```
 
 `train.setThrottle(v)` takes -1 (red) through 0 (no power) to +1 (full power);
-the green button sends 0.22 on its first press and 1 on its second.
+the green button has three notches and sends 0.22, then 0.55, then 1 (`NOTCHES`
+in `src/ui/controls.ts`). A fourth press does nothing.
 `train.setReverse(true|false)` is what R holds down.
 
 The world can be stepped by hand the same way, which is how the places are

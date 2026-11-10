@@ -20,6 +20,35 @@ below has been in front of him yet — that is the whole of what the next go is
 for, and v0.4.1 is there to make sure that go is actually recorded. Everything since has been for
 whoever holds the tablet, not for him: installing it, and getting into the panel.
 
+### v0.5.3 — the audit: green ends the swap, and the log keeps what it was built to keep
+
+Nothing here is new to play with. A full read of the code found two defects
+that would have spoiled the next watched session, and a handful of smaller ones.
+
+- **Pressing green during the roundhouse swap now ends the whole swap.** It used
+  to end only the leg in flight: the engine stayed off the rails for about ten
+  seconds while the cars drove away without it, thirty-six metres ahead. If he
+  presses green half way through the fifteen seconds — which watch-item 3 is
+  asking — the train now leaves with its engine on the front.
+- **The play log keeps `crane` and `held` beats.** They were written all
+  session and thrown away the next time the app opened, so *can he wait out a
+  lift?* read as *he never tried*. A missing kind is now a build error.
+- **If the railway cannot start** (WebGL refused, say) the loading screen stops
+  breathing and says so, instead of looking like a slow start forever.
+- **`npm run test:sw`** — the offline test — now runs in CI and before every
+  deploy, so a build that would not work in flight mode does not get published.
+- Smaller: a tap on a spare car when the train is full no longer chimes and is
+  logged as unanswered; saving the log no longer claims a success it cannot see;
+  animal and flower easing no longer runs slower on a slower tablet; the
+  trackside shot falls back to follow rather than crashing when it has nowhere
+  to stand.
+- Tests go from 51 to 87, including one that checks all sixteen ways round for
+  corners and breaks at joints.
+
+Not done, on purpose: retiring the third-party face and icons (your call — see
+*Hosting*), and a test for the green button's three notches, which needs a
+browser-like test environment this repo does not have yet.
+
 ### v0.5.2 — one look, and the end of the zoom made findable
 
 Nothing here is new to play with. It is the game being made to look like one
@@ -272,7 +301,7 @@ He played the railway above and came back with seven things. All seven are in.
 ## The next thing to do
 
 1. Open it on the tablet, then close it and open it again. The corner should
-   read **v0.5.2**. If it does not, the panel's *Updates → Check now* says
+   read **v0.5.3**. If it does not, the panel's *Updates → Check now* says
    outright whether there is a newer one. *(Two taps on that same corner stamp
    is what opens the panel — the three-second hold still works, but there is
    nothing to aim at.)*

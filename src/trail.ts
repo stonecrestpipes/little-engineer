@@ -110,19 +110,44 @@ const today = (): string => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
-const KINDS = new Set<string>([
-  'open', 'away', 'back', 'green', 'red', 'reverse', 'release', 'whistle', 'say',
-  'camera', 'points', 'through', 'arrive', 'depart', 'yard', 'nothing', 'look',
-  'pinch', 'grown-ups', 'closed',
-]);
+/**
+ * Every kind there is, as a type the compiler checks against `Mark` itself.
+ *
+ * This is a `Record<Mark, true>` and not a list for one reason: a kind that is
+ * in `Mark` but missing from here is **thrown away on the next launch**, and
+ * nothing says so. That is not hypothetical — `crane` and `held` were both
+ * missing, so every press he made while a lift held the buttons was written to
+ * the tablet, kept for the rest of that sitting, and then quietly dropped the
+ * next time the app opened. The one question those marks exist to answer
+ * ("can he wait out a lift?") read as *he never tried* however hard he tried.
+ *
+ * Written this way, the same mistake is a build error: a missing key will not
+ * compile, and so will a key that is not a `Mark`. Add a kind to the union
+ * above and the compiler tells you to add it here too.
+ */
+const KINDS_BY_NAME: Record<Mark, true> = {
+  open: true, away: true, back: true, green: true, red: true, reverse: true,
+  release: true, whistle: true, say: true, camera: true, points: true,
+  through: true, arrive: true, depart: true, yard: true, crane: true,
+  held: true, nothing: true, look: true, pinch: true, 'grown-ups': true,
+  closed: true,
+};
+const KINDS = new Set<string>(Object.keys(KINDS_BY_NAME));
 
 function empty(): Trail {
   return { since: today(), beats: [] };
 }
 
-function load(): Trail {
+/**
+ * A stored trail, as read back from whatever was on the tablet.
+ *
+ * Separate from `load` so it can be tested without standing up a window: what
+ * goes wrong here is a beat that survives being written and is then dropped on
+ * the way back in, which is invisible from inside the session that wrote it.
+ * Anything unreadable is a fresh trail — nothing in the game depends on this.
+ */
+export function read(raw: string | null): Trail {
   try {
-    const raw = window.localStorage.getItem(SAVE_KEY);
     if (!raw) return empty();
     const p = JSON.parse(raw) as Partial<Trail>;
     const t = empty();
@@ -140,6 +165,16 @@ function load(): Trail {
     }
     return t;
   } catch {
+    return empty();
+  }
+}
+
+function load(): Trail {
+  try {
+    return read(window.localStorage.getItem(SAVE_KEY));
+  } catch {
+    // Blocked storage. `read` handles unreadable contents; this is the getter
+    // itself throwing, which a private window will do.
     return empty();
   }
 }
@@ -270,9 +305,17 @@ export interface Glance {
 /** What a grown-up did in the panel is not him playing, so it is left out. */
 const HIS = (b: Beat) => b.k !== 'grown-ups' && b.k !== 'closed';
 
-/** The ones that are him deliberately doing something. */
+/**
+ * The ones that are him deliberately doing something.
+ *
+ * `crane` and `held` belong here as much as any of them. `held` especially:
+ * it is a press of green or R that the lift swallowed, so leaving it out did
+ * not merely undercount — it made a stretch of him pressing a dead button look
+ * like a stretch of him doing nothing at all, which is the opposite reading.
+ */
 const PRESSED = new Set<Mark>([
-  'green', 'red', 'reverse', 'whistle', 'say', 'camera', 'points', 'yard', 'nothing', 'look', 'pinch',
+  'green', 'red', 'reverse', 'whistle', 'say', 'camera', 'points', 'yard',
+  'crane', 'held', 'nothing', 'look', 'pinch',
 ]);
 
 const middle = (ns: number[]): number => {

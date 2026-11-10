@@ -331,8 +331,16 @@ const RIVER: [number, number][] = [
   [62, -250],
 ];
 
-export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): World {
-  // ---------------------------------------------------------------- track
+/**
+ * The railway as rails only — every segment, every joint, the sixteen whole
+ * loops and the four branches on their own — with nothing built on it.
+ *
+ * Pulled out of `buildWorld` so that it can be checked without a scene, an
+ * audio context or a roster: the things that go wrong in the track are the
+ * ones nothing on screen announces, and a check nobody can run is a check
+ * nobody runs.
+ */
+export function buildRailway(): { net: Network; loops: Route[]; branches: Route[] } {
   const net = new Network();
   for (const [id, pts] of Object.entries(SEGMENTS)) {
     net.add(id, pts.map(([x, z]) => new THREE.Vector3(x, 0, z)));
@@ -357,11 +365,45 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   const loops: Route[] = Array.from({ length: LOOPS }, (_, n) =>
     net.route(loopOf(n).map((segment) => ({ segment }))),
   );
-  const route = loops[MAIN_LINE];
   /** Just the branches, for laying rails and shaping the ground. */
   const branches: Route[] = [WOODS_WAY, WINDMILL_WAY, COAST_WAY, CITY_WAY].map((way) =>
     net.route(way.map((segment) => ({ segment })), false),
   );
+  return { net, loops, branches };
+}
+
+/** Anything tighter than this reads as a corner rather than a curve. */
+export const TIGHTEST_CURVE = 28;
+
+/**
+ * The sharpest turn anywhere on a route: its radius in metres, and how far
+ * along it is. Measured by the angle between the tangent a step behind and a
+ * step ahead, which is what the eye is doing when it decides a corner is not
+ * realistic.
+ */
+export function sharpestCurve(route: Route): { radius: number; at: number } {
+  const STEP = 1.5;
+  const a = new THREE.Vector3();
+  const b = new THREE.Vector3();
+  let worst = Infinity;
+  let where = 0;
+  for (let d = 0; d < route.length; d += 1) {
+    route.tangentAt(route.wrap(d - STEP), a);
+    route.tangentAt(route.wrap(d + STEP), b);
+    const swing = a.angleTo(b);
+    const radius = swing < 1e-6 ? Infinity : (2 * STEP) / swing;
+    if (radius < worst) {
+      worst = radius;
+      where = d;
+    }
+  }
+  return { radius: worst, at: where };
+}
+
+export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): World {
+  // ---------------------------------------------------------------- track
+  const { net, loops, branches } = buildRailway();
+  const route = loops[MAIN_LINE];
 
   // A curve this railway should never have. Checked on every one of the
   // sixteen ways round, at startup, in a development build — because the way
@@ -369,30 +411,18 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
   // follows them, and the only symptom is a four-year-old saying a corner is
   // not realistic. Which is exactly how the one-metre-twenty hairpin where the
   // woods branch used to rejoin the main line survived as long as it did.
+  //
+  // The same measurement is a test now (world.test.ts), which is the one that
+  // matters: this warning only ever reached somebody who happened to have the
+  // console open.
   if (import.meta.env.DEV) {
-    const TIGHTEST = 28;
-    const STEP = 1.5;
-    const a = new THREE.Vector3();
-    const b = new THREE.Vector3();
     for (let n = 0; n < LOOPS; n++) {
-      const loop = loops[n];
-      let worst = Infinity;
-      let where = 0;
-      for (let d = 0; d < loop.length; d += 1) {
-        loop.tangentAt(loop.wrap(d - STEP), a);
-        loop.tangentAt(loop.wrap(d + STEP), b);
-        const swing = a.angleTo(b);
-        const radius = swing < 1e-6 ? Infinity : (2 * STEP) / swing;
-        if (radius < worst) {
-          worst = radius;
-          where = d;
-        }
-      }
-      if (worst < TIGHTEST) {
+      const { radius, at } = sharpestCurve(loops[n]);
+      if (radius < TIGHTEST_CURVE) {
         console.warn(
-          `world: loop ${n} turns through a radius of ${worst.toFixed(1)} m at ` +
-            `${where.toFixed(0)} m, on ${loop.where(where).segment} — anything under ` +
-            `${TIGHTEST} m reads as a corner rather than a curve`,
+          `world: loop ${n} turns through a radius of ${radius.toFixed(1)} m at ` +
+            `${at.toFixed(0)} m, on ${loops[n].where(at).segment} — anything under ` +
+            `${TIGHTEST_CURVE} m reads as a corner rather than a curve`,
         );
       }
     }
@@ -913,7 +943,14 @@ export function buildWorld(scene: THREE.Scene, audio: Audio, roster: Roster): Wo
         // NaN while he is on a line this place cannot measure, which is the
         // whole point of reading the distance through `as`.
         if (!Number.isFinite(here.distance)) continue;
-        if (Math.abs(lines.delta(here.distance, place.stop.at)) <= CRANE_RANGE) return place.crane;
+        // Both numbers are measured along *this place's* line — `as` converted
+        // the engine's onto it — so the gap has to be taken on that line too.
+        // `lines.delta` wraps on whichever loop the engine happens to be on,
+        // which is a different length, and it only gave the right answer
+        // because the loops that matter here share their rails up to the stop.
+        if (Math.abs(loops[lineOf(place)].delta(here.distance, place.stop.at)) <= CRANE_RANGE) {
+          return place.crane;
+        }
       }
       return null;
     },

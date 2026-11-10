@@ -403,6 +403,22 @@ export function pitchedRoof(
   return shadowed(m);
 }
 
+/**
+ * How far to move toward a target this frame, so that easing takes the same
+ * *time* on a tablet that holds sixty frames and one that holds thirty.
+ *
+ * `fraction` is what you would have written as `x += (target - x) * fraction`
+ * with a 60 fps frame in mind — every place that eased its animals and flowers
+ * that way did — and this returns the same number at 60 fps, so nothing already
+ * tuned changes. At any other rate it compounds correctly: half the frames
+ * means each one goes further, instead of the whole thing taking twice as long.
+ * `cameras.ts` and `sky.ts` already ease against the clock; this is the same
+ * idea for the one-line `+= (target - x) * 0.14` form.
+ */
+export function easeBy(fraction: number, dt: number): number {
+  return 1 - Math.pow(1 - fraction, dt * 60);
+}
+
 /** Smooth 0→1 between two edges. The workhorse of the terrain. */
 export function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = THREE.MathUtils.clamp((x - edge0) / (edge1 - edge0), 0, 1);

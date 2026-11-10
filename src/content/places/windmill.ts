@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { C, mat, person, shadowed, tree } from '../scenery';
+import { C, easeBy, mat, person, shadowed, tree } from '../scenery';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
 import { moving } from '../../engine/merge';
@@ -148,7 +148,7 @@ export function buildWindmill(ctx: PlaceContext): Place {
       for (const f of flowers) {
         const target =
           FACE_UP + (nodding ? Math.sin(elapsed * 7 + f.phase) * 0.35 : Math.sin(elapsed * 0.8 + f.phase) * 0.05);
-        f.head.rotation.z += (target - f.head.rotation.z) * 0.2;
+        f.head.rotation.z += (target - f.head.rotation.z) * easeBy(0.2, dt);
       }
       miller.rotation.z = nodding ? Math.sin(elapsed * 8) * 0.14 : 0;
       station.update(elapsed);

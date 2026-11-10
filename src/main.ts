@@ -791,4 +791,20 @@ async function boot(): Promise<void> {
   window.setTimeout(() => bootEl.remove(), 500);
 }
 
-void boot();
+void boot().catch((err: unknown) => {
+  // Something went wrong before the railway ever reached the screen — a
+  // refused WebGL context, a texture that would not decode, a browser without
+  // something this needs.
+  //
+  // It used to do nothing at all. The loading screen simply went on breathing,
+  // which looks exactly like a slow start: nobody can tell "this tablet is
+  // thinking" from "this tablet is never going to finish", so the honest
+  // answer is to stop the bar and say so. On the tablet there is no console to
+  // open and no address bar to reload from, so the only place this can be said
+  // is here, in words a grown-up can act on.
+  const screen = document.getElementById('boot');
+  const line = document.getElementById('boot-hello');
+  screen?.classList.add('broken');
+  if (line) line.textContent = 'The railway would not start. Close it and open it again.';
+  console.error('little-engineer: the railway did not start', err);
+});

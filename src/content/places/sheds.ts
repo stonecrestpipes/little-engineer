@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { C, flat, mat, shadowed, smoothstep, tree } from '../scenery';
 import { MAX_CARS } from '../roster';
 import { ENGINES } from '../engines';
+import { CARS } from '../cars';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, railsNear, type Place, type PlaceContext } from './place';
 import { moving } from '../../engine/merge';
@@ -580,6 +581,27 @@ export function buildSheds(ctx: PlaceContext): Place {
   // than cars would stand two of them in the same place.
   const CAR_SLOTS = [-45, -37.8, -30.6, -23.4, -16.2, -9, -4];
 
+  // Both of these are exactly full today — five engines for five roads, seven
+  // cars for seven slots — and `i % BAYS` / `i % CAR_SLOTS.length` would not
+  // say so when they overflowed: a sixth engine would simply park inside the
+  // fifth, and an eighth car on top of the first. Adding one to the roster is
+  // the most likely edit anyone makes to this game, so the yard says no out
+  // loud rather than letting two models share a space.
+  if (import.meta.env.DEV) {
+    if (ENGINES.length > BAYS) {
+      console.warn(
+        `sheds: ${ENGINES.length} engines but only ${BAYS} roundhouse roads — ` +
+          'engines past the last road will park on top of one another',
+      );
+    }
+    if (CARS.length > CAR_SLOTS.length) {
+      console.warn(
+        `sheds: ${CARS.length} cars but only ${CAR_SLOTS.length} siding slots — ` +
+          'cars past the last slot will park on top of one another',
+      );
+    }
+  }
+
   /** Everything standing in the yard right now, and what it is. */
   let parked: {
     object: THREE.Object3D;
@@ -724,11 +746,7 @@ export function buildSheds(ctx: PlaceContext): Place {
     want[road] = 1;
     want[home] = 1;
 
-    // The new engine is his from this moment, so everything that reads the
-    // roster — the driving, the whistle, the face — is already the new one's.
-    // It simply is not on the rails yet, which is what `busy` tells the world.
     const incoming = ctx.roster.byId(toId);
-    ctx.roster.chooseEngine(toId);
 
     // --- the old one: forward off its train, then back into its own road
     shunting.start({
@@ -773,6 +791,18 @@ export function buildSheds(ctx: PlaceContext): Place {
         });
       },
     });
+
+    // The new engine is his from this moment, so everything that reads the
+    // roster — the driving, the whistle, the face — is already the new one's.
+    // It simply is not on the rails yet, which is what `busy` tells the world.
+    //
+    // Last, and not first, on purpose. Choosing it re-parks the yard, and
+    // `park` leaves alone anything the shunt is driving — so with the moves
+    // already started, neither engine is ever listed as parked while it is
+    // being driven. Done the other way round, the outgoing engine spent a
+    // moment in the parked list with `update` writing its height every frame,
+    // which was harmless only because the yard happens to be dead flat.
+    ctx.roster.chooseEngine(toId);
   }
 
   return {
@@ -785,6 +815,10 @@ export function buildSheds(ctx: PlaceContext): Place {
     },
     settle() {
       if (!shunting.busy) return;
+      // Finishes the whole chain, not just the leg in flight — see `finish`.
+      // The last leg's own `arrived` clears `swapping` and parks everything;
+      // both are repeated here because `settle` must leave the yard still
+      // whichever leg it happened to interrupt.
       shunting.finish();
       swapping = false;
       park();
@@ -826,19 +860,28 @@ export function buildSheds(ctx: PlaceContext): Place {
             return true;
           }
           swap(item.engine, train.distance);
-        } else if (item.car && ctx.roster.toggleCar(item.car)) {
-          ctx.audio.clank();
-          pilotFetched(item.slot ?? PILOT_ROAD[0]);
+          return true;
         }
+        if (!item.car) return true;
+        // A car he cannot have — the train is already as long as it goes.
+        // Saying no by saying nothing: no clank, and `false` so the touch is
+        // recorded as one the world did not answer. Chiming here claimed the
+        // tap had worked when the rake had not changed, which is the one
+        // reading the log must never get wrong, because a tap nothing answers
+        // is the best clue there is about what he expects to be able to touch.
+        if (!ctx.roster.toggleCar(item.car)) return false;
+        ctx.audio.clank();
+        pilotFetched(item.slot ?? PILOT_ROAD[0]);
         return true;
       }
-      // And a car already coupled up: tap it to take it off again.
+      // And a car already coupled up: tap it to take it off again. Taking one
+      // off is never refused, but it is asked the same way round as above so
+      // the two cannot drift apart.
       for (const car of ctx.roster.cars) {
         if (ray.intersectObject(car.group, true).length === 0) continue;
-        if (ctx.roster.toggleCar(car.spec.id)) {
-          ctx.audio.clank();
-          pilotFetched(PILOT_ROAD[0]);
-        }
+        if (!ctx.roster.toggleCar(car.spec.id)) return false;
+        ctx.audio.clank();
+        pilotFetched(PILOT_ROAD[0]);
         return true;
       }
       return false;

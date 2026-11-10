@@ -365,6 +365,15 @@ html, body {
 }
 #boot.gone { opacity: 0; pointer-events: none; }
 
+/* The railway did not start. Everything that was saying "working on it" stops
+   saying it: a bar that keeps filling while nothing is coming is the thing
+   that made a dead start look like a slow one. The face goes still, the bar
+   goes still, and the line underneath says what to do. */
+#boot.broken .boot-face,
+#boot.broken .boot-bar i { animation: none; }
+#boot.broken .boot-bar { opacity: 0.25; }
+#boot.broken .boot-face { border-color: var(--gold); }
+
 .boot-face {
   width: 128px;
   height: 128px;

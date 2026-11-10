@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { C, flat, mat, person, pitchedRoof, shadowed, tree } from '../scenery';
+import { C, easeBy, flat, mat, person, pitchedRoof, shadowed, tree } from '../scenery';
 import { buildStation } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
 import { moving } from '../../engine/merge';
@@ -131,18 +131,18 @@ export function buildFarm(ctx: PlaceContext): Place {
       }
       if (isNear(ctx.track, train, ctx.at, 28)) station.wave();
     },
-    update(_dt, elapsed) {
+    update(dt, elapsed) {
       clock = elapsed;
       const looking = elapsed < lookUntil;
       for (const s of flock) {
         // Grazing is head down and still; looking up is head up and a shuffle.
         const target = looking ? 0.95 : -0.55;
-        s.neck.rotation.z += (target - s.neck.rotation.z) * 0.14;
+        s.neck.rotation.z += (target - s.neck.rotation.z) * easeBy(0.14, dt);
         s.group.position.y +=
           ((looking ? Math.abs(Math.sin(elapsed * 5 + s.phase)) * 0.09 : 0) +
             ground(s.group.position.x, s.group.position.z) -
             s.group.position.y) *
-          0.2;
+          easeBy(0.2, dt);
       }
       farmer.rotation.z = looking ? Math.sin(elapsed * 8) * 0.14 : 0;
       station.update(elapsed);

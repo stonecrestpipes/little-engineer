@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { C, flat, mat, person, shadowed, tree } from '../scenery';
+import { C, easeBy, flat, mat, person, shadowed, tree } from '../scenery';
 import {
   clearOfRails,
   frameAt,
@@ -195,7 +195,7 @@ export function buildRanch(ctx: PlaceContext): Place {
         ctx.audio.squeak();
       }
     },
-    update(_dt, elapsed, train) {
+    update(dt, elapsed, train) {
       clock = elapsed;
       const looking = elapsed < lookUntil;
 
@@ -216,15 +216,15 @@ export function buildRanch(ctx: PlaceContext): Place {
           let turn = want - c.group.rotation.y;
           while (turn > Math.PI) turn -= Math.PI * 2;
           while (turn < -Math.PI) turn += Math.PI * 2;
-          c.group.rotation.y += turn * 0.06;
+          c.group.rotation.y += turn * easeBy(0.06, dt);
         }
-        c.head.rotation.z += ((looking ? 0.22 : -0.45) - c.head.rotation.z) * 0.12;
+        c.head.rotation.z += ((looking ? 0.22 : -0.45) - c.head.rotation.z) * easeBy(0.12, dt);
 
         // The two standing in the pool heave themselves up out of it, which
         // is the best bit.
         const standing = looking && c.wading ? 0.3 : 0;
         const bob = looking ? Math.abs(Math.sin(elapsed * 4.4 + c.phase)) * 0.07 : 0;
-        c.group.position.y += (c.rest + standing + bob - c.group.position.y) * 0.16;
+        c.group.position.y += (c.rest + standing + bob - c.group.position.y) * easeBy(0.16, dt);
         c.group.rotation.z = looking ? Math.sin(elapsed * 6 + c.phase) * 0.05 : 0;
       }
       keeper.rotation.z = looking ? Math.sin(elapsed * 7) * 0.12 : 0;

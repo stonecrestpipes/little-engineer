@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GAP_MS, glance, sittings, type Beat, type Mark } from './trail';
+import { GAP_MS, glance, read, sittings, type Beat, type Mark } from './trail';
 
 /**
  * Reading the trail is the half of it that can be wrong without anything
@@ -15,6 +15,69 @@ function beats(...spec: [Mark, number][]): Beat[] {
   const base = 1_700_000_000_000;
   return spec.map(([k, seconds]) => ({ t: base + seconds * 1000, k }));
 }
+
+/**
+ * Every kind the game can write. Listed out by hand on purpose: the point of
+ * these tests is to catch a kind that goes missing from the *other* list, and
+ * deriving both from the same place would catch nothing.
+ */
+const EVERY_KIND: Mark[] = [
+  'open', 'away', 'back', 'green', 'red', 'reverse', 'release', 'whistle',
+  'say', 'camera', 'points', 'through', 'arrive', 'depart', 'yard', 'crane',
+  'held', 'nothing', 'look', 'pinch', 'grown-ups', 'closed',
+];
+
+describe('reading a stored trail back', () => {
+  it('keeps every kind of beat the game can write', () => {
+    // The failure this is here for is invisible from inside the session that
+    // wrote the beats: they are kept all evening and dropped at the next
+    // launch. `crane` and `held` were lost that way, and they are the two the
+    // crane was built to be judged by.
+    const stored = {
+      since: '2026-01-01',
+      beats: EVERY_KIND.map((k, i) => ({ t: 1_700_000_000_000 + i * 1000, k })),
+    };
+    const back = read(JSON.stringify(stored));
+    expect(back.beats.map((b) => b.k)).toEqual(EVERY_KIND);
+    expect(back.since).toBe('2026-01-01');
+  });
+
+  it('keeps what distinguishes one beat from another', () => {
+    const stored = {
+      since: '2026-01-01',
+      beats: [{ t: 1_700_000_000_000, k: 'held', d: 'green', m: 123.4, v: 0.5 }],
+    };
+    expect(read(JSON.stringify(stored)).beats[0]).toEqual({
+      t: 1_700_000_000_000,
+      k: 'held',
+      d: 'green',
+      m: 123.4,
+      v: 0.5,
+    });
+  });
+
+  it('drops a beat that is not a kind at all, and keeps the rest', () => {
+    const stored = {
+      beats: [
+        { t: 1, k: 'green' },
+        { t: 2, k: 'not-a-kind' },
+        { t: 3, k: 'crane' },
+        { t: 4 },
+        null,
+        { t: 'soon', k: 'red' },
+      ],
+    };
+    expect(read(JSON.stringify(stored)).beats.map((b) => b.k)).toEqual(['green', 'crane']);
+  });
+
+  it('is a fresh trail when there is nothing to read, or nonsense to read', () => {
+    for (const raw of [null, '', 'not json', '{"beats":"nope"}', '[]']) {
+      const back = read(raw);
+      expect(back.beats).toEqual([]);
+      expect(typeof back.since).toBe('string');
+    }
+  });
+});
 
 describe('sittings', () => {
   it('is one sitting while the beats keep coming', () => {

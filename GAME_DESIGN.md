@@ -937,9 +937,11 @@ held at a height. The middle gear was added after watching him: full steam is qu
 bend arrives before he has decided anything about it, and without a gear between, the only way to
 have time to think was to potter.
 
-**R creeps backwards while it is held**, at 42% of the engine's gentlest forward speed, which is
-about 1.2 m/s. Pressing it at speed is a stop followed by a reversal rather than a lurch, so it
-cannot be pressed wrongly. Backing through a platform deliberately does not count as arriving.
+**R backs up while it is held**, at the engine's gentlest forward speed — about 2.8 m/s on the blue
+engine, which is the first press of green. It was 42% of that until the 2026-10-06 log showed him
+using reverse to *travel*; see "Reverse is a going-back control" above. Pressing it at speed is a
+stop followed by a reversal rather than a lurch, so it cannot be pressed wrongly. Backing through a
+platform deliberately does not count as arriving.
 
 **Hauling cars was already built** — five of them, up to three at once, chosen by walking up to them
 in the yard and tapping one. The reason it looked missing is the fourth thing he said: the controls

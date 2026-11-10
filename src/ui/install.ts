@@ -153,17 +153,6 @@ export function installState(): InstallState {
 }
 
 /**
- * True when there is an install to offer from a tap.
- *
- * False inside the installed app, which has nowhere to go: the event does not
- * fire there anyway, but a window opened before the install happened can still
- * be holding one.
- */
-export function canInstall(): boolean {
-  return installState() === 'offered';
-}
-
-/**
  * Offer it. **Must be called from inside the tap handler** — the browser only
  * allows the prompt while a gesture is still being handled, so there can be no
  * `await` before this. On a touch screen the gesture is the finger *lifting*,
@@ -197,7 +186,7 @@ export async function install(): Promise<InstallOutcome> {
   }
 }
 
-/** Told whenever the answer to `canInstall()` may have changed. */
+/** Told whenever the answer to `installState()` may have changed. */
 export function onInstallChange(f: () => void): () => void {
   watchers.add(f);
   return () => watchers.delete(f);

@@ -97,6 +97,10 @@ const SAID: Partial<Record<Mark, string>> = {
   points: 'an arrow',
   yard: 'the yard',
   crane: 'the crane',
+  // A press the lift would not take. Worth a name of its own in the panel:
+  // "the crane then a button that would not go" is the whole of the waiting
+  // question in one line.
+  held: 'a button that would not go',
   nothing: 'nothing',
   look: 'a look round',
   pinch: 'a pinch',
@@ -349,16 +353,30 @@ export function mountParentPanel(hooks: ParentHooks): void {
   const saveLog = el('button', { type: 'button', className: 'p-plain', textContent: 'Save the play log' });
   saveLog.addEventListener('click', () => {
     trail.flush();
-    const blob = new Blob([asText(__BUILD__)], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = el('a', { href: url, download: logName() });
-    document.body.append(a);
-    a.click();
-    a.remove();
+    // There is no event that says a download actually happened — an anchor
+    // click is a request, and a tablet that refuses it refuses it silently.
+    // So this says what it *asked for* rather than asserting an outcome it
+    // cannot see, and names the other button as the way out. It used to claim
+    // "Saved to wherever this tablet puts downloads" whatever happened, which
+    // is the one thing worse than failing: failing and saying it worked.
+    let url: string | null = null;
+    try {
+      const blob = new Blob([asText(__BUILD__)], { type: 'text/csv;charset=utf-8' });
+      url = URL.createObjectURL(blob);
+      const a = el('a', { href: url, download: logName() });
+      document.body.append(a);
+      a.click();
+      a.remove();
+      said('Asked for it as a file — look in Downloads. If nothing arrives, copy it instead.');
+    } catch {
+      said('This tablet would not save it. Copy it instead.');
+    }
     // Freed on the next turn of the loop rather than immediately: revoking it
     // in the same tick cancels the download on some browsers.
-    window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
-    said('Saved to wherever this tablet puts downloads.');
+    if (url !== null) {
+      const created = url;
+      window.setTimeout(() => URL.revokeObjectURL(created), 10_000);
+    }
   });
 
   const logBox = el('div', { className: 'p-logs' }, copyLog, saveLog, logSaid);

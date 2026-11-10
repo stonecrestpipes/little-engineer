@@ -333,7 +333,9 @@ thing to try is thinning the trees in `src/content/world.ts`.
   and the middle gear sits between them (the ladder is `NOTCHES` in
   `src/ui/controls.ts`),
   `coast` 1.15 m/s² with no power on (about six seconds to a halt), `brake` 3.4
-  on red, and `accel` 2.6. Reverse is 42% of `slow`, in `src/engine/train.ts`. All guesses until he drives it, and the
+  on red, and `accel` 2.6. Reverse runs at `slow` itself — `REVERSE_FRACTION`
+  1.0 in `src/engine/train.ts`, under a `REVERSE_TOP` ceiling of 3.5 that no
+  engine here reaches. All guesses until he drives it, and the
   first numbers likely to want changing. The grown-ups' panel scales top speed
   and the stopping window on the tablet without touching these.
 - **The greeting** is a sentence in `src/content/greeting.ts`, and the name in
@@ -494,16 +496,21 @@ it shows on your LAN can be opened on the tablet directly.
 ```bash
 npm run build     # typecheck + production build into dist/
 npm run preview   # serve dist/ to check the real build
-npm test          # the junctions, the platform stops and the play log
+npm test          # the junctions, the platform stops, the yard and the play log
+npm run test:sw   # the built copy serves itself with no network (needs a build first)
 ```
 
-The tests cover the three promises most likely to break quietly: that pulling
+The tests cover the promises most likely to break quietly: that pulling
 down near a platform always lands exactly on the mark (and never past it),
-that moving between loops at a junction changes nothing under the engine, and
-that the play log is read correctly — a sitting split in the wrong place, or
-an evening of fiddling in the panel counted as him playing, would give a
-confident answer to the wrong question. They also run on every push, before
-anything is deployed.
+that moving between loops at a junction changes nothing under the engine,
+that pressing green abandons the whole roundhouse swap rather than the leg of
+it that happens to be running, and that the play log is read correctly — a
+sitting split in the wrong place, a kind of beat silently dropped on the way
+back in, or an evening of fiddling in the panel counted as him playing, would
+each give a confident answer to the wrong question. `test:sw` is the other
+half: it runs the generated worker against a real build with the network
+pulled, because "works in flight mode" is the one thing that cannot be found
+out on the tablet. Both run on every push, before anything is deployed.
 
 ## Putting it on the Pixel Tablet
 
@@ -750,10 +757,13 @@ a fraction of a second so the button visibly does something, and lands exactly o
 the mark every time. Verified from 28 m down to 1 m. Outside that window it
 simply brakes.
 
-**Reverse is a creep, and it never lurches.** Holding R backs the engine up at
-42% of `slow`, about 1.2 m/s. Pressing it while still rolling forward is a stop
-followed by a reversal, never a jump, so it cannot be pressed at a wrong moment.
-Backing through a platform does not count as arriving there.
+**Reverse is a going-back control, and it never lurches.** Holding R backs the
+engine up at `slow` itself — about 2.8 m/s on the blue engine, as quick as the
+first press of green. It was a 42% creep until the first play log, where going
+back 44 m took him 87 seconds; see *Going back*. Pressing it while still
+rolling forward is a stop followed by a reversal, never a jump, so it cannot be
+pressed at a wrong moment. Backing through a platform does not count as
+arriving there.
 
 **A drag on the railway swings the view; a tap still picks.** The camera rig
 orbits whatever the current shot is looking at, clamped so it can never end up

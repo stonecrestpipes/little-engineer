@@ -45,6 +45,11 @@ jobs:
           # Project sites live at /<repo>/, so every asset URL needs that
           # prefix or the page loads and nothing else does.
           BASE_PATH: /${{ github.event.repository.name }}/
+      # The build serves itself with no network, checked against the files that
+      # are about to be published. A worker that cannot do that reaches the
+      # tablet looking perfectly fine and fails on the one trip it was built
+      # for, so it is a gate on deploying rather than a thing to remember.
+      - run: npm run test:sw
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

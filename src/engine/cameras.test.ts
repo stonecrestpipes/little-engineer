@@ -103,3 +103,32 @@ describe('the end of a pinch', () => {
     expect(rig.moved).toBe(false);
   });
 });
+
+describe('a trackside shot with nowhere to stand', () => {
+  it('falls back to the shot behind the engine instead of taking the game down', () => {
+    // A map edit that fills every spot beside the rails with trees leaves no
+    // trackside anchor at all. The rig used to read an anchor that was not
+    // there, which throws from inside the frame loop and stops everything.
+    const rig = new CameraRig(new THREE.PerspectiveCamera(60, 1.6, 0.1, 4000), ring(), {
+      wide: { position: new THREE.Vector3(0, 300, 400), target: new THREE.Vector3() },
+      tracksideAnchors: [],
+      yard: { position: new THREE.Vector3(30, 8, 30), target: new THREE.Vector3() },
+      groundAt: () => 0,
+      canopyAt: () => 0,
+    });
+    const pos = new THREE.Vector3(120, 0, 0);
+    const fwd = new THREE.Vector3(0, 0, 1);
+    while (rig.view !== 'trackside') rig.cycle();
+
+    expect(() => {
+      for (let i = 0; i < 120; i++) rig.update(1 / 60, 0, pos, fwd, true);
+    }).not.toThrow();
+
+    // And it is looking at the train from somewhere sensible: behind it, above
+    // the ground, not at the origin where an empty anchor list would put it.
+    const eye = (rig as unknown as { camera: THREE.PerspectiveCamera }).camera.position;
+    expect(Number.isFinite(eye.x) && Number.isFinite(eye.y) && Number.isFinite(eye.z)).toBe(true);
+    expect(eye.y).toBeGreaterThan(0);
+    expect(eye.distanceTo(pos)).toBeLessThan(40);
+  });
+});

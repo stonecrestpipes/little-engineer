@@ -10,7 +10,7 @@ export type ViewName = 'wide' | 'above' | 'follow' | 'trackside';
  */
 export const VIEW_ORDER: ViewName[] = ['wide', 'above', 'follow', 'trackside'];
 
-/** The two shots that are of the railway rather than of the train. */
+/** The shot that is of the railway rather than of the train. */
 const OF_THE_RAILWAY: ViewName[] = ['wide'];
 
 export interface RigOptions {
@@ -176,10 +176,6 @@ export class CameraRig {
     if (!on && this.view === 'trackside') this.settled = false;
   }
 
-  get facingYard(): boolean {
-    return this.yard;
-  }
-
   /**
    * Watch a lift, or stop watching it. Called every frame with the shot of
    * whichever crane is working, so it is safe to spam.
@@ -262,7 +258,13 @@ export class CameraRig {
       this.wantPos.copy(this.opts.yard.position);
       this.wantAim.copy(this.opts.yard.target);
     } else {
-      switch (this.view) {
+      // A map with nowhere clear to stand beside the rails has no trackside
+      // shot to give. Reading `tracksideAnchors[0]` of nothing used to throw
+      // from inside the frame loop, which takes the whole game down with it;
+      // the nearest shot that still works is the one behind the engine.
+      const shot =
+        this.view === 'trackside' && this.opts.tracksideAnchors.length === 0 ? 'follow' : this.view;
+      switch (shot) {
         case 'wide':
           this.wantPos.copy(this.opts.wide.position);
           this.wantAim.copy(this.opts.wide.target);

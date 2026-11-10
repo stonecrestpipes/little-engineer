@@ -53,6 +53,15 @@ jobs:
           # which is far too late to find out.
           BASE_PATH: /${{ github.event.repository.name }}/
 
+      # "Works with no network" is the one property this game cannot lose, and
+      # the real gate on it is flight mode on a tablet away from the house —
+      # which is far too late to find out. This runs the generated worker
+      # against the files just built, so a precache list that misses one, or an
+      # activate step that deletes the cache it just filled, fails here
+      # instead. It needs `dist`, so it goes after the build rather than into
+      # `npm test`.
+      - run: npm run test:sw
+
       # `npm audit` is deliberately not a gate here. It fails on advisories
       # that have no patched release at all — deepmerge is one today — so
       # wiring it in would block every pull request on something no bump can

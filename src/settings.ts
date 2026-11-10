@@ -54,7 +54,7 @@ export const SPEEDS = [
 
 const STOP_WINDOW: Record<StopHelp, number> = { more: 1.5, normal: 1, less: 0.6 };
 
-const DEFAULTS: Settings = {
+export const DEFAULTS: Settings = {
   speed: 1,
   stopHelp: 'normal',
   volume: 0.85,
@@ -71,14 +71,27 @@ const SAVE_KEY = 'little-engineer:settings';
 
 type Listener = (s: Settings) => void;
 
-function load(): Settings {
+/**
+ * A stored save, as read back from whatever was on the tablet.
+ *
+ * Separate from `load` so it can be tested without a window. Every field is
+ * checked, because this is the one piece of stored state that changes how the
+ * engine *drives*: a value that gets through unchecked does not look like a bad
+ * save, it looks like the game being broken. Anything unreadable is the
+ * known-good game.
+ */
+export function readSettings(raw: string | null): Settings {
   const s: Settings = { ...DEFAULTS, nameplates: {} };
   try {
-    const raw = window.localStorage.getItem(SAVE_KEY);
     if (!raw) return s;
     const p = JSON.parse(raw) as Partial<Settings> & { revision?: number };
+    if (!p || typeof p !== 'object') return s;
     if (typeof p.speed === 'number' && p.speed >= 0.5 && p.speed <= 1.5) s.speed = p.speed;
-    if (p.stopHelp && p.stopHelp in STOP_WINDOW) s.stopHelp = p.stopHelp;
+    // `hasOwn`, not `in`: `'toString' in STOP_WINDOW` is true, so a hand-edited
+    // save could slip a prototype key through and leave the stopping window
+    // NaN — after which the engine would never arrive anywhere, which reads as
+    // the red button being broken.
+    if (typeof p.stopHelp === 'string' && Object.hasOwn(STOP_WINDOW, p.stopHelp)) s.stopHelp = p.stopHelp;
     if (typeof p.volume === 'number') s.volume = Math.max(0, Math.min(1, p.volume));
     if (typeof p.greetingOn === 'boolean') s.greetingOn = p.greetingOn;
     if (typeof p.childName === 'string') s.childName = p.childName.slice(0, 24);
@@ -99,6 +112,17 @@ function load(): Settings {
     // Unreadable or blocked storage: the defaults are the game as designed.
   }
   return s;
+}
+
+function load(): Settings {
+  try {
+    return readSettings(window.localStorage.getItem(SAVE_KEY));
+  } catch {
+    // The getter itself throwing, which blocked storage in a private window
+    // will do. `readSettings` handles unreadable contents; this is the other
+    // half, and the answer is the same: the game as designed.
+    return { ...DEFAULTS, nameplates: {} };
+  }
 }
 
 class SettingsStore {

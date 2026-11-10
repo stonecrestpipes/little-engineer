@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { UP, canopyTrees, conifers, facing, mat, pitchedRoof, shadowed, type Planting } from '../scenery';
+import { UP, canopyTrees, conifers, easeBy, facing, mat, pitchedRoof, shadowed, type Planting } from '../scenery';
 import { dusk } from './station';
 import { frameAt, isNear, localGround, type Place, type PlaceContext } from './place';
 import { moving } from '../../engine/merge';
@@ -204,7 +204,7 @@ export function buildWoods(ctx: WoodsContext): Place {
         ctx.audio.owl();
       }
     },
-    update(_dt, elapsed) {
+    update(dt, elapsed) {
       clock = elapsed;
       const since = elapsed - startledAt;
       // Four seconds: a second with their heads up, then three bounding.
@@ -212,7 +212,7 @@ export function buildWoods(ctx: WoodsContext): Place {
       const bound = since > 0.9 && since < 4 ? Math.sin(((since - 0.9) / 3.1) * Math.PI) : 0;
       for (const d of deer) {
         const want = up ? 0.1 : -0.8;
-        d.neck.rotation.z += (want - d.neck.rotation.z) * 0.12;
+        d.neck.rotation.z += (want - d.neck.rotation.z) * easeBy(0.12, dt);
         // Away from the line, and back again when it has all gone quiet.
         const away = 7 * bound;
         d.group.position.x = d.home.x + Math.sin(d.phase) * away;

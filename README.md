@@ -546,6 +546,7 @@ npm run build     # typecheck + production build into dist/
 npm run preview   # serve dist/ to check the real build
 npm test          # the junctions, the platform stops, the yard and the play log
 npm run test:sw   # the built copy serves itself with no network (needs a build first)
+npm run icons     # redraws the three app icons from the mask in make-icons.mjs
 ```
 
 The tests cover the promises most likely to break quietly: that pulling
@@ -559,6 +560,15 @@ each give a confident answer to the wrong question. `test:sw` is the other
 half: it runs the generated worker against a real build with the network
 pulled, because "works in flight mode" is the one thing that cannot be found
 out on the tablet. Both run on every push, before anything is deployed.
+
+**A build by hand needs `BASE_PATH`, and must not get it from Git Bash.** The
+workflow sets it for you — a project site lives at `/little-engineer/`, and a
+build without the prefix loads its page and nothing else. Setting it from Git
+Bash is worse than forgetting it: MSYS rewrites the value into a Windows path,
+so `C:/Program Files/Git/little-engineer/` lands in the manifest's `start_url`
+and `scope`, which are the installed app's identity to the browser. From
+PowerShell, `$env:BASE_PATH = '/little-engineer/'; npm run build`; from Git
+Bash, prefix `MSYS_NO_PATHCONV=1`.
 
 ## Putting it on the Pixel Tablet
 
@@ -720,6 +730,11 @@ src/
     points.ts     the two arrows at a junction, and which pictures they wear
     wakelock.ts   keeps the screen on while he is playing
     greeting.ts   speaking, and coping when the device will not
+scripts/    tooling, run by hand or by the deploy workflow
+  make-icons.mjs  draws the three app icons from a pixel mask of the engine
+  png.mjs         the small PNG encoder behind it, shared with the sibling games
+  build-sw.mjs    writes the service worker and the list it precaches
+  test-sw.mjs     runs that worker against a real build with the network pulled
 ```
 
 ### Adding a place

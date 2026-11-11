@@ -1025,8 +1025,9 @@ and bars when it opens. It is also the most useful playtest tool the game has, s
 what he did when nobody was watching.
 
 Alongside it, the blue engine gained an **original drawn face**, switchable in the panel, and
-original app icons were drawn from it into `artwork/icons/`. Retiring the third-party imagery is
-now three small steps, listed under *Hosting* in the README.
+original app icons were drawn from it into `artwork/icons/`. Those have since been replaced in
+turn by the generated pixel-art engine of v0.5.4; retiring the last of the third-party imagery is
+now two small steps, listed under *Hosting* in the README.
 
 ### Phase 9 — a first pass of polish
 

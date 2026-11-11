@@ -1,12 +1,13 @@
 {
   "name": "little-engineer",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "private": true,
   "description": "A calm, offline train game for a four-year-old.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/build-sw.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "preview": "vite preview --host",
     "test": "vitest run",
     "test:sw": "node scripts/test-sw.mjs"

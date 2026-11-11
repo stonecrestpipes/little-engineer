@@ -20,6 +20,25 @@ below has been in front of him yet — that is the whole of what the next go is
 for, and v0.4.1 is there to make sure that go is actually recorded. Everything since has been for
 whoever holds the tablet, not for him: installing it, and getting into the panel.
 
+### v0.5.4 — the icon is the game's own engine
+
+Nothing here is new to play with either, but it is the thing the *Hosting*
+section has been waiting on.
+
+- **A new app icon, drawn in code.** The home screen had a photograph of a
+  licensed character on it. It now has the little tank engine in profile, in
+  the series' pixel-art style — hero cyan on navy, a 1px near-black outline,
+  and a puff of steam drifting back off the funnel. `npm run icons` draws all
+  three PNGs from a 22x14 mask in `scripts/make-icons.mjs`, so the icons cannot
+  drift out of the repo's control the way the last pair did, and the three
+  files together weigh 8 KB rather than 335 KB.
+- It follows the Shakedown brand guide's icon rule to the letter (§05: the hero
+  sprite on navy `#0B0F2A`, scaled by a whole number, kept inside the central
+  80% circle so the maskable crop never clips it), which puts the Engineer on
+  the same shelf as its siblings instead of beside them.
+- **The face texture is still third-party.** That is the one piece left, and
+  the steps are under *Hosting*.
+
 ### v0.5.3 — the audit: green ends the swap, and the log keeps what it was built to keep
 
 Nothing here is new to play with. A full read of the code found two defects
@@ -616,9 +635,9 @@ to choose the moment. Nobody is ever prompted.
 ## Hosting
 
 The repo is **public**, so the site is too. That was a deliberate trade to get
-it installed quickly, not the end state — the build has third-party character
-imagery in it (the face texture and the app icons) and this is a private family
-project.
+it installed quickly, not the end state — the build still has one piece of
+third-party character imagery in it (the face texture) and this is a private
+family project.
 
 What is in place: `public/robots.txt` disallows all crawlers and `index.html`
 carries `noindex, nofollow, noarchive`, so it stays out of search results.
@@ -633,12 +652,12 @@ game, not a word about who has been playing it.
 
 Tightening it later, best option first:
 
-1. **Swap in original artwork.** This is now mostly done. The blue engine has
-   an original drawn face (`originalFace` in `src/content/engines/thomas.ts`),
-   and the grown-ups' panel switches between *Familiar* and *Original*.
-   Original app icons drawn from the same face are in `artwork/icons/`. Once
-   he is happy with the new face, retiring the third-party imagery is:
-   - copy `artwork/icons/*.png` over `public/icons/`
+1. **Swap in original artwork.** The icons are done: `npm run icons` draws
+   them from a pixel mask in `scripts/make-icons.mjs`, so nothing under
+   `public/icons/` comes from anywhere but this repo. The blue engine has an
+   original drawn face (`originalFace` in `src/content/engines/thomas.ts`), and
+   the grown-ups' panel switches between *Familiar* and *Original*. Once he is
+   happy with the new face, the last of the third-party imagery goes:
    - delete `public/assets/engines/thomas/face.png` and the `faceTexture` line
    - make `originalFace` the only face (`face:` rather than `originalFace:`)
 
@@ -864,6 +883,15 @@ usable; several of the scraped ones contain the wrong subject entirely.
 Thomas & Friends characters are third-party property. Everything in `src/` is
 generic: the engine layer never names a character, and swapping the texture and
 the colours in the engine spec gives an entirely different, original engine.
+
+**The app icons are drawn in code**, not exported from anything. `npm run icons`
+runs `scripts/make-icons.mjs`, which paints a 22x14 mask of the engine in
+profile — hero cyan on navy, a 1px near-black outline, a puff of steam — and
+writes all three PNGs into `public/icons/`. That is the Shakedown brand guide's
+icon rule (§05) and its no-downloaded-assets rule (§03) in one file, and it is
+the only pixel art in the project; everything else on screen is geometry. The
+earlier hand-drawn icons are kept in `artwork/icons/` as reference, and nothing
+builds from them.
 
 ---
 
